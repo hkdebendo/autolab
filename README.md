@@ -76,4 +76,4 @@ AutoLab's outputs are **computationally predicted candidates**, not experimental
 
 ## Author
 
-**Vincent Ricardo Amoussou** · Cotonou, Benin
+**Vincent Ricardo Amoussou** · Benin
