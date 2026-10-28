@@ -227,3 +227,40 @@ def test_decomposition_through_a_polysulfide_is_flagged():
     out = e_hull(make_entry("LiS2", -1.0, "cand", "uma"), refs)  # LiS2 -> Li2S + LiS4
     assert out["e_hull"] > 0 and out["decomposition_polysulfides"] == ["LiS4"]
     assert e_hull(make_entry("Li2S", -4.4, "c2", "uma"), refs)["decomposition_polysulfides"] == []
+
+
+def _cal_rows(d_fast, d_slow, sem=0.03, fw_ok=True):
+    """Analysed calibration runs: D in 1e-5 cm2/s per temperature (600, 700, 1000 K)."""
+    fw = {"intact": fw_ok, "elements": {}}
+    return [{"role": role, "formula": f, "temperature_K": t, "D_cm2_per_s": d * 1e-5,
+             "D_sem_cm2_per_s": sem * d * 1e-5, "framework": fw if t < 1000 else {"intact": False}}
+            for role, f, ds in (("fast", "Li7P3S11", d_fast), ("slow", "Li3PS4", d_slow))
+            for t, d in zip((600, 700, 1000), ds)]
+
+
+def test_md_calibration_truth_tests():
+    k_b = 8.617333262e-5
+    arr = lambda d0, ea: [d0 * np.exp(-ea / (k_b * t)) for t in (600, 700, 1000)]
+    good = dynamics.md_calibration(_cal_rows(arr(1.5e2, 0.19), arr(3.0e3, 0.38)))
+    assert good["passed"] and all(o["ratio"] > 1 for o in good["order"])
+    assert good["barriers"]["Li7P3S11"]["low_T"]["Ea_eV"] == pytest.approx(0.19, abs=1e-6)
+    assert good["barriers"]["Li3PS4"]["low_T"]["Ea_eV"] == pytest.approx(0.38, abs=1e-6)
+    assert good["barriers"]["Li3PS4"]["literature_eV"] == config.MD_EA_LITERATURE_EV["Li3PS4"]
+    # 1000 K framework moved: reported, not tested (above the beta -> alpha transition of Li3PS4)
+    assert [f["intact"] for f in good["framework"]].count(False) == 2
+
+    reversed_order = dynamics.md_calibration(_cal_rows(arr(3.0e3, 0.38), arr(1.5e2, 0.19)))
+    assert not reversed_order["passed"] and not reversed_order["tests"]["fast_faster_than_slow"]
+    noisy = dynamics.md_calibration(_cal_rows(arr(1.1e2, 0.19), arr(1.0e2, 0.19), sem=0.3))
+    assert not noisy["tests"]["fast_faster_than_slow"]  # faster, but within the noise
+    melted = dynamics.md_calibration(_cal_rows(arr(1.5e2, 0.19), arr(3.0e3, 0.38), fw_ok=False))
+    assert not melted["passed"] and not melted["tests"]["framework_intact"]
+
+
+def test_calibration_runs_cover_every_temperature_of_both_parents():
+    parents = {"fast": {"id": "mp-641703", "formula": "Li7P3S11", "atoms": {}},
+               "slow": {"id": "mp-985583", "formula": "Li3PS4", "atoms": {}}}
+    runs = dynamics.calibration_runs(parents)
+    assert len(runs) == 2 * len(config.MD_CALIBRATION_RUNS)
+    assert {(r["temperature_K"], r["n_steps"], r["seed"]) for r in runs} == {(600, 40000, 0), (700, 30000, 0),
+                                                                             (1000, 20000, 1)}

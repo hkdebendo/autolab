@@ -185,12 +185,15 @@ gap = ap.get_prediction_pure(model_name=dossier, atoms=to_jarvis(structure))[0]
 - ✅ Même méthode avec les énergies UMA + MP2020 (28 octobre 2026) : fenêtre Li₃PS₄ 1,74-2,36 V (MP 1,72-2,34) ; interfaces avec les seules références sur l'enveloppe MP (`INTERFACE_REF_EHULL_MAX = 0`) : Li₃PS₄/LiCoO₂ −0,415 (MP −0,416), Li₃PS₄/LiFePO₄ −0,144 (MP −0,133) eV/atome, tolérance 0,05.
 - Coût : fenêtre 4-8 s ; interface à 5 éléments 16-28 s (sans compter les relaxations). À réserver au **top 20**.
 
-### 5.10 `sim/md.py` + `analysis/diffusion.py` ✅
+### 5.10 `sim/md.py` + `analysis/diffusion.py` (D par blocs : ⏳ en attente de son test de vérité)
 - Supercellule d'au moins ~10 Å de côté (`reps = ceil(10 / L)` par axe).
 - Langevin NVT, pas de 1 fs, friction 0,01/fs. Utiliser `thermalize_momenta` (et non `MaxwellBoltzmannDistribution`) et `fixcm=False` avec `ase.constraints.FixCom`.
-- Positions Li enregistrées tous les 10 pas ; trajectoire sauvegardée pour l'affichage 3D.
-- Déplacement quadratique moyen : `((pos - pos[0])**2).sum(axis=2).mean(axis=1)` ; D = pente / 6 sur la seconde moitié.
+- Positions Li enregistrées tous les 10 pas ; trajectoire sauvegardée pour l'affichage 3D. Pour chaque autre élément (P, S, …), le déplacement quadratique moyen est enregistré à chaque image (`framework_msd`) : la charpente est intacte si chaque élément autre que Li diffuse à moins de 5 % du Li (`MD_FRAMEWORK_D_RATIO_MAX`).
+- **Changement d'un paramètre ✅ (2026-10-29, validé par le propriétaire)** : D est désormais la **moyenne des D ajustés dans 4 blocs** consécutifs (`MD_D_BLOCKS`), avec, dans chaque bloc, le déplacement quadratique moyen moyenné sur de nombreux instants de départ (ajustement de L/8 à L/2) ; l'**erreur type** entre blocs donne l'incertitude (`D_sem_cm2_per_s`). L'ancien D (`((pos - pos[0])**2).sum(axis=2).mean(axis=1)`, pente / 6 sur la seconde moitié) reste calculé à côté (`D_one_origin_cm2_per_s`) pour comparaison. Raison : sur les runs de 20 ps à 1000 K (étape 9C), l'ancien D s'écartait jusqu'à 50 % de la moyenne par blocs (Li₃PS₄ : 9,5e-5 contre 6,2e-5 ± 0,4e-5 cm²/s).
+- Un candidat est « à égalité » avec son parent si |D/D(parent) − 1| ≤ 2 erreurs propagées (`MD_TIE_SIGMA`).
+- **Test de vérité de ce changement : la calibration (plan A)**, sur les deux parents seulement : β-Li₃PS₄ (mp-985583, Pnma) et Li₇P₃S₁₁ (mp-641703), à 600 K / 40 ps, 700 K / 30 ps et 1000 K / 20 ps (autre graine) (`MD_CALIBRATION_*`, `scripts/md_calibration.py`). À 600 et 700 K, sous la transition β → α de Li₃PS₄ (~746 K) : charpente intacte, et D(Li₇P₃S₁₁) > D(Li₃PS₄) de plus de 2 erreurs combinées. Barrières d'Arrhenius comparées (sans seuil) aux simulations publiées : ~0,19 eV pour Li₇P₃S₁₁, 0,35–0,41 eV pour β-Li₃PS₄. À 1000 K, Li₃PS₄ peut légitimement rattraper Li₇P₃S₁₁ (barrière plus haute, phase α) : 1000 K n'est montré qu'à titre d'information.
 - Vitesse mesurée sur T4, 128 atomes : 129 ms/pas en haute précision, **65 ms/pas en précision normale**. 50 ps ≈ 55 min sur T4.
+- Kaggle T4 (torch 2.13, étape 9C, 20 ps à 1000 K) : 72–128 ms/pas pour 84–128 atomes, soit 0,56–1,16 ms par atome et par pas (les petites cellules sont plus lentes par atome) ; estimation retenue `KAGGLE_MD_MS_PER_ATOM_STEP = 1,2`.
 - 2 ps ne suffisent pas pour un D fiable (Li₃PS₄ à 800 K : plateau à ~1 Å², pas de sauts). Pour la vraie mesure : 1000-1200 K, simulations plus longues, plusieurs températures en parallèle sur Modal. Réservé au **top 3 à 5**.
 
 ### 5.11 `llm/client.py` ✅
@@ -277,6 +280,7 @@ Un module n'est terminé que si son test de vérité passe. Les tests UMA ne tou
 | Passivation LLZO | quasi stable |
 | Détecteur S–S sur Li₂S / LiS₄ | faux / vrai |
 | Client LLM : réponse JSON valide | clés présentes après ≤ 3 essais |
+| Calibration de la dynamique moléculaire (plan A, D par blocs) : Li₇P₃S₁₁ contre β-Li₃PS₄ à 600 et 700 K ⏳ | charpente P/S intacte ; D(Li₇P₃S₁₁) > D(Li₃PS₄) de plus de 2 erreurs combinées |
 
 ---
 

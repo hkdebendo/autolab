@@ -36,8 +36,8 @@ def run_part(job: dict, indices: list[int], out: Path, gpu: int) -> None:
                                                                     s["steps"])))[0]
                 else:
                     line["result"] = backend.md(task["atoms"], precision=s["precision"],
-                                                temperature_K=s["temperature_K"], n_steps=s["n_steps"],
-                                                seed=task.get("seed", 0))
+                                                temperature_K=task.get("temperature_K") or s["temperature_K"],
+                                                n_steps=task.get("n_steps") or s["n_steps"], seed=task.get("seed", 0))
             except Exception as e:  # one failed task must not lose the others
                 line["error"] = f"{type(e).__name__}: {e}"[:500]
             f.write(json.dumps(line) + "\n")

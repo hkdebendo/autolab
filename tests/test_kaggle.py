@@ -14,7 +14,7 @@ from pymatgen.core import Lattice, Structure
 from autolab import config
 from autolab.agent import dynamics
 from autolab.sim import kaggle_gpu
-from autolab.sim.backend import prefetch, relax_structures, run_md, run_md_batch
+from autolab.sim.backend import prefetch, relax_structures, run_md, run_md_batch, run_md_runs
 from autolab.sim.serialize import atoms_to_dict
 from autolab.store.cache import JsonCache
 
@@ -60,8 +60,59 @@ def test_notebook_carries_the_job_and_no_secret():
     assert '"abc1234"' in src and "HF_HUB_OFFLINE" in src
     assert "kaggle_secrets" not in src and "HF_TOKEN" not in src and "API_KEY" not in src
     meta = kaggle_gpu.metadata()
-    assert meta["kernel_sources"] == [config.KAGGLE_UMA_KERNEL] and meta["enable_gpu"] and meta["is_private"]
-    assert "docker_image" not in meta
+    assert meta["kernel_sources"] == [config.KAGGLE_UMA_KERNEL, config.KAGGLE_WHEELS_KERNEL]
+    assert meta["enable_gpu"] and meta["is_private"] and "docker_image" not in meta
+    assert "--no-index" in src and src.index("install_offline") < src.index('step("install"')  # online = fallback
+    assert config.KAGGLE_FAIRCHEM in src
+
+
+def test_wheels_notebook_runs_on_cpu_and_only_its_status_comes_back(tmp_path, monkeypatch):
+    monkeypatch.setattr(config, "CACHE_DIR", tmp_path)
+    src = "".join(kaggle_gpu.wheels_notebook("abc1234")["cells"][0]["source"])
+    assert '"abc1234"' in src and config.KAGGLE_FAIRCHEM in src
+    assert '"download"' in src and "--no-index" in src and "kaggle_secrets" not in src and "TOKEN" not in src
+    meta = kaggle_gpu.wheels_metadata()
+    assert not meta["enable_gpu"] and meta["kernel_sources"] == [] and "machine_shape" not in meta
+    calls = []
+
+    def cli(args):
+        calls.append(args)
+        if args[1] == "push":
+            assert "--accelerator" not in args  # CPU session: no GPU quota
+            return "Kernel version 1 successfully pushed."
+        if args[1] == "status":
+            return "complete"
+        out = Path(args[args.index("-p") + 1])
+        out.mkdir(parents=True, exist_ok=True)
+        (out / "wheels_status.json").write_text(json.dumps({"commit": "abc1234", "ok": True, "files": 120}))
+        return ""
+
+    status = kaggle_gpu.build_wheels(cli=cli, sleep=lambda s: None, commit="abc1234", log=lambda m: None)
+    assert status["ok"] and status["files"] == 120
+    output_calls = [c for c in calls if c[1] == "output"]
+    assert output_calls and all(c[c.index("--file-pattern") + 1] == kaggle_gpu.WHEELS_STATUS_PATTERN
+                                for c in output_calls)
+
+
+def test_md_runs_with_their_own_settings_go_in_one_session(tmp_path, monkeypatch):
+    monkeypatch.setattr(config, "CACHE_DIR", tmp_path)
+    jobs_sent = []
+
+    def run(job):
+        jobs_sent.append(job)
+        return [fake_md(t["atoms"]) for t in job["tasks"]], {}
+
+    backend = kaggle_gpu.KaggleBackend(run)
+    runs = [{"atoms": licl(5.1), "temperature_K": t, "n_steps": n, "seed": s}
+            for t, n, s in ((600, 40000, 0), (700, 30000, 0), (1000, 20000, 1))]
+    assert run_md_runs(runs, backend=backend) == 3 and len(jobs_sent) == 1
+    tasks = jobs_sent[0]["tasks"]
+    assert [(t["temperature_K"], t["n_steps"], t["seed"]) for t in tasks] == [(600, 40000, 0), (700, 30000, 0),
+                                                                             (1000, 20000, 1)]
+    assert tasks[0]["cost"] == pytest.approx(2 * tasks[2]["cost"])  # 40 ps cost twice 20 ps
+    assert run_md(licl(5.1), 700, 30000, backend=backend)["cached"]
+    assert run_md(licl(5.1), 1000, 20000, seed=1, backend=backend)["cached"]
+    assert run_md_runs(runs, backend=backend) == 0 and len(jobs_sent) == 1
 
 
 class FakeCli:
@@ -155,8 +206,8 @@ def test_md_screen_sends_one_batch_then_reads_the_cache(tmp_path, monkeypatch):
     jobs = [{"id": f"s{a}", "formula": "LiCl", "kind": "candidate", "atoms": licl(a)} for a in (5.1, 5.2)]
     rows = dynamics.md_screen(jobs, temperature_K=1000, ps=20)
     assert len(jobs_sent) == 1 and jobs_sent[0]["kind"] == "md" and len(jobs_sent[0]["tasks"]) == 2
-    assert jobs_sent[0]["settings"] == {"md": {"precision": config.UMA_PRECISION_MD, "temperature_K": 1000,
-                                               "n_steps": 20000}}
+    assert all((t["temperature_K"], t["n_steps"]) == (1000, 20000) for t in jobs_sent[0]["tasks"])
+    assert jobs_sent[0]["settings"]["md"]["precision"] == config.UMA_PRECISION_MD
     assert [r["cached"] for r in rows] == [True, True] and rows[0]["D_A2_per_ps"] == pytest.approx(0.5, rel=0.25)
     run_md_batch([licl(5.1)], 1000, 20000)  # already cached: nothing sent
     assert len(jobs_sent) == 1
@@ -221,3 +272,6 @@ def test_worker_handles_a_mixed_job(tmp_path, monkeypatch):
     kaggle_worker.run_part(job, [0, 1], tmp_path, gpu=0)
     results, info = kaggle_gpu.read_results(tmp_path, job)
     assert results[0]["formula"] == "LiCl" and results[1] == {"n_steps": 200, "T": 1000} and not info["errors"]
+    job = kaggle_gpu.md_job([{"atoms": licl(5.1), "temperature_K": 600, "n_steps": 400}], "default", 1000, 200)
+    kaggle_worker.run_part(job, [0], tmp_path, gpu=1)  # a run's own settings win over the job's
+    assert kaggle_gpu.read_results(tmp_path, job)[0][0] == {"n_steps": 400, "T": 600}

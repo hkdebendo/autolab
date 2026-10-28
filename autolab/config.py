@@ -116,8 +116,16 @@ MD_MIN_LENGTH = 10.0  # Angstrom, minimum supercell side
 MD_SCREEN_TEMPERATURE_K = 1000  # first screening of Li diffusion (SPEC 5.10: 1000-1200 K)
 MD_SCREEN_PS = 20  # ps per screening run (2 ps is not enough)
 MD_SCREEN_MAX_RUNS = 7  # simulations per screening run (5 candidates + 2 parents)
-MD_D_BLOCKS = 4  # D uncertainty: D fitted in each block (multiple time origins), standard error across blocks
-MD_FRAMEWORK_D_RATIO_MAX = 0.05  # framework intact if every non-Li element diffuses < 5 % of Li (proposed, to calibrate)
+MD_D_BLOCKS = 4  # ✅ D = mean of D fitted in 4 blocks (MSD over many time origins); standard error across blocks
+MD_TIE_SIGMA = 2.0  # a candidate is "tied" with its parent when |D/D(parent) - 1| <= 2 x its propagated error
+MD_FRAMEWORK_D_RATIO_MAX = 0.05  # framework intact if every non-Li element diffuses < 5 % of Li
+# MD calibration (plan A, truth test of the block D): the two parents, below and above the beta -> alpha
+# transition of Li3PS4 (~746 K). Li7P3S11 must diffuse faster than beta-Li3PS4 at 600 and 700 K.
+MD_CALIBRATION_PARENTS = {"fast": "mp-641703", "slow": "mp-985583"}  # Li7P3S11, beta-Li3PS4 (Pnma)
+MD_CALIBRATION_RUNS = ((600, 40, 0), (700, 30, 0), (1000, 20, 1))  # (T in K, ps, seed); 1000 K: new seed
+MD_CALIBRATION_TEST_T = (600, 700)  # temperatures where the order must hold
+MD_CALIBRATION_SIGMA = 2.0  # D(fast) - D(slow) must exceed 2 x their combined standard error
+MD_EA_LITERATURE_EV = {"Li7P3S11": (0.19, 0.19), "Li3PS4": (0.35, 0.41)}  # MD in the literature, comparison only
 
 # --- Modal (GPU) ---------------------------------------------------------------
 
@@ -135,6 +143,8 @@ MODAL_RELAX_CHUNK = 10  # structures per remote call
 KAGGLE_KERNEL = "adladeeba/autolab-gpu"  # notebook overwritten by each job (kaggle kernels push)
 KAGGLE_UMA_KERNEL = "adladeeba/autolab-uma-download"  # its output (run once from the UI with HF_TOKEN) holds
 # FAIRCHEM_CACHE_DIR with the uma-s-1p2 checkpoint; the GPU notebooks attach it as a kernel source
+KAGGLE_WHEELS_KERNEL = "adladeeba/autolab-wheels"  # CPU notebook whose output holds the wheels (offline install)
+KAGGLE_FAIRCHEM = "fairchem-core==2.24.0"
 KAGGLE_ACCELERATOR = "NvidiaTeslaT4"  # "GPU T4 x2"
 KAGGLE_N_GPUS = 2
 KAGGLE_POLL_S = 60  # s between two status checks (free)
