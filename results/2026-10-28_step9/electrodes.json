@@ -1,5 +1,6 @@
 {
  "calibration_li3ps4": {
+  "id": "mp-985583",
   "formula": "Li3PS4",
   "stable": true,
   "v_low": 1.74,
@@ -9,6 +10,24 @@
   "mp_v_high": 2.34,
   "diff_low": 0.02,
   "diff_high": -0.04
+ },
+ "parents": {
+  "mp-641703": {
+   "formula": "Li7P3S11",
+   "id": "mp-641703",
+   "stable": true,
+   "v_low": 2.28,
+   "v_high": 2.3,
+   "contiguous": true
+  },
+  "mp-985583": {
+   "formula": "Li3PS4",
+   "id": "mp-985583",
+   "stable": true,
+   "v_low": 1.74,
+   "v_high": 2.3,
+   "contiguous": true
+  }
  },
  "candidates": [
   {
