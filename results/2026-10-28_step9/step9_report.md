@@ -46,12 +46,22 @@ Calibrations (Li3PS4, tolerance 0.05 eV/atom):
 | it1-c1 | Li11P4S15Cl | -0.138 | 0.34 | 0.8974 LiFePO4 + 0.1026 Li11P4S15Cl -> 0.4359 Li4P2O7 + 0.1795 LiPO3 + 0.2564 FePS + 0.641 FeS2 + 0.1026 LiCl |
 | it2-c1 | Li13P6S21Cl | -0.135 | 0.32 | 0.9245 LiFePO4 + 0.07547 Li13P6S21Cl -> 0.3585 Li4P2O7 + 0.3962 LiPO3 + 0.2642 FePS + 0.6604 FeS2 + 0.07547 LiCl |
 | it2-c2 | Li7AsP2S11 | -0.149 | 0.36 | 0.1682 Li7AsP2S11 + 0.9159 LiFePO4 -> 0.1522 AsS + 0.008011 As2P2S7 + 0.5234 Li4P2O7 + 0.1896 FePS + 0.7263 FeS2 |
+| it1-c4 | Li7P3SeS10 | -0.143 | 0.32 | 0.1446 Li7P3SeS10 + 0.9277 LiFePO4 -> 0.4217 Li4P2O7 + 0.07229 FeSe2 + 0.253 LiPO3 + 0.2651 FePS + 0.5904 FeS2 |
 
-New UMA relaxations: 0 / 0
+New UMA relaxations: 0 / 80
 
 ## 9C. Li diffusion (molecular dynamics, UMA normal precision)
 
-Not run.
+| Structure | Formula | Kind | Atoms / Li | T (K) | ps | D (cm²/s) | D / D(parent) | MSD final (Å²) | ms/step |
+|---|---|---|---|---|---|---|---|---|---|
+| mp-985583 | Li3PS4 | parent | 128 / 48 | 1000 | 20 | 9.51e-05 | — | 93.5 | 72.11 |
+| mp-641703 | Li7P3S11 | parent | 84 / 28 | 1000 | 20 | 4.81e-05 | — | 43.7 | 94.54 |
+| it1-c4 | Li7P3SeS10 | candidate | 84 / 28 | 1000 | 20 | 3.79e-05 | 0.79 | 45.5 | 97.81 |
+| it2-c5 | Li11P4S15I | candidate | 124 / 44 | 1000 | 20 | 5.74e-05 | 0.60 | 71.1 | 121.14 |
+| it1-c2 | Li6P2S7O | candidate | 128 / 48 | 1000 | 20 | 5.05e-05 | 0.53 | 61.7 | 79.16 |
+| it1-c1 | Li11P4S15Cl | candidate | 124 / 44 | 1000 | 20 | 8.21e-05 | 0.86 | 76.1 | 128.37 |
+
+One temperature and one seed per structure: a first screening, not a conductivity value. Cells of ~84 atoms hold only ~24-28 Li, so D is noisy.
 
 ## Method notes
 
