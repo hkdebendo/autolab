@@ -13,6 +13,7 @@ dependencies = [
     "mp-api",
     "ase",
     "python-dotenv",
+    "openai",
 ]
 
 [project.optional-dependencies]
