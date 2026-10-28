@@ -124,12 +124,15 @@ LLM_PROVIDERS: dict[str, dict] = {
         "model": "meta-models/muse-spark-open-1026",
         "api": "chat", "usd_per_m_input": 1.25, "usd_per_m_output": 4.25,
     },
-    "fireworks": {  # small fast tasks (Muse Glimmer)
+    # Muse Glimmer: not serverless on Fireworks (HTTP 404 "not deployed", 2026-10-28), so unused for now;
+    # kept for a possible short dedicated deployment later.
+    "fireworks": {
         "base_url": "https://api.fireworks.ai/inference/v1", "key": "FIREWORKS_API_KEY",
         "model": "accounts/fireworks/models/muse-glimmer-30b",
         "api": "chat", "usd_per_m_input": 0.35, "usd_per_m_output": 1.50,
     },
 }
+LLM_FAST_PROVIDER = "baseten"  # small tasks (formula checks, JSON conversion, iteration summaries)
 LLM_TIMEOUT = 300  # s per call
 LLM_MAX_OUTPUT_TOKENS = 4000  # includes reasoning tokens
 
