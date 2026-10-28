@@ -89,7 +89,7 @@ LLM_PROVIDER=meta         # meta | baseten
 SIM_BACKEND=modal         # modal | local (local = machine avec GPU NVIDIA, ex. Colab)
 ```
 
-**Modal** n'utilise pas le `.env` pour s'authentifier : la commande `modal token new` (à lancer une seule fois sur le PC) enregistre les identifiants dans `~/.modal.toml`. Le `HF_TOKEN` est ajouté dans les **Secrets Modal** (ex. secret `huggingface` contenant `HF_TOKEN`), pour que le checkpoint UMA soit téléchargé directement dans le cloud, jamais sur le PC.
+**Modal** n'utilise pas le `.env` pour s'authentifier : la commande `modal token new` (à lancer une seule fois sur le PC) enregistre les identifiants dans `~/.modal.toml`. Le `HF_TOKEN` est ajouté dans les **Secrets Modal** (secret `huggingface-secret` contenant `HF_TOKEN`), pour que le checkpoint UMA soit téléchargé directement dans le cloud, jamais sur le PC.
 
 Le fichier `.env` est dans `.gitignore` **dès le premier commit**. Aucune clé ne doit jamais apparaître dans le code, les notebooks, les logs ou le navigateur.
 
