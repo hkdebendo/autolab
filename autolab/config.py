@@ -42,6 +42,7 @@ def require_key(name: str) -> str:
 CACHE_DIR = Path(os.getenv("AUTOLAB_CACHE_DIR", ROOT / ".cache"))
 MP_CACHE_DIR = CACHE_DIR / "mp"
 BANDGAP_CACHE_DIR = CACHE_DIR / "bandgap"
+RELAX_CACHE_DIR = CACHE_DIR / "relax"
 
 # --- Chemistry (SPEC 5.1 - 5.3) ----------------------------------------------
 
@@ -84,7 +85,35 @@ METALLIC_GAP_MAX = 0.1  # eV, MP band gap below which a product is metallic
 PASSIVATION_FORCE_MAX = 0.1  # eV/atom, reaction energy at 0 V tolerated with metallic products
 DEFAULT_CATHODES = ["LiFePO4", "LiMn2O4"]
 
+# --- UMA simulation (SPEC 5.5, 5.6, 5.10) ------------------------------------
+
+UMA_MODEL = "uma-s-1p2"
+UMA_TASK = "omat"  # inorganic crystals head
+UMA_PRECISION_ENERGY = "high-precision"  # relaxations, energies, E_hull
+UMA_PRECISION_MD = "default"  # 2x faster, enough for molecular dynamics
+
+RELAX_FMAX = 0.05  # eV/Angstrom
+RELAX_STEPS = 500
+
+MD_TIMESTEP_FS = 1.0
+MD_FRICTION_PER_FS = 0.01
+MD_RECORD_EVERY = 10
+MD_MIN_LENGTH = 10.0  # Angstrom, minimum supercell side
+
+# --- Modal (GPU) ---------------------------------------------------------------
+
+MODAL_APP = "autolab-uma"
+MODAL_GPU = "T4"  # cheapest GPU validated for UMA
+MODAL_VOLUME = "autolab-uma-cache"  # UMA checkpoint, downloaded once
+MODAL_HF_SECRET = "huggingface-secret"
+MODAL_DOWNLOAD_TIMEOUT = 900  # s
+MODAL_RELAX_TIMEOUT = 1200  # s, per chunk of structures
+MODAL_MD_TIMEOUT = 1800  # s
+MODAL_RELAX_CHUNK = 10  # structures per remote call
+
 # --- Budget limits (CLAUDE.md) -----------------------------------------------
+
+MAX_RELAXATIONS_PER_RUN = 80  # UMA relaxations not already in cache
 
 MAX_ITERATIONS = 2
 MAX_CANDIDATES_PER_ITERATION = 5

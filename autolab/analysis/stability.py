@@ -61,6 +61,26 @@ def decomposition_dict(decomp: dict) -> list[dict]:
     return sorted(items, key=lambda d: -d["fraction"])
 
 
+def uma_reference_entries(elements: Iterable[str], backend=None) -> tuple[list[PDEntry], list[str]]:
+    """Hull references of a chemical system, relaxed by UMA (cached).
+
+    MP only provides the structures; every energy comes from UMA. Returns the
+    entries and the material ids skipped because their relaxation did not converge.
+    """
+    from autolab.data.mp import get_references
+    from autolab.sim.backend import relax_structures
+
+    refs = get_references(elements)
+    results = relax_structures([r["structure"] for r in refs], backend=backend)
+    entries, skipped = [], []
+    for ref, res in zip(refs, results):
+        if not res["converged"]:
+            skipped.append(ref["material_id"])
+            continue
+        entries.append(make_entry(ref["structure"].composition, res["energy"], ref["material_id"], "uma"))
+    return entries, skipped
+
+
 def e_hull(target, entries: list, pd: PhaseDiagram | None = None) -> dict:
     """E_hull (eV/atom, may be negative if below the hull) and decomposition products."""
     check_single_source([*entries, target])
