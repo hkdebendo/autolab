@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "autolab"
+version = "0.1.0"
+description = "AI agent searching solid electrolytes for lithium-metal batteries"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pymatgen",
+    "mp-api",
+    "ase",
+    "python-dotenv",
+]
+
+[project.optional-dependencies]
+bandgap = ["alignn", "jarvis-tools"]
+gpu = ["fairchem-core"]
+dev = ["pytest"]
+
+[tool.setuptools.packages.find]
+include = ["autolab*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "gpu: needs an NVIDIA GPU and UMA (run on Colab/Modal with --gpu)",
+    "api: makes real paid LLM calls (run only on explicit request with --api)",
+]
+filterwarnings = [
+    "ignore:logm result may be inaccurate",
+]
