@@ -1,7 +1,7 @@
 """Kaggle GPU backend: the PC sends a batch of structures to a Kaggle notebook and reads the results back.
 
 No secret goes to Kaggle. The generated notebook clones the public repository at the current (pushed) commit,
-installs it, loads UMA offline from the private dataset config.KAGGLE_UMA_DATASET and runs
+installs it, loads UMA offline from the output of the notebook config.KAGGLE_UMA_KERNEL and runs
 scripts/kaggle_worker.py on every GPU. The PC drives it with the official kaggle CLI (push, status, output),
 which reads its own credentials. One job = one Kaggle session; a failed session is never retried automatically.
 """
@@ -92,7 +92,7 @@ def session_limit(job: dict) -> int:
 
 CELL = r'''
 # AutoLab GPU job __JOB_ID__, generated on the PC by autolab/sim/kaggle_gpu.py. No secret is used:
-# public repository, UMA checkpoint from a private dataset, loaded offline.
+# public repository, UMA checkpoint from the output of a private notebook, loaded offline.
 import base64, gzip, json, os, shutil, subprocess, sys, time
 from pathlib import Path
 
@@ -128,7 +128,7 @@ if ok:
         status["checkpoint"] = str(src)
     except StopIteration:
         ok = False
-        status["checkpoint"] = "missing: attach the UMA dataset"
+        status["checkpoint"] = "missing: no UMA checkpoint in /kaggle/input"
     save()
 if ok:
     job = Path("/tmp/job.json")
@@ -155,7 +155,7 @@ def notebook(job: dict, commit: str) -> dict:
 def metadata(kernel: str = config.KAGGLE_KERNEL) -> dict:
     return {"id": kernel, "title": kernel.split("/")[1], "code_file": NOTEBOOK, "language": "python",
             "kernel_type": "notebook", "is_private": True, "enable_gpu": True, "enable_tpu": False,
-            "enable_internet": True, "dataset_sources": [config.KAGGLE_UMA_DATASET], "kernel_sources": [],
+            "enable_internet": True, "dataset_sources": [], "kernel_sources": [config.KAGGLE_UMA_KERNEL],
             "competition_sources": [], "model_sources": [], "machine_shape": config.KAGGLE_ACCELERATOR}
 
 

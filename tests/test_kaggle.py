@@ -60,7 +60,7 @@ def test_notebook_carries_the_job_and_no_secret():
     assert '"abc1234"' in src and "HF_HUB_OFFLINE" in src
     assert "kaggle_secrets" not in src and "HF_TOKEN" not in src and "API_KEY" not in src
     meta = kaggle_gpu.metadata()
-    assert meta["dataset_sources"] == [config.KAGGLE_UMA_DATASET] and meta["enable_gpu"] and meta["is_private"]
+    assert meta["kernel_sources"] == [config.KAGGLE_UMA_KERNEL] and meta["enable_gpu"] and meta["is_private"]
     assert "docker_image" not in meta
 
 
