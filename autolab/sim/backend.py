@@ -19,6 +19,18 @@ class BudgetExceeded(RuntimeError):
     """Raised before any computation when a run would exceed its limit."""
 
 
+class RelaxBudget:
+    """New (uncached) relaxations allowed for a whole run, shared by all relax_structures calls."""
+
+    def __init__(self, max_new: int = config.MAX_RELAXATIONS_PER_RUN):
+        self.max_new = max_new
+        self.used = 0
+
+    @property
+    def remaining(self) -> int:
+        return self.max_new - self.used
+
+
 class LocalBackend:
     """Runs UMA in this process (machine with an NVIDIA GPU, e.g. Colab)."""
 
@@ -86,12 +98,13 @@ def relax_structures(
     steps: int = config.RELAX_STEPS,
     max_new: int = config.MAX_RELAXATIONS_PER_RUN,
     cache: JsonCache | None = None,
+    budget: RelaxBudget | None = None,
 ) -> list[dict]:
     """Relax structures (pymatgen, ASE or atoms dicts) with UMA, using the disk cache.
 
     Results come back in input order with a 'cache_key' and 'cached' flag.
     Raises BudgetExceeded before computing anything if more than `max_new`
-    relaxations are missing from the cache.
+    relaxations (or the run budget's remaining ones) are missing from the cache.
     """
     cache = cache or JsonCache(config.RELAX_CACHE_DIR)
     dicts = [_as_atoms_dict(s) for s in structures]
@@ -102,11 +115,14 @@ def relax_structures(
     for key, d in zip(keys, dicts):
         if cache.get(key) is None:
             missing.setdefault(key, d)
-    if len(missing) > max_new:
-        raise BudgetExceeded(f"{len(missing)} new relaxations requested, limit is {max_new} (MAX_RELAXATIONS_PER_RUN)")
+    limit = budget.remaining if budget else max_new
+    if len(missing) > limit:
+        raise BudgetExceeded(f"{len(missing)} new relaxations requested, {limit} left (MAX_RELAXATIONS_PER_RUN)")
 
     fresh = set()
     if missing:
+        if budget:
+            budget.used += len(missing)
         backend = backend or get_backend()
         todo = list(missing.items())
         n = config.MODAL_RELAX_CHUNK

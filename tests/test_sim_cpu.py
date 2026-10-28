@@ -108,6 +108,15 @@ def test_backend_cache_and_budget(tmp_path):
                                      backend=fake, cache=cache, max_new=1)
     assert fake.calls == 2  # nothing computed when over budget
 
+    budget = sim_backend.RelaxBudget(3)  # one limit for the whole run, across calls
+    sim_backend.relax_structures([bulk("Cu", "fcc", a=3.3, cubic=True)] * 2, backend=fake, cache=cache, budget=budget)
+    sim_backend.relax_structures([bulk("Cu", "fcc", a=3.4, cubic=True)], backend=fake, cache=cache, budget=budget)
+    assert (budget.used, budget.remaining, fake.calls) == (2, 1, 4)
+    with pytest.raises(sim_backend.BudgetExceeded):
+        sim_backend.relax_structures([bulk("Cu", "fcc", a=a, cubic=True) for a in (3.7, 3.8)],
+                                     backend=fake, cache=cache, budget=budget)
+    assert fake.calls == 4
+
 
 def test_unknown_backend():
     with pytest.raises(ValueError):
