@@ -40,6 +40,30 @@ def check_single_source(entries: Iterable) -> str:
     return sources.pop()
 
 
+def mp2020_corrected(entries: list) -> list[PDEntry]:
+    """UMA entries plus the MP2020 corrections (anions, GGA/GGA+U mixing), tagged 'uma+mp2020'.
+
+    The energies stay UMA's: only the empirical per-element adjustments of the MP2020 scheme are added,
+    with GGA+U for compounds holding O or F and a metal of config.MP2020_HUBBARD_U (as in the MP sets).
+    """
+    from pymatgen.entries.compatibility import MaterialsProject2020Compatibility
+
+    if check_single_source(entries) != "uma":
+        raise ValueError("MP2020 corrections apply to raw UMA entries only")
+    u = config.MP2020_HUBBARD_U
+    raw = []
+    for e in entries:
+        els = {el.symbol for el in e.composition.elements}
+        plus_u = bool(els & {"O", "F"}) and bool(els & set(u))
+        raw.append(ComputedEntry(e.composition, e.energy, entry_id=e.name, parameters={
+            "run_type": "GGA+U" if plus_u else "GGA", "hubbards": {el: u[el] for el in els & set(u)} if plus_u else {}}))
+    done = MaterialsProject2020Compatibility(check_potcar=False).process_entries(raw, clean=True, inplace=False)
+    if len(done) != len(raw):
+        kept = {c.entry_id for c in done}
+        raise ValueError(f"MP2020 scheme rejected {[c.entry_id for c in raw if c.entry_id not in kept]}")
+    return [make_entry(c.composition, c.energy, c.entry_id, "uma+mp2020") for c in done]
+
+
 def entry_label(entry) -> str:
     """Readable id of an entry: MP id when available, else its name."""
     return str(getattr(entry, "entry_id", None) or entry.name)
