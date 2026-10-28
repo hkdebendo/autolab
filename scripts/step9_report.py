@@ -27,18 +27,25 @@ def _empty_window(c: dict, parents: dict) -> str:
     return "zero at the calculation precision; not rejected"
 
 
+def _confidence(c: dict) -> str:
+    if c.get("reduced_confidence"):
+        return f"reduced: decomposes via the polysulfide {', '.join(c['decomposition_polysulfides'])}"
+    return "normal"
+
+
 def _ranking(candidates: dict, raw: dict) -> list[str]:
     """Old (raw UMA) and new (UMA + MP2020) rankings side by side, E_hull per atom and per substitution."""
     old = {c["id"]: c for c in raw["candidates"]}
     old_rank = {cid: i for i, cid in enumerate(raw["ranking"], 1)}
     by_id = {c["id"]: c for c in candidates["candidates"]}
     lines = ["| Rank (MP2020) | Rank (raw) | Candidate | Formula | E_hull per atom raw → MP2020 (eV/atom) | "
-             "E_hull per substitution raw → MP2020 (eV per modified site) |", "|---|---|---|---|---|---|"]
+             "E_hull per substitution raw → MP2020 (eV per modified site) | Confidence |",
+             "|---|---|---|---|---|---|---|"]
     for i, cid in enumerate(candidates["ranking"], 1):
         c, o = by_id[cid], old.get(cid, {})
         lines.append(f"| {i} | {old_rank.get(cid, '—')} | {cid} | {c['formula']} | {_v(o.get('e_hull'), '.3f')} → "
                      f"{_v(c['e_hull'], '.3f')} | {_v(o.get('e_hull_per_substitution'), '.3f')} → "
-                     f"{_v(c['e_hull_per_substitution'], '.3f')} |")
+                     f"{_v(c['e_hull_per_substitution'], '.3f')} | {_confidence(c)} |")
     return lines
 
 
@@ -53,6 +60,9 @@ NOTES = [
     "- As and Sb candidates move with MP2020 because of a known approximation of the scheme, not an inconsistency: "
     "polysulfides (e.g. LiS4, AsS2) get the sulfide correction while elemental S gets none, so the excess sulfur of "
     "the decomposition goes to polysulfides instead of S8. MP treats its own data the same way.",
+    "- Reduced confidence: a decomposition through a polysulfide (S-S bonds) relies on the chemistry where UMA is "
+    "least reliable: LiS4 is 0.178 eV/atom above the hull with raw UMA, 0.174 below it with UMA + MP2020, on the "
+    "hull in MP.",
     "- One reference is left out of the conservation check by design: LiSb3 (Sb formally -1/3), an alloy whose Sb "
     "the scheme does not correct (anion corrections only for oxidation states of -1 or lower), unlike Sb in Li3Sb.",
 ]

@@ -14,7 +14,7 @@ from pymatgen.core import Lattice, Structure
 from autolab import config
 from autolab.agent import dynamics
 from autolab.sim import kaggle_gpu
-from autolab.sim.backend import relax_structures, run_md, run_md_batch
+from autolab.sim.backend import prefetch, relax_structures, run_md, run_md_batch
 from autolab.sim.serialize import atoms_to_dict
 from autolab.store.cache import JsonCache
 
@@ -155,7 +155,8 @@ def test_md_screen_sends_one_batch_then_reads_the_cache(tmp_path, monkeypatch):
     jobs = [{"id": f"s{a}", "formula": "LiCl", "kind": "candidate", "atoms": licl(a)} for a in (5.1, 5.2)]
     rows = dynamics.md_screen(jobs, temperature_K=1000, ps=20)
     assert len(jobs_sent) == 1 and jobs_sent[0]["kind"] == "md" and len(jobs_sent[0]["tasks"]) == 2
-    assert jobs_sent[0]["settings"] == {"precision": config.UMA_PRECISION_MD, "temperature_K": 1000, "n_steps": 20000}
+    assert jobs_sent[0]["settings"] == {"md": {"precision": config.UMA_PRECISION_MD, "temperature_K": 1000,
+                                               "n_steps": 20000}}
     assert [r["cached"] for r in rows] == [True, True] and rows[0]["D_A2_per_ps"] == pytest.approx(0.5, rel=0.25)
     run_md_batch([licl(5.1)], 1000, 20000)  # already cached: nothing sent
     assert len(jobs_sent) == 1
@@ -180,3 +181,43 @@ def test_worker_part_writes_one_line_per_task_even_after_a_failure(tmp_path, mon
     results, info = kaggle_gpu.read_results(tmp_path, job)
     assert results[0]["formula"] == "LiCl" and results[1] is None
     assert "did not fit" in info["errors"][1] and info["gpus"] == {0: 1}
+
+
+def test_prefetch_sends_relaxations_and_md_in_one_session(tmp_path, monkeypatch):
+    monkeypatch.setattr(config, "CACHE_DIR", tmp_path)
+    monkeypatch.setattr(config, "RELAX_CACHE_DIR", tmp_path / "relax")
+    jobs_sent = []
+
+    def run(job):
+        jobs_sent.append(job)
+        return [fake_relax(t["atoms"]) if t["kind"] == "relax" else fake_md(t["atoms"]) for t in job["tasks"]], {}
+
+    backend = kaggle_gpu.KaggleBackend(run)
+    sent = prefetch(relax=[licl(5.0), licl(5.3), licl(5.0)], md=[licl(5.1)], temperature_K=1000, n_steps=20000,
+                    backend=backend)
+    assert sent == {"relax": 2, "md": 1} and len(jobs_sent) == 1 and jobs_sent[0]["kind"] == "mixed"
+    assert set(jobs_sent[0]["settings"]) == {"relax", "md"}
+    assert all(r["cached"] for r in relax_structures([licl(5.0), licl(5.3)], backend=backend))
+    assert run_md(licl(5.1), 1000, 20000, backend=backend)["cached"]
+    assert prefetch(relax=[licl(5.3)], md=[licl(5.1)], temperature_K=1000, n_steps=20000,
+                    backend=backend) == {"relax": 0, "md": 0} and len(jobs_sent) == 1
+
+
+def test_worker_handles_a_mixed_job(tmp_path, monkeypatch):
+    sys.path.insert(0, str(SCRIPTS))
+    import kaggle_worker
+    from autolab.sim import backend
+
+    class FakeLocal:
+        def relax_chunks(self, chunks, precision, fmax, steps):
+            yield [fake_relax(chunks[0][0])]
+
+        def md(self, atoms, precision, temperature_K, n_steps, seed=0):
+            return {"n_steps": n_steps, "T": temperature_K}
+
+    monkeypatch.setattr(backend, "LocalBackend", FakeLocal)
+    job = kaggle_gpu.combine(kaggle_gpu.relax_job([licl(5.0)], "high-precision", 0.05, 500),
+                             kaggle_gpu.md_job([{"atoms": licl(5.1)}], "default", 1000, 200))
+    kaggle_worker.run_part(job, [0, 1], tmp_path, gpu=0)
+    results, info = kaggle_gpu.read_results(tmp_path, job)
+    assert results[0]["formula"] == "LiCl" and results[1] == {"n_steps": 200, "T": 1000} and not info["errors"]

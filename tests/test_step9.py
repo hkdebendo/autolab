@@ -214,3 +214,16 @@ def test_mp2020_anion_atoms_conserved_in_every_cached_hull(monkeypatch):
         pytest.skip(f"UMA references not cached here ({type(e).__name__})")
     for name, entries in hulls:
         assert anion_balance(entries) == [], name
+
+
+def test_decomposition_through_a_polysulfide_is_flagged():
+    from autolab.analysis.stability import e_hull
+    from conftest import load_structure
+
+    lis4 = load_structure("LiS4")
+    refs = [make_entry("Li", 0.0, "mp-135", "uma"), make_entry("S", 0.0, "mp-77", "uma"),
+            make_entry("Li2S", -4.5, "mp-1153", "uma"),
+            make_entry(lis4.composition, -0.6 * len(lis4), "mp-995393", "uma", structure=lis4)]
+    out = e_hull(make_entry("LiS2", -1.0, "cand", "uma"), refs)  # LiS2 -> Li2S + LiS4
+    assert out["e_hull"] > 0 and out["decomposition_polysulfides"] == ["LiS4"]
+    assert e_hull(make_entry("Li2S", -4.4, "c2", "uma"), refs)["decomposition_polysulfides"] == []

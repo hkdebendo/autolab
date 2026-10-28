@@ -96,7 +96,8 @@ def mp2020_corrected(entries: list) -> list[PDEntry]:
     if len(done) != len(raw):
         kept = {c.entry_id for c in done}
         raise ValueError(f"MP2020 scheme rejected {[c.entry_id for c in raw if c.entry_id not in kept]}")
-    return [make_entry(c.composition, c.energy, c.entry_id, "uma+mp2020") for c in done]
+    return [make_entry(c.composition, c.energy, c.entry_id, "uma+mp2020", structure=getattr(c, "structure", None))
+            for c in done]
 
 
 def anion_balance(entries: list, tol: float = 1e-6) -> list[str]:
@@ -136,6 +137,20 @@ def anion_balance(entries: list, tol: float = 1e-6) -> list[str]:
         if diff:
             bad.append(f"{e.name} {e.composition.reduced_formula}: {diff}")
     return bad
+
+
+def polysulfide_products(decomp: dict) -> list[str]:
+    """Decomposition products that are compounds with S-S bonds (e.g. LiS4), where UMA is least reliable:
+    LiS4 is 0.178 eV/atom above the hull with raw UMA, -0.174 with UMA + MP2020, 0 in MP."""
+    from autolab.chem.checks import has_ss_bonds
+
+    out = []
+    for e, f in decomp.items():
+        attribute = getattr(e, "attribute", None)
+        structure = getattr(e, "structure", None) or (attribute.get("structure") if isinstance(attribute, dict) else None)
+        if f > FRACTION_EPS and len(e.composition.elements) > 1 and structure is not None and has_ss_bonds(structure):
+            out.append(e.composition.reduced_formula)
+    return sorted(set(out))
 
 
 def entry_label(entry) -> str:
@@ -193,6 +208,7 @@ def e_hull(target, entries: list, pd: PhaseDiagram | None = None) -> dict:
         "formula": target.composition.reduced_formula,
         "e_hull": round(ehull, 6),
         "decomposition": decomposition_dict(decomp),
+        "decomposition_polysulfides": polysulfide_products(decomp),
         "synthesizable": ehull <= config.EHULL_SYNTHESIZABLE,
         "very_good": ehull <= config.EHULL_VERY_GOOD,
         "source": energy_source(target),

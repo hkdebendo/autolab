@@ -187,3 +187,50 @@ def run_md_batch(atoms_list: list, temperature_K: float, n_steps: int, precision
     for key, res in zip(missing, results):
         if res is not None:
             cache.set(key, {**res, "settings": settings})
+
+
+def prefetch(relax: list = (), md: list = (), temperature_K: float | None = None, n_steps: int | None = None,
+             relax_precision: str = config.UMA_PRECISION_ENERGY, md_precision: str = config.UMA_PRECISION_MD,
+             fmax: float = config.RELAX_FMAX, steps: int = config.RELAX_STEPS, seed: int = 0, backend=None,
+             budget: RelaxBudget | None = None, max_new: int = config.MAX_RELAXATIONS_PER_RUN) -> dict:
+    """Fill the relaxation and MD caches in one backend call when it can batch both (Kaggle: one session).
+
+    Keys and stored results are those of relax_structures and run_md, which then read the cache.
+    Returns the numbers sent; other backends are left alone (nothing sent).
+    """
+    backend = backend or get_backend()
+    if not hasattr(backend, "batch"):
+        return {"relax": 0, "md": 0}
+    rcache, mcache = JsonCache(config.RELAX_CACHE_DIR), JsonCache(config.CACHE_DIR / "md")
+    rset = {"model": config.UMA_MODEL, "precision": relax_precision, "fmax": fmax, "steps": steps}
+    mset = {"model": config.UMA_MODEL, "precision": md_precision, "T": temperature_K, "n_steps": n_steps, "seed": seed}
+    r_missing: dict[str, dict] = {}
+    for s in relax:
+        d = _as_atoms_dict(s)
+        key = atoms_key(d, **rset)
+        if rcache.get(key) is None:
+            r_missing.setdefault(key, d)
+    m_missing: dict[str, dict] = {}
+    for a in md:
+        d = _as_atoms_dict(a)
+        key = atoms_key(d, **mset)
+        if mcache.get(key) is None:
+            m_missing.setdefault(key, d)
+    limit = budget.remaining if budget else max_new
+    if len(r_missing) > limit:
+        raise BudgetExceeded(f"{len(r_missing)} new relaxations requested, {limit} left (MAX_RELAXATIONS_PER_RUN)")
+    if not r_missing and not m_missing:
+        return {"relax": 0, "md": 0}
+    if budget:
+        budget.used += len(r_missing)
+    r_out, m_out = backend.batch(
+        list(r_missing.values()), {"precision": relax_precision, "fmax": fmax, "steps": steps},
+        [{"atoms": d, "seed": seed} for d in m_missing.values()],
+        {"precision": md_precision, "temperature_K": temperature_K, "n_steps": n_steps})
+    for key, res in zip(r_missing, r_out):
+        if res is not None:
+            rcache.set(key, {**res, "settings": rset})
+    for key, res in zip(m_missing, m_out):
+        if res is not None:
+            mcache.set(key, {**res, "settings": mset})
+    return {"relax": len(r_missing), "md": len(m_missing)}

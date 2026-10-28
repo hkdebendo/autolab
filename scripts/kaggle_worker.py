@@ -3,7 +3,8 @@
     python scripts/kaggle_worker.py job.json <out dir>            # spreads the tasks over the GPUs
     python scripts/kaggle_worker.py job.json <out dir> --part k   # one GPU (CUDA_VISIBLE_DEVICES set by the parent)
 
-A job is {"job_id", "kind": "relax" | "md", "settings", "tasks": [{"atoms", "cost", ...}]}. Each part appends one
+A job is {"job_id", "kind", "settings": {kind: settings}, "tasks": [{"kind": "relax" | "md", "atoms", "cost"}]}
+(relaxations and MD runs may share one job, one session). Each part appends one
 JSON line per finished task to <out dir>/results_part<k>.jsonl, so a stopped session keeps what it finished.
 """
 
@@ -23,13 +24,14 @@ from autolab.sim.kaggle_gpu import split
 def run_part(job: dict, indices: list[int], out: Path, gpu: int) -> None:
     from autolab.sim.backend import LocalBackend
 
-    backend, s = LocalBackend(), job["settings"]
+    backend = LocalBackend()
     with open(out / f"results_part{gpu}.jsonl", "a", encoding="utf-8") as f:
         for i in indices:
             task, t0 = job["tasks"][i], time.perf_counter()
+            s = job["settings"][task["kind"]]
             line = {"job_id": job["job_id"], "i": i, "gpu": gpu}
             try:
-                if job["kind"] == "relax":
+                if task["kind"] == "relax":
                     line["result"] = next(iter(backend.relax_chunks([[task["atoms"]]], s["precision"], s["fmax"],
                                                                     s["steps"])))[0]
                 else:
