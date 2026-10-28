@@ -14,7 +14,7 @@ from autolab import config
 from autolab.agent import dynamics
 from autolab.agent.electrochem import (candidate_entry, interface_calibration, li3ps4_window_calibration,
                                        uma_interface, window_and_passivation)
-from autolab.analysis.stability import make_entry
+from autolab.analysis.stability import make_entry, mp2020_corrected
 from autolab.sim.backend import BudgetExceeded, RelaxBudget
 from autolab.sim.serialize import atoms_to_dict
 
@@ -54,7 +54,8 @@ def test_window_and_passivation_with_uma_entries(li2s_candidate):
     assert r["passivation"]["verdict"] == "stable"
 
 
-def test_interface_and_calibration_gate():
+def test_interface_and_calibration_gate(monkeypatch):
+    monkeypatch.setattr(config, "INTERFACE_MP2020", False)  # round numbers of the fake Li-S system
     uma = uma_interface("Li2S", "S", uma_entries)
     # Per atom of mixture: the 1:1 atomic mix of Li2S and S has the LiS2 composition, -0.75 -> -0.8 eV/atom.
     assert uma["min_reaction_energy"] == pytest.approx(-0.05, abs=1e-6) and uma["source"] == "uma"
@@ -139,3 +140,25 @@ def test_li3ps4_window_with_cached_uma_energies():
     except (BudgetExceeded, Exception) as e:  # no cache on this machine
         pytest.skip(f"UMA Li-P-S references not cached here ({type(e).__name__})")
     assert 1.6 <= cal["v_low"] <= 1.9 and 2.2 <= cal["v_high"] <= 2.5
+
+
+def test_mp2020_corrections_on_uma_entries():
+    raw = [make_entry("Li2O", -14.0, "mp-1960", "uma"), make_entry("LiCoO2", -22.0, "mp-24850", "uma"),
+           make_entry("CoS2", -15.0, "mp-2070", "uma"), make_entry("Li", -1.9, "mp-135", "uma")]
+    fixed = {e.name: e for e in mp2020_corrected(raw)}
+    corr = {e.name: fixed[e.name].energy - e.energy for e in raw}
+    assert {e.attribute["source"] for e in fixed.values()} == {"uma+mp2020"} and corr["mp-135"] == 0.0
+    assert corr["mp-1960"] < 0 and corr["mp-2070"] < 0  # oxide and sulfide anion corrections
+    assert corr["mp-24850"] - 2 * corr["mp-1960"] < -1.0  # LiCoO2 also gets the GGA+U correction of Co
+    with pytest.raises(ValueError):
+        mp2020_corrected([ComputedEntry("Li2S", -4.5)])  # MP entries are already corrected
+
+
+def test_cathode_calibrations_with_cached_uma_energies():
+    """Truth test: Li3PS4 / LiCoO2 and Li3PS4 / LiFePO4 with UMA + MP2020 within tolerance of MP (PC cache)."""
+    try:
+        cals = [interface_calibration(c, budget=RelaxBudget(0)) for c in config.CALIBRATION_CATHODES]
+    except (BudgetExceeded, Exception) as e:  # no cache on this machine
+        pytest.skip(f"UMA references or MP entries not cached here ({type(e).__name__})")
+    for c in cals:
+        assert c["ok"], (c["cathode"], c["diff"])

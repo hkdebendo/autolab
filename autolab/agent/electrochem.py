@@ -1,7 +1,8 @@
 """Electrode checks with UMA energies (step 9): window, passivation, cathode interfaces, calibrations.
 
 UMA and MP energies are never mixed: each phase diagram uses one source only.
-Interfaces use on-hull MP structures only (config.INTERFACE_REF_EHULL_MAX), relaxed by UMA.
+Interfaces use on-hull MP structures only (config.INTERFACE_REF_EHULL_MAX), relaxed by UMA, with the MP2020
+corrections added to the UMA energies (config.INTERFACE_MP2020).
 """
 
 from __future__ import annotations
@@ -13,7 +14,7 @@ from pymatgen.core import Composition
 
 from autolab import config
 from autolab.analysis.electrodes import cathode_interface, electrochemical_window, passivation
-from autolab.analysis.stability import make_entry
+from autolab.analysis.stability import make_entry, mp2020_corrected
 
 
 def candidate_entry(c: dict):
@@ -92,8 +93,12 @@ def uma_interface(electrolyte, cathode: str, entries_fn: Callable = _default_ent
     extra = [candidate_entry(electrolyte)] if isinstance(electrolyte, dict) else []
     comp = extra[0].composition if extra else Composition(electrolyte)
     entries, skipped = entries_fn(_elements(comp, cathode), budget, ehull_max=config.INTERFACE_REF_EHULL_MAX)
-    res = cathode_interface(comp, cathode, PhaseDiagram([*entries, *extra]))
-    return {**res, "source": "uma", "references": len(entries), "skipped_references": skipped}
+    hull = [*entries, *extra]
+    if config.INTERFACE_MP2020:  # oxides of U metals next to sulfides: raw energies are not comparable
+        hull = mp2020_corrected(hull)
+    res = cathode_interface(comp, cathode, PhaseDiagram(hull))
+    return {**res, "source": "uma+mp2020" if config.INTERFACE_MP2020 else "uma", "references": len(entries),
+            "skipped_references": skipped}
 
 
 def mp_interface(electrolyte: str, cathode: str, get_entries: Callable | None = None) -> dict:
