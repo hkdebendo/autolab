@@ -11,7 +11,7 @@ from typing import Callable
 
 import numpy as np
 from pymatgen.analysis.interface_reactions import InterfacialReactivity
-from pymatgen.analysis.phase_diagram import GrandPotentialPhaseDiagram, GrandPotPDEntry, PhaseDiagram
+from pymatgen.analysis.phase_diagram import GrandPotentialPhaseDiagram, GrandPotPDEntry, PDEntry, PhaseDiagram
 from pymatgen.core import Composition, Element
 
 from autolab import config
@@ -135,6 +135,11 @@ def passivation(
 def cathode_interface(electrolyte: Composition | str, cathode: Composition | str, pd: PhaseDiagram) -> dict:
     """Most negative interfacial reaction energy (eV/atom) between electrolyte and cathode."""
     check_single_source(pd.all_entries)
+    # InterfacialReactivity rebuilds products with Composition(entry.name): entries named by an id
+    # (UMA references are named by MP material id) must be renamed by their formula first.
+    if any(e.name != e.composition.reduced_formula for e in pd.all_entries):
+        pd = PhaseDiagram([PDEntry(e.composition, e.energy, name=e.composition.reduced_formula)
+                           for e in pd.all_entries])
     ir = InterfacialReactivity(Composition(electrolyte), Composition(cathode), pd, norm=True, use_hull_energy=True)
     kinks = list(ir.get_kinks())
     worst = min(kinks, key=lambda k: k[2])
