@@ -34,7 +34,7 @@ def md_screen(jobs: list[dict], temperature_K: float = config.MD_SCREEN_TEMPERAT
               on_done: Callable[[dict], None] | None = None,
               max_runs: int = config.MD_SCREEN_MAX_RUNS) -> list[dict]:
     """Run each job (cached), fit D on the second half of the MSD, call on_done after each job."""
-    from autolab.analysis.diffusion import diffusion_coefficient
+    from autolab.analysis.diffusion import diffusion_coefficient, framework_check
 
     if len(jobs) > max_runs:
         raise ValueError(f"{len(jobs)} MD jobs requested, limit is {max_runs} (MD_SCREEN_MAX_RUNS)")
@@ -52,6 +52,8 @@ def md_screen(jobs: list[dict], temperature_K: float = config.MD_SCREEN_TEMPERAT
         row.update(temperature_K=temperature_K, ps=ps, n_atoms=res["n_atoms"], n_li=len(res["positions"][0]),
                    ms_per_step=res["ms_per_step"], cached=res.get("cached", False),
                    wall_s=round(time.perf_counter() - t0, 1), **{k: d[k] for k in d})
+        if res.get("framework_msd"):  # runs recorded before this check have Li positions only
+            row["framework"] = framework_check(res["framework_msd"], res["dt_record_fs"], d["D_A2_per_ps"])
         out.append(row)
         if on_done:
             on_done(row)

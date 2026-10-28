@@ -116,6 +116,8 @@ MD_MIN_LENGTH = 10.0  # Angstrom, minimum supercell side
 MD_SCREEN_TEMPERATURE_K = 1000  # first screening of Li diffusion (SPEC 5.10: 1000-1200 K)
 MD_SCREEN_PS = 20  # ps per screening run (2 ps is not enough)
 MD_SCREEN_MAX_RUNS = 7  # simulations per screening run (5 candidates + 2 parents)
+MD_D_BLOCKS = 4  # D uncertainty: D fitted in each block (multiple time origins), standard error across blocks
+MD_FRAMEWORK_D_RATIO_MAX = 0.05  # framework intact if every non-Li element diffuses < 5 % of Li (proposed, to calibrate)
 
 # --- Modal (GPU) ---------------------------------------------------------------
 

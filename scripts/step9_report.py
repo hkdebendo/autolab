@@ -114,19 +114,39 @@ def render(candidates: dict, electrodes: dict | None, interfaces: dict | None, m
     else:
         lines.append("Not run.")
 
-    lines += ["", "## 9C. Li diffusion (molecular dynamics, UMA normal precision)", ""]
+    lines += ["", "## 9C. Li diffusion: first screening, NOT calibrated (molecular dynamics, UMA normal precision)", ""]
     if md:
         parents = {r["id"]: r for r in md if r["kind"] == "parent"}
-        lines += ["| Structure | Formula | Kind | Atoms / Li | T (K) | ps | D (cm²/s) | D / D(parent) | MSD final (Å²) | "
-                  "ms/step |", "|---|---|---|---|---|---|---|---|---|---|"]
+        lines += ["| Structure | Formula | Kind | Atoms / Li | T (K) | ps | D, one origin (cm²/s) | "
+                  "D, block mean ± s.e. (cm²/s) | D / D(parent), blocks | Framework | ms/step |",
+                  "|---|---|---|---|---|---|---|---|---|---|---|"]
         for r in md:
             p = parents.get(r.get("parent"))
-            ratio = "—" if not p or p["D_cm2_per_s"] <= 0 else f"{r['D_cm2_per_s'] / p['D_cm2_per_s']:.2f}"
+            block = (f"{r['D_block_cm2_per_s']:.2e} ± {r['D_block_sem_cm2_per_s']:.1e}"
+                     if "D_block_cm2_per_s" in r else "—")
+            ratio = "—"
+            if p and p.get("D_block_cm2_per_s", 0) > 0 and "D_block_cm2_per_s" in r:
+                q = r["D_block_cm2_per_s"] / p["D_block_cm2_per_s"]
+                rel = ((r["D_block_sem_cm2_per_s"] / r["D_block_cm2_per_s"]) ** 2
+                       + (p["D_block_sem_cm2_per_s"] / p["D_block_cm2_per_s"]) ** 2) ** 0.5
+                ratio = f"{q:.2f} ± {q * rel:.2f}"
+            fw = r.get("framework")
+            fw = "not recorded" if fw is None else ("intact" if fw["intact"] else "MOVED")
             lines.append(f"| {r['id']} | {r['formula']} | {r['kind']} | {r['n_atoms']} / {r['n_li']} | "
-                         f"{r['temperature_K']:.0f} | {r['ps']:.0f} | {r['D_cm2_per_s']:.2e} | {ratio} | "
-                         f"{r['msd_final_A2']:.1f} | {r['ms_per_step']} |")
-        lines += ["", "One temperature and one seed per structure: a first screening, not a conductivity value. "
-                      "Cells of ~84 atoms hold only ~24-28 Li, so D is noisy."]
+                         f"{r['temperature_K']:.0f} | {r['ps']:.0f} | {r['D_cm2_per_s']:.2e} | {block} | {ratio} | "
+                         f"{fw} | {r['ms_per_step']} |")
+        lines += ["", "Not calibrated yet: the two parents come out in the opposite order to experiment at room "
+                      "temperature (Li7P3S11 conducts better than beta-Li3PS4). Expected at 1000 K, not a proof of a "
+                      "fault: Li3PS4 has the larger barrier (literature MD ~0.35-0.41 eV vs ~0.19 eV for Li7P3S11), so "
+                      "it catches up at high temperature, and it turns into its alpha phase near 746 K. A calibration "
+                      "on the parents at lower temperatures must pass before any candidate is judged.",
+                  "",
+                  "D, one origin: the method of SPEC 5.10 (MSD from the first frame, fit on the second half). "
+                  "D, block mean: the trajectory cut into 4 blocks of 5 ps, MSD averaged over many time origins in "
+                  "each block; ± is the standard error across blocks. The gap between the two columns (up to 50 % "
+                  "for Li3PS4) shows how noisy one-origin D is. One temperature and one seed per structure; cells of "
+                  "~84 atoms hold only 28 Li. Framework: whether P, S and the other non-Li elements stayed in "
+                  "place; the runs above recorded Li positions only."]
     else:
         lines.append("Not run.")
     lines += ["", *NOTES]
