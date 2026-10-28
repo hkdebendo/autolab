@@ -2,15 +2,17 @@
 
 **An autonomous AI scientist for solid-state battery materials.**
 
-AutoLab is an AI agent that runs a closed-loop materials discovery cycle: it forms chemical hypotheses, generates candidate crystal structures, evaluates them with atomistic simulation, analyzes the results, and iterates. Our first target is **cobalt-free solid electrolytes for lithium batteries**.
+AutoLab is an AI agent searching for **solid electrolytes for lithium-metal batteries**: a Meta language model proposes chemical substitutions, the code builds the crystals, UMA (Meta FAIR) simulates them, scientific filters rank them, and the model reads the results to decide what to try next.
 
-> Built for the **Meta Global AI Developer Hackathon** (Oct 26 – Nov 4, 2026), track *Push the Frontier*. All code in this repository was written during the hackathon.
+> Built for the **Meta Global AI Developer Hackathon** (Oct 26 – Nov 4, 2026), track *Push the Frontier*, Indie category. All code in this repository was written during the hackathon.
 
 ---
 
 ## Why
 
 Solid-state batteries promise safer, denser energy storage, but finding a good solid electrolyte means searching a huge chemical space. A candidate must be stable, conduct lithium ions well, block electrons, and survive contact with the electrodes. Testing candidates one by one, by hand, is slow. AutoLab automates the loop of reasoning, simulating and refining.
+
+Cathodes tested against the electrolyte default to cobalt-free materials (LiFePO₄, LiMn₂O₄).
 
 ## How it works
 
@@ -22,18 +24,21 @@ Muse Spark ── proposes hypotheses and element substitutions
    │
    ▼
 pymatgen ──── builds charge-balanced candidate structures from known crystals
-   │
+   │          (several arrangements per substitution; non-neutral candidates rejected)
    ▼
 UMA (Meta FAIR) ── relaxes structures and predicts energies
    │
    ▼
-Stability filter ── energy above the convex hull (E_hull)
+Stability filter ── energy above the convex hull (E_hull ≤ 0.05 eV/atom)
    │
    ▼
-Electronic & electrode checks ── band gap, electrochemical window, interface reactivity
+Electronic check ── band gap (ALIGNN, ≥ 2.0 eV) + S–S bond warning
    │
    ▼
-Molecular dynamics (UMA) ── estimates Li⁺ conduction on the top candidates
+Electrode checks (top 20) ── electrochemical window, passivation against Li metal,
+   │                         interface reactivity with cathodes
+   ▼
+Molecular dynamics (UMA, top 3–5) ── estimates Li⁺ conduction
    │
    ▼
 Muse Spark ── analyzes results, forms a new hypothesis → next iteration
@@ -44,17 +49,50 @@ Final report: ranked candidates, 3D structures, and the agent's reasoning
 
 ## Meta models used
 
-- **Muse Spark** (Meta Model API): the scientific reasoning engine (hypotheses, tool calls, analysis).
+- **Muse Spark** (Meta Model API): the scientific reasoning engine (hypotheses, decisions, analysis).
+- **Muse Spark Open** (Baseten): parallel analysis of candidates, fallback for Muse Spark.
+- **Muse Glimmer** (Fireworks): small fast tasks (formula validation, JSON conversion, iteration summaries).
 - **UMA** (Meta FAIR, open weights): the universal atomistic model used for relaxations, energies and molecular dynamics.
-- **Muse Code**: coding agent used for parts of the development.
+- **Muse Code**: coding agent used for parts of the development; commits written with it say so in their message.
 
 ## Tech stack
 
-Python · ASE · pymatgen · fairchem (UMA) · Materials Project API · Modal (GPU compute) · lightweight web interface showing the agent's reasoning live
+Python · ASE · pymatgen · fairchem (UMA) · ALIGNN · Materials Project API · Modal (GPU compute) · lightweight web interface showing the agent's reasoning live
+
+## Install
+
+```bash
+pip install -e ".[bandgap,dev]"
+cp .env.example .env   # then fill in the keys yourself
+```
+
+## Tests
+
+```bash
+pytest            # CPU tests; GPU and paid-API tests are skipped
+pytest --gpu      # UMA tests (NVIDIA GPU only)
+pytest --api      # real LLM calls (costs credits)
+```
+
+See `SPEC.md` for the architecture and validated parameters.
 
 ## Validation
 
-To check that the agent finds good materials rather than just recalling them, we run a **rediscovery benchmark**: known electrolytes are hidden from the search space, and we measure whether, and how fast, the agent finds them again. Results are compared with random search and a simple heuristic, at the same simulation budget.
+**Calibration on known materials.** Each module has a truth test against known results (`tests/`). Current results on CPU, with Materials Project energies:
+
+| Check | AutoLab | Reference |
+|---|---|---|
+| Li₃PS₄ electrochemical window | 1.72 – 2.34 V | 1.71 – 2.31 V (Zhu, He & Mo 2015) |
+| LGPS against Li metal | non-passivating (metallic Li₁₅Ge₄) | non-passivating |
+| LLZO against Li metal | quasi-stable (0.028 eV/atom) | quasi-stable |
+| Li₃PS₄ / LiCoO₂ interface | −0.416 eV/atom | — |
+| E_hull Li₂S / Li₃PS₄ | 0.000 / 0.000 eV/atom | on the hull |
+| Band gap Li / Li₂S / LiCl (ALIGNN) | 0.00 / 3.44 / 6.59 eV | metal / insulator / insulator |
+| S→Cl + 1 Li vacancy in Li₃PS₄ | 7 distinct arrangements, all neutral | — |
+
+The same checks with UMA energies come next (stability, electrodes), run on GPU.
+
+**Rediscovery benchmark (planned).** To check that the agent finds good materials rather than just recalling them, known electrolytes (Li₆PS₅Cl, LGPS, LLZO, Li₃PS₄) are hidden from the search space, and we measure whether, and how fast, the agent finds them again. Results are compared with random search and a simple heuristic, at the same simulation budget.
 
 ## Important note
 
@@ -64,11 +102,14 @@ AutoLab's outputs are **computationally predicted candidates**, not experimental
 
 🚧 Work in progress during the hackathon.
 
-- [ ] Environment setup (pymatgen, fairchem, Materials Project)
-- [ ] Candidate generation by element substitution
-- [ ] UMA relaxation and stability filter
+- [x] Repository skeleton, configuration, test markers
+- [x] Candidate generation by element substitution, charge-neutrality check, S–S bond detector
+- [x] Materials Project access with disk cache
+- [x] Band gap filter (ALIGNN, CPU)
+- [x] Convex hull and electrode checks (window, passivation, cathode interface), validated with Materials Project energies
+- [ ] UMA relaxation and energies on Modal (GPU)
+- [ ] Stability and electrode checks with UMA energies
 - [ ] Muse Spark agent loop
-- [ ] Electronic and electrode stability checks
 - [ ] Molecular dynamics on top candidates
 - [ ] Rediscovery benchmark
 - [ ] Web interface and final report
