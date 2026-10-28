@@ -150,6 +150,8 @@ calc = FAIRChemCalculator(predictor, task_name="omat")   # tête « cristaux ino
 - `PDEntry(composition, energie, name=...)`, `PhaseDiagram(entries)`, `get_decomp_and_e_above_hull(entry, allow_negative=True)`.
 - Sortie : E_hull (eV/atome), produits de décomposition avec fractions.
 - Calibration Li-P-S : Li₃PS₄ 0,000 / 0,007 / 0,015 (MP : 0,000 / 0,007 / 0,014) ; Li₇P₃S₁₁ 0,010 (MP : 0,020) ; Li₂S 0.
+- ⚠️ **Changement du 28 octobre 2026 (validé par le propriétaire)** : toutes les énergies UMA reçoivent les **corrections MP2020** (`config.UMA_MP2020`, `stability.uma_entry`), comme les énergies MP : corrections d'anions et mélange GGA/GGA+U (valeurs de U dans `config.MP2020_HUBBARD_U`). Sans elles, une interface où Co ou Fe passe d'un oxyde (GGA+U) à un sulfure (GGA) est faussée de ≈ 0,2 eV/atome. Chaque entrée reçoit sa **structure** (sulfure ou sulfate) et ses **états d'oxydation** devinés sans la limite de 20 atomes de pymatgen (sinon Se n'est pas corrigé dans Li₇P₃SeS₁₀). Un test vérifie que les atomes d'anion corrigés sont conservés entre chaque phase et ses produits (exception voulue : anion d'état formel entre −1 et 0, ex. Sb dans LiSb₃). Tests de vérité relancés : Li₂S 0,0 ; LiS fictif 0,445 ; Li₃PS₄ 0,0 ; écart moyen aux E_hull MP sur 52 phases Li-P-S 0,0091 → 0,0057 eV/atome ; polymorphes et Li₇P₃S₁₁ inchangés. Approximation connue du schéma : les polysulfures reçoivent la correction des sulfures, le soufre élémental aucune (déplace les candidats As et Sb).
+- L'E_hull est toujours précisé **par atome** (eV/atome) ou **par substitution** (eV par site modifié) dans les rapports.
 - Seuils : `E_hull ≤ 0,05` = fabricable (métastable acceptable) ; `≤ 0,025` = très bon.
 
 ### 5.8 `analysis/bandgap.py` ✅ (ALIGNN2, sans DGL, CPU)
@@ -180,7 +182,7 @@ gap = ap.get_prediction_pure(model_name=dossier, atoms=to_jarvis(structure))[0]
 - **Interface avec une cathode** : `InterfacialReactivity(comp_electrolyte, comp_cathode, pd, norm=True, use_hull_energy=True)`, minimum de `get_kinks()`.
 - Cathodes : la liste doit être configurable. Validé avec LiCoO₂ ; pour le récit « sans cobalt », utiliser par défaut **LiFePO₄** et **LiMn₂O₄** (non encore testées).
 - Validé avec les énergies MP : Li₃PS₄ 1,72-2,34 V (publié 1,71-2,31), Li₆PS₅Cl 1,72-2,14 (1,71-2,01), LGPS 1,72-2,28 (1,71-2,14), LLZO 0,06-2,88 (0,05-2,91) ; LGPS non passivant (Li₁₅Ge₄), LLZO quasi stable (force 0,028), Li₃PS₄/LiCoO₂ −0,416 eV/atome.
-- ⏳ **Reste à faire** : la même méthode avec des entrées dont les énergies viennent d'UMA (références du système chimique + cathode + Li métal, toutes relaxées par UMA).
+- ✅ Même méthode avec les énergies UMA + MP2020 (28 octobre 2026) : fenêtre Li₃PS₄ 1,74-2,36 V (MP 1,72-2,34) ; interfaces avec les seules références sur l'enveloppe MP (`INTERFACE_REF_EHULL_MAX = 0`) : Li₃PS₄/LiCoO₂ −0,415 (MP −0,416), Li₃PS₄/LiFePO₄ −0,144 (MP −0,133) eV/atome, tolérance 0,05.
 - Coût : fenêtre 4-8 s ; interface à 5 éléments 16-28 s (sans compter les relaxations). À réserver au **top 20**.
 
 ### 5.10 `sim/md.py` + `analysis/diffusion.py` ✅
@@ -264,6 +266,9 @@ Un module n'est terminé que si son test de vérité passe. Les tests UMA ne tou
 | E_hull Li₂S (système Li-S, énergies UMA) | ≤ 0,005 |
 | E_hull LiS rocksalt fictif | ≥ 0,3 |
 | Calibration Li₃PS₄ mp-985583 (système Li-P-S) | ≤ 0,01 |
+| Fenêtre Li₃PS₄ (énergies UMA + MP2020, cache) | 1,6–1,9 V à 2,2–2,5 V |
+| Interfaces Li₃PS₄/LiCoO₂ et Li₃PS₄/LiFePO₄ (UMA + MP2020 contre MP) | écart ≤ 0,05 eV/atome |
+| Conservation des atomes d'anion corrigés (MP2020), chaque candidat et chaque phase du hull | aucun écart |
 | Neutralité : S→Cl sans retrait de Li dans Li₁₂P₄S₁₆ | rejeté (charge +1) |
 | Générateur S→Cl + 1 lacune Li | ≥ 2 arrangements distincts, tous neutres |
 | Band gap optb88 : Li métal / Li₂S / LiCl | < 0,3 / > 3,0 / > 5,5 |

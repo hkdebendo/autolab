@@ -91,10 +91,12 @@ INTERFACE_REF_EHULL_MAX = 0.0  # eV/atom, MP references kept for cathode interfa
 INTERFACE_CALIBRATION_MAX_DIFF = 0.05  # eV/atom, max |UMA - MP| on Li3PS4/cathode before trusting UMA interfaces
 CALIBRATION_CATHODES = ["LiCoO2", "LiFePO4"]  # LiCoO2: MP -0.416 eV/atom; LiFePO4: magnetic Fe, checked too
 LI3PS4_WINDOW_MP = (1.72, 2.34)  # V, Li3PS4 window with MP energies (validated, SPEC 5.9)
-# MP2020 corrections (pymatgen MaterialsProject2020Compatibility) on UMA energies for cathode interfaces: UMA
-# reproduces raw PBE / PBE+U energies, comparable across oxides of U metals and sulfides only after this scheme.
-# Validated 2026-10-28: Li3PS4/LiCoO2 -0.648 -> -0.417 (MP -0.416), Li3PS4/LiFePO4 -0.348 -> -0.144 (MP -0.133) eV/atom.
-INTERFACE_MP2020 = True
+# MP2020 corrections (pymatgen MaterialsProject2020Compatibility) on every UMA energy (E_hull, windows, passivation,
+# interfaces): UMA reproduces raw PBE / PBE+U energies, comparable across oxides of U metals and sulfides only after
+# this scheme. Each entry gets its structure and oxidation states, so the corrected anion atoms are conserved.
+# Validated 2026-10-28: Li3PS4/LiCoO2 -0.648 -> -0.415 (MP -0.416), Li3PS4/LiFePO4 -0.348 -> -0.144 (MP -0.133) eV/atom.
+# Known approximation of the scheme: polysulfides get the sulfide correction, elemental S none (moves As, Sb results).
+UMA_MP2020 = True
 MP2020_HUBBARD_U = {"Co": 3.32, "Cr": 3.7, "Fe": 5.3, "Mn": 3.9, "Mo": 4.38, "Ni": 6.2, "V": 3.25, "W": 6.2}  # eV, MP sets
 
 # --- UMA simulation (SPEC 5.5, 5.6, 5.10) ------------------------------------
@@ -113,7 +115,7 @@ MD_RECORD_EVERY = 10
 MD_MIN_LENGTH = 10.0  # Angstrom, minimum supercell side
 MD_SCREEN_TEMPERATURE_K = 1000  # first screening of Li diffusion (SPEC 5.10: 1000-1200 K)
 MD_SCREEN_PS = 20  # ps per screening run (2 ps is not enough)
-MD_SCREEN_MAX_RUNS = 6  # simulations per screening run
+MD_SCREEN_MAX_RUNS = 7  # simulations per screening run (5 candidates + 2 parents)
 
 # --- Modal (GPU) ---------------------------------------------------------------
 

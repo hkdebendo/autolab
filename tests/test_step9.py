@@ -14,7 +14,7 @@ from autolab import config
 from autolab.agent import dynamics
 from autolab.agent.electrochem import (candidate_entry, interface_calibration, li3ps4_window_calibration,
                                        uma_interface, window_and_passivation)
-from autolab.analysis.stability import make_entry, mp2020_corrected
+from autolab.analysis.stability import anion_balance, make_entry, mp2020_corrected
 from autolab.sim.backend import BudgetExceeded, RelaxBudget
 from autolab.sim.serialize import atoms_to_dict
 
@@ -23,6 +23,12 @@ SCRIPTS = Path(__file__).resolve().parent.parent / "scripts"
 # Li-S with round numbers: Li2S -1.5 eV/atom, LiS2 -0.8 eV/atom (on the hull), elements at 0.
 ENERGIES = {"Li": 0.0, "S": 0.0, "Li2S": -4.5, "LiS2": -2.4}
 IDS = {"Li": "mp-135", "S": "mp-77", "Li2S": "mp-1153", "LiS2": "mp-995393"}
+
+
+@pytest.fixture(autouse=True)
+def raw_uma_energies(monkeypatch):
+    """The fake Li-S system holds raw energies with round numbers; the truth tests below switch MP2020 back on."""
+    monkeypatch.setattr(config, "UMA_MP2020", False)
 
 
 def uma_entries(elements, budget=None, ehull_max=None):
@@ -55,7 +61,6 @@ def test_window_and_passivation_with_uma_entries(li2s_candidate):
 
 
 def test_interface_and_calibration_gate(monkeypatch):
-    monkeypatch.setattr(config, "INTERFACE_MP2020", False)  # round numbers of the fake Li-S system
     uma = uma_interface("Li2S", "S", uma_entries)
     # Per atom of mixture: the 1:1 atomic mix of Li2S and S has the LiS2 composition, -0.75 -> -0.8 eV/atom.
     assert uma["min_reaction_energy"] == pytest.approx(-0.05, abs=1e-6) and uma["source"] == "uma"
@@ -133,8 +138,9 @@ def test_step9_report_renders(li2s_candidate):
         assert s in text
 
 
-def test_li3ps4_window_with_cached_uma_energies():
-    """SPEC 7 window truth test (1.6-1.9 V to 2.2-2.5 V), here with UMA energies from the PC cache."""
+def test_li3ps4_window_with_cached_uma_energies(monkeypatch):
+    """SPEC 7 window truth test (1.6-1.9 V to 2.2-2.5 V), here with UMA + MP2020 energies from the PC cache."""
+    monkeypatch.setattr(config, "UMA_MP2020", True)
     try:
         cal = li3ps4_window_calibration(budget=RelaxBudget(0))
     except (BudgetExceeded, Exception) as e:  # no cache on this machine
@@ -171,11 +177,40 @@ def test_mp2020_corrects_the_same_anion_atoms_on_both_sides():
     assert corr.energy + 200.0 == pytest.approx(li2so4.composition["O"] * no_s)
 
 
-def test_cathode_calibrations_with_cached_uma_energies():
+def test_cathode_calibrations_with_cached_uma_energies(monkeypatch):
     """Truth test: Li3PS4 / LiCoO2 and Li3PS4 / LiFePO4 with UMA + MP2020 within tolerance of MP (PC cache)."""
+    monkeypatch.setattr(config, "UMA_MP2020", True)
     try:
         cals = [interface_calibration(c, budget=RelaxBudget(0)) for c in config.CALIBRATION_CATHODES]
     except (BudgetExceeded, Exception) as e:  # no cache on this machine
         pytest.skip(f"UMA references or MP entries not cached here ({type(e).__name__})")
     for c in cals:
         assert c["ok"], (c["cathode"], c["diff"])
+
+
+STEP9 = Path(__file__).resolve().parent.parent / "results" / "2026-10-28_step9"
+
+
+def test_mp2020_anion_atoms_conserved_in_every_cached_hull(monkeypatch):
+    """Every candidate and every phase of its hull (and of the cathode interface systems): the corrected anion
+    atoms of a phase equal those of its decomposition products (UMA energies from the PC cache)."""
+    from autolab.agent.electrochem import _elements, candidate_entry
+    from autolab.analysis.stability import uma_reference_entries
+
+    monkeypatch.setattr(config, "UMA_MP2020", False)  # raw entries: anion_balance applies the scheme itself
+    cands = [c for c in json.loads((STEP9 / "candidates.json").read_text(encoding="utf-8"))["candidates"]
+             if c.get("relaxed_atoms")]  # candidates rejected before any calculation have no structure
+    hulls = []
+    try:
+        for c in cands:
+            t = candidate_entry(c)
+            refs, _ = uma_reference_entries(_elements(t.composition), budget=RelaxBudget(0))
+            hulls.append((c["id"], [*refs, t]))
+        for cathode in config.CALIBRATION_CATHODES:
+            refs, _ = uma_reference_entries(_elements("Li3PS4", cathode), budget=RelaxBudget(0),
+                                            ehull_max=config.INTERFACE_REF_EHULL_MAX)
+            hulls.append((f"Li3PS4/{cathode}", refs))
+    except (BudgetExceeded, config.MissingKeyError) as e:  # no cache on this machine
+        pytest.skip(f"UMA references not cached here ({type(e).__name__})")
+    for name, entries in hulls:
+        assert anion_balance(entries) == [], name

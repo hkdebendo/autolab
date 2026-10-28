@@ -6,9 +6,15 @@ Every relaxation goes through the disk cache: a second run costs nothing.
 import pytest
 from pymatgen.core import Lattice, Structure
 
-from autolab.analysis.stability import e_hull, make_entry, uma_reference_entries
+from autolab.analysis.stability import e_hull, uma_entry, uma_reference_entries
 from autolab.sim.backend import relax_structures
 from autolab.sim.serialize import atoms_from_dict
+
+
+def atoms_to_structure(d):
+    from pymatgen.io.ase import AseAtomsAdaptor
+
+    return AseAtomsAdaptor.get_structure(atoms_from_dict(d))
 from conftest import requires_mp
 
 pytestmark = pytest.mark.gpu
@@ -39,7 +45,7 @@ def test_li2s_ehull_uma():
 def test_fictitious_rocksalt_lis_is_unstable():
     entries, _ = uma_reference_entries(["Li", "S"])
     res = relax_structures([rocksalt(5.0, "Li", "S").get_primitive_structure()])[0]
-    target = make_entry("LiS", res["energy"], "LiS-rocksalt", "uma")
+    target = uma_entry("LiS", res["energy"], "LiS-rocksalt", structure=atoms_to_structure(res["atoms"]))
     out = e_hull(target, entries)
     print(f"\nRocksalt LiS E_hull (UMA) = {out['e_hull']}, converged {res['converged']}")
     assert out["e_hull"] >= 0.3

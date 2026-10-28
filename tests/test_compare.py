@@ -30,7 +30,7 @@ def by_kind(kind):
 def test_iodine_vs_chlorine_on_the_same_parent():
     [pair] = by_kind("same parent, different added element")
     text = " | ".join(pair["statements"])
-    assert "E_hull: Li11P4S15I (it2-c5) 0.023 < Li11P4S15Cl (it1-c1) 0.026" in text
+    assert "E_hull per atom: Li11P4S15I (it2-c5) 0.023 < Li11P4S15Cl (it1-c1) 0.026 eV/atom" in text
     assert "band gap optB88: Li11P4S15Cl (it1-c1) 2.669 > Li11P4S15I (it2-c5) 2.522" in text  # Cl has the larger gap
 
 

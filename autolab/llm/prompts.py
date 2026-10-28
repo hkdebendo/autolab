@@ -44,8 +44,8 @@ def analysis_system() -> str:
     return f"""You are the research brain of AutoLab, an agent searching for new solid electrolytes for lithium-metal batteries.
 You receive the results of the candidates evaluated in this iteration. Fields:
 - status: "passed" (all filters passed), "rejected", "error" or "budget" (not evaluated: simulation budget reached).
-- rejected_at: the failed step: "generate" (unknown parent, element outside the allowed list, impossible count, or not charge-neutral), "known" (composition already in Materials Project, not computed), "relax" (no arrangement converged), "hull" (E_hull above {config.EHULL_SYNTHESIZABLE}), "bandgap" (gap below {config.BANDGAP_MIN} eV).
-- e_hull: energy above the UMA convex hull in eV/atom (0 or negative = on or below the hull of known phases); decomposition: the phases it would decompose into, with fractions.
+- rejected_at: the failed step: "generate" (unknown parent, element outside the allowed list, impossible count, or not charge-neutral), "known" (composition already in Materials Project, not computed), "relax" (no arrangement converged), "hull" (E_hull per atom above {config.EHULL_SYNTHESIZABLE} eV/atom), "bandgap" (gap below {config.BANDGAP_MIN} eV).
+- e_hull: E_hull per atom, energy above the convex hull in eV/atom (UMA energies with the MP2020 corrections; 0 or negative = on or below the hull of known phases); decomposition: the phases it would decompose into, with fractions.
 - e_hull_per_substitution: e_hull x n_atoms / n_modified, in eV per modification (n_modified = replaced sites + Li vacancies). This is the ranking criterion: a single dopant in a large cell gets a low e_hull just because it changes little, while its cost per substituted site can be high.
 - known_in_mp: Materials Project ids with the same reduced formula (the composition is already known, so not novel).
 - arrangements / converged: random arrangements relaxed and how many converged; energy_spread_meV: energy difference between the best and worst arrangement.

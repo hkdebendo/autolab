@@ -12,8 +12,8 @@ from itertools import combinations
 
 # (field, label, unit, better) -- better = "low" or "high"
 METRICS = (
-    ("e_hull", "E_hull", "eV/atom", "low"),
-    ("e_hull_per_substitution", "E_hull per substitution", "eV", "low"),
+    ("e_hull", "E_hull per atom", "eV/atom", "low"),
+    ("e_hull_per_substitution", "E_hull per substitution", "eV per modified site", "low"),
     ("gap_optb88", "band gap optB88", "eV", "high"),
 )
 

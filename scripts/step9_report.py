@@ -27,11 +27,47 @@ def _empty_window(c: dict, parents: dict) -> str:
     return "zero at the calculation precision; not rejected"
 
 
-def render(candidates: dict, electrodes: dict | None, interfaces: dict | None, md: list | None) -> str:
+def _ranking(candidates: dict, raw: dict) -> list[str]:
+    """Old (raw UMA) and new (UMA + MP2020) rankings side by side, E_hull per atom and per substitution."""
+    old = {c["id"]: c for c in raw["candidates"]}
+    old_rank = {cid: i for i, cid in enumerate(raw["ranking"], 1)}
     by_id = {c["id"]: c for c in candidates["candidates"]}
-    lines = ["# AutoLab step 9 — electrodes and Li diffusion with UMA energies", ""]
+    lines = ["| Rank (MP2020) | Rank (raw) | Candidate | Formula | E_hull per atom raw → MP2020 (eV/atom) | "
+             "E_hull per substitution raw → MP2020 (eV per modified site) |", "|---|---|---|---|---|---|"]
+    for i, cid in enumerate(candidates["ranking"], 1):
+        c, o = by_id[cid], old.get(cid, {})
+        lines.append(f"| {i} | {old_rank.get(cid, '—')} | {cid} | {c['formula']} | {_v(o.get('e_hull'), '.3f')} → "
+                     f"{_v(c['e_hull'], '.3f')} | {_v(o.get('e_hull_per_substitution'), '.3f')} → "
+                     f"{_v(c['e_hull_per_substitution'], '.3f')} |")
+    return lines
 
-    lines += ["## 9A. Electrochemical window and contact with Li metal (UMA energies, CPU)", ""]
+
+NOTES = [
+    "## Method notes", "",
+    "- Energies: UMA (uma-s-1p2, omat head) with the MP2020 correction scheme of Materials Project "
+    "(anion corrections, GGA/GGA+U mixing), as MP's own energies. Each entry carries its structure and oxidation "
+    "states, so the corrected anion atoms are the same on both sides of every reaction (checked by a test for every "
+    "candidate and every phase of its hull).",
+    "- E_hull per atom is in eV/atom; E_hull per substitution = E_hull per atom x atoms / modified sites "
+    "(replaced sites + Li vacancies), in eV per modified site.",
+    "- As and Sb candidates move with MP2020 because of a known approximation of the scheme, not an inconsistency: "
+    "polysulfides (e.g. LiS4, AsS2) get the sulfide correction while elemental S gets none, so the excess sulfur of "
+    "the decomposition goes to polysulfides instead of S8. MP treats its own data the same way.",
+    "- One reference is left out of the conservation check by design: LiSb3 (Sb formally -1/3), an alloy whose Sb "
+    "the scheme does not correct (anion corrections only for oxidation states of -1 or lower), unlike Sb in Li3Sb.",
+]
+
+
+def render(candidates: dict, electrodes: dict | None, interfaces: dict | None, md: list | None,
+           raw: dict | None = None) -> str:
+    by_id = {c["id"]: c for c in candidates["candidates"]}
+    lines = ["# AutoLab step 9 — electrodes and Li diffusion with UMA energies", "",
+             "Energies: UMA + MP2020 corrections (see the method notes at the end).", ""]
+    if raw:
+        lines += ["## Ranking: raw UMA vs UMA + MP2020 (best first, lowest E_hull per substitution)", "",
+                  *_ranking(candidates, raw), ""]
+
+    lines += ["## 9A. Electrochemical window and contact with Li metal (UMA + MP2020 energies, CPU)", ""]
     if electrodes:
         cal = electrodes["calibration_li3ps4"]
         parents = electrodes.get("parents", {})
@@ -48,7 +84,7 @@ def render(candidates: dict, electrodes: dict | None, interfaces: dict | None, m
     else:
         lines.append("Not available.")
 
-    lines += ["", "## 9B. Interface with the cathode (UMA energies, on-hull references)", ""]
+    lines += ["", "## 9B. Interface with the cathode (UMA + MP2020 energies, on-hull references)", ""]
     if interfaces:
         lines += [f"Calibrations (Li3PS4, tolerance {interfaces['tolerance']} eV/atom):", ""]
         for c in interfaces["calibrations"]:
@@ -83,6 +119,7 @@ def render(candidates: dict, electrodes: dict | None, interfaces: dict | None, m
                       "Cells of ~84 atoms hold only ~24-28 Li, so D is noisy."]
     else:
         lines.append("Not run.")
+    lines += ["", *NOTES]
     return "\n".join(lines)
 
 
@@ -94,7 +131,8 @@ def main() -> None:
     args = ap.parse_args()
     run = args.run_dir or args.step_dir
     text = render(_load(args.step_dir / "candidates.json"), _load(args.step_dir / "electrodes.json"),
-                  _load(run / "interfaces.json"), _load(run / "md_screen.json"))
+                  _load(run / "interfaces.json"), _load(run / "md_screen.json"),
+                  _load(args.step_dir / "candidates_raw.json"))
     (args.out or run / "step9_report.md").write_text(text, encoding="utf-8")
     print(text)
 

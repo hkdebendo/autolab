@@ -32,5 +32,6 @@ markers = [
 ]
 filterwarnings = [
     "ignore:logm result may be inaccurate",
+    "ignore:Failed to guess oxidation states",
     "ignore:Support for class-based `config` is deprecated",
 ]

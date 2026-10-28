@@ -4,12 +4,12 @@
   "formula": "Li3PS4",
   "stable": true,
   "v_low": 1.74,
-  "v_high": 2.3,
+  "v_high": 2.36,
   "contiguous": true,
   "mp_v_low": 1.72,
   "mp_v_high": 2.34,
   "diff_low": 0.02,
-  "diff_high": -0.04
+  "diff_high": 0.02
  },
  "parents": {
   "mp-641703": {
@@ -25,7 +25,7 @@
    "id": "mp-985583",
    "stable": true,
    "v_low": 1.74,
-   "v_high": 2.3,
+   "v_high": 2.36,
    "contiguous": true
   }
  },
@@ -37,7 +37,7 @@
     "formula": "NaLi11(PS4)4",
     "stable": true,
     "v_low": 1.94,
-    "v_high": 2.12,
+    "v_high": 2.26,
     "contiguous": true
    },
    "passivation": {
@@ -68,13 +68,48 @@
    "skipped_references": []
   },
   {
+   "id": "it1-c4",
+   "formula": "Li7P3SeS10",
+   "window": {
+    "formula": "Li7P3SeS10",
+    "stable": true,
+    "v_low": 2.28,
+    "v_high": 2.3,
+    "contiguous": true
+   },
+   "passivation": {
+    "formula": "Li7P3SeS10",
+    "verdict": "passivating",
+    "reaction_energy": 2.528672,
+    "products": [
+     {
+      "formula": "Li2S",
+      "id": "mp-1153",
+      "fraction": 0.714286
+     },
+     {
+      "formula": "Li3P",
+      "id": "mp-736",
+      "fraction": 0.214286
+     },
+     {
+      "formula": "Li2Se",
+      "id": "mp-2286",
+      "fraction": 0.071429
+     }
+    ],
+    "metallic_products": []
+   },
+   "skipped_references": []
+  },
+  {
    "id": "it1-c5",
    "formula": "NaLi6P3S11",
    "window": {
     "formula": "NaLi6P3S11",
     "stable": true,
     "v_low": 2.26,
-    "v_high": 2.3,
+    "v_high": 2.34,
     "contiguous": true
    },
    "passivation": {
@@ -140,48 +175,13 @@
    "skipped_references": []
   },
   {
-   "id": "it1-c4",
-   "formula": "Li7P3SeS10",
-   "window": {
-    "formula": "Li7P3SeS10",
-    "stable": false,
-    "v_low": null,
-    "v_high": null,
-    "contiguous": false
-   },
-   "passivation": {
-    "formula": "Li7P3SeS10",
-    "verdict": "passivating",
-    "reaction_energy": 2.528672,
-    "products": [
-     {
-      "formula": "Li2S",
-      "id": "mp-1153",
-      "fraction": 0.714286
-     },
-     {
-      "formula": "Li3P",
-      "id": "mp-736",
-      "fraction": 0.214286
-     },
-     {
-      "formula": "Li2Se",
-      "id": "mp-2286",
-      "fraction": 0.071429
-     }
-    ],
-    "metallic_products": []
-   },
-   "skipped_references": []
-  },
-  {
    "id": "it1-c2",
    "formula": "Li6P2S7O",
    "window": {
     "formula": "Li6P2S7O",
     "stable": true,
     "v_low": 1.74,
-    "v_high": 2.3,
+    "v_high": 2.36,
     "contiguous": true
    },
    "passivation": {
@@ -247,6 +247,41 @@
    "skipped_references": []
   },
   {
+   "id": "it2-c2",
+   "formula": "Li7AsP2S11",
+   "window": {
+    "formula": "Li7AsP2S11",
+    "stable": false,
+    "v_low": null,
+    "v_high": null,
+    "contiguous": false
+   },
+   "passivation": {
+    "formula": "Li7AsP2S11",
+    "verdict": "passivating",
+    "reaction_energy": 2.598468,
+    "products": [
+     {
+      "formula": "Li2S",
+      "id": "mp-1153",
+      "fraction": 0.785714
+     },
+     {
+      "formula": "Li3P",
+      "id": "mp-736",
+      "fraction": 0.142857
+     },
+     {
+      "formula": "Li3As",
+      "id": "mp-757",
+      "fraction": 0.071429
+     }
+    ],
+    "metallic_products": []
+   },
+   "skipped_references": []
+  },
+  {
    "id": "it2-c1",
    "formula": "Li13P6S21Cl",
    "window": {
@@ -282,41 +317,6 @@
    "skipped_references": []
   },
   {
-   "id": "it2-c2",
-   "formula": "Li7AsP2S11",
-   "window": {
-    "formula": "Li7AsP2S11",
-    "stable": true,
-    "v_low": 2.06,
-    "v_high": 2.1,
-    "contiguous": true
-   },
-   "passivation": {
-    "formula": "Li7AsP2S11",
-    "verdict": "passivating",
-    "reaction_energy": 2.598468,
-    "products": [
-     {
-      "formula": "Li2S",
-      "id": "mp-1153",
-      "fraction": 0.785714
-     },
-     {
-      "formula": "Li3P",
-      "id": "mp-736",
-      "fraction": 0.142857
-     },
-     {
-      "formula": "Li3As",
-      "id": "mp-757",
-      "fraction": 0.071429
-     }
-    ],
-    "metallic_products": []
-   },
-   "skipped_references": []
-  },
-  {
    "id": "it2-c3",
    "formula": "Li14SbP5S22",
    "window": {
@@ -329,7 +329,7 @@
    "passivation": {
     "formula": "Li14SbP5S22",
     "verdict": "passivating",
-    "reaction_energy": 2.55185,
+    "reaction_energy": 2.558707,
     "products": [
      {
       "formula": "Li2S",
