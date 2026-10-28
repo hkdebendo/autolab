@@ -111,6 +111,28 @@ MODAL_RELAX_TIMEOUT = 1200  # s, per chunk of structures
 MODAL_MD_TIMEOUT = 1800  # s
 MODAL_RELAX_CHUNK = 10  # structures per remote call
 
+# --- Language models (SPEC 5.11) ---------------------------------------------
+
+# One OpenAI-compatible client; prices in USD per million tokens (reasoning is billed as output).
+LLM_PROVIDERS: dict[str, dict] = {
+    "meta": {  # main brain; reasoning summaries only through the Responses API
+        "base_url": "https://api.meta.ai/v1", "key": "MODEL_API_KEY", "model": "muse-spark-1.3",
+        "api": "responses", "usd_per_m_input": 1.25, "usd_per_m_output": 4.25,
+    },
+    "baseten": {  # parallel candidate analyses, fallback for meta
+        "base_url": "https://inference.baseten.co/v1", "key": "BASETEN_API_KEY",
+        "model": "meta-models/muse-spark-open-1026",
+        "api": "chat", "usd_per_m_input": 1.25, "usd_per_m_output": 4.25,
+    },
+    "fireworks": {  # small fast tasks (Muse Glimmer)
+        "base_url": "https://api.fireworks.ai/inference/v1", "key": "FIREWORKS_API_KEY",
+        "model": "accounts/fireworks/models/muse-glimmer-30b",
+        "api": "chat", "usd_per_m_input": 0.35, "usd_per_m_output": 1.50,
+    },
+}
+LLM_TIMEOUT = 300  # s per call
+LLM_MAX_OUTPUT_TOKENS = 4000  # includes reasoning tokens
+
 # --- Budget limits (CLAUDE.md) -----------------------------------------------
 
 MAX_RELAXATIONS_PER_RUN = 80  # UMA relaxations not already in cache
@@ -119,4 +141,5 @@ MAX_ITERATIONS = 2
 MAX_CANDIDATES_PER_ITERATION = 5
 MAX_LLM_CALLS_PER_RUN = 10
 MAX_TOKENS_PER_RUN = 200_000
+MAX_LLM_COST_PER_RUN_USD = 1.0  # estimated from LLM_PROVIDERS prices
 JSON_MAX_RETRIES = 3
