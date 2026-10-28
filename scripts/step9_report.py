@@ -18,6 +18,15 @@ def _v(x, fmt=".2f"):
     return "—" if x is None else format(x, fmt)
 
 
+def _empty_window(c: dict, parents: dict) -> str:
+    """An empty window is not a rejection: the criterion is fragile for metastable compounds."""
+    p = parents.get(c.get("parent"))
+    if p and p.get("v_low") is not None:
+        width = p["v_high"] - p["v_low"]
+        return f"zero at the calculation precision (parent {p['formula']} already at {width:.2f} V); not rejected"
+    return "zero at the calculation precision; not rejected"
+
+
 def render(candidates: dict, electrodes: dict | None, interfaces: dict | None, md: list | None) -> str:
     by_id = {c["id"]: c for c in candidates["candidates"]}
     lines = ["# AutoLab step 9 — electrodes and Li diffusion with UMA energies", ""]
@@ -25,12 +34,14 @@ def render(candidates: dict, electrodes: dict | None, interfaces: dict | None, m
     lines += ["## 9A. Electrochemical window and contact with Li metal (UMA energies, CPU)", ""]
     if electrodes:
         cal = electrodes["calibration_li3ps4"]
+        parents = electrodes.get("parents", {})
         lines += [f"Calibration Li3PS4: UMA {_v(cal['v_low'])}–{_v(cal['v_high'])} V vs MP "
-                  f"{cal['mp_v_low']}–{cal['mp_v_high']} V.", "",
+                  f"{cal['mp_v_low']}–{cal['mp_v_high']} V. Parents (UMA): "
+                  + "; ".join(f"{p['formula']} {_v(p['v_low'])}–{_v(p['v_high'])} V" for p in parents.values()), "",
                   "| Candidate | Formula | Window (V) | Against Li metal | Products at 0 V |", "|---|---|---|---|---|"]
         for r in electrodes["candidates"]:
             w, p = r["window"], r["passivation"]
-            window = f"{_v(w['v_low'])}–{_v(w['v_high'])}" if w["stable"] else "none"
+            window = f"{_v(w['v_low'])}–{_v(w['v_high'])}" if w["stable"] else _empty_window(by_id[r["id"]], parents)
             prods = ", ".join(f"{d['formula']} {d['fraction']:.2f}" for d in p["products"])
             metal = f" (metallic: {', '.join(p['metallic_products'])})" if p["metallic_products"] else ""
             lines.append(f"| {r['id']} | {r['formula']} | {window} | {p['verdict']}{metal} | {prods} |")

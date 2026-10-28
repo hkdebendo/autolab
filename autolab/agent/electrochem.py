@@ -51,11 +51,17 @@ def window_and_passivation(c: dict, entries_fn: Callable = _default_entries, get
             "passivation": passivation(target, entries, get_gaps), "skipped_references": skipped}
 
 
+def reference_window(material_id: str, elements: list[str], entries_fn: Callable = _default_entries,
+                     budget=None) -> dict:
+    """Window of an MP reference (e.g. a parent) with UMA energies, from the references of its system."""
+    entries, _ = entries_fn(elements, budget)
+    target = next(e for e in entries if e.name == material_id)
+    return {"id": material_id, **electrochemical_window(target, entries)}
+
+
 def li3ps4_window_calibration(entries_fn: Callable = _default_entries, budget=None) -> dict:
     """Li3PS4 (mp-985583) window with UMA energies, to compare with the MP result."""
-    entries, _ = entries_fn(["Li", "P", "S"], budget)
-    target = next(e for e in entries if e.name == "mp-985583")
-    win = electrochemical_window(target, entries)
+    win = reference_window("mp-985583", ["Li", "P", "S"], entries_fn, budget)
     lo, hi = config.LI3PS4_WINDOW_MP
     return {**win, "mp_v_low": lo, "mp_v_high": hi,
             "diff_low": None if win["v_low"] is None else round(win["v_low"] - lo, 3),

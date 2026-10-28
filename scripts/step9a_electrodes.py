@@ -11,7 +11,9 @@ import argparse
 import json
 from pathlib import Path
 
-from autolab.agent.electrochem import li3ps4_window_calibration, window_and_passivation
+from pymatgen.core import Composition
+
+from autolab.agent.electrochem import li3ps4_window_calibration, reference_window, window_and_passivation
 from autolab.sim.backend import RelaxBudget
 
 
@@ -35,8 +37,16 @@ def main() -> None:
               f"vs Li metal: {p['verdict']}, reaction {p['reaction_energy']:.3f} eV/atom, "
               f"products {[d['formula'] for d in p['products']]}, metallic {p['metallic_products']}")
         rows.append(r)
+    # Parent windows: an empty candidate window is read next to its parent's (Li7P3S11 is only 0.02 V wide).
+    parents = {}
+    for pid in sorted({by_id[r["id"]]["parent"] for r in rows}):
+        formula = by_id[next(r["id"] for r in rows if by_id[r["id"]]["parent"] == pid)]["parent_formula"]
+        parents[pid] = {"formula": formula, **reference_window(
+            pid, sorted(el.symbol for el in Composition(formula).elements), budget=RelaxBudget(0))}
+        print(f"parent {pid} {formula}: window {parents[pid]['v_low']} - {parents[pid]['v_high']} V")
     out = args.out or args.candidates.with_name("electrodes.json")
-    out.write_text(json.dumps({"calibration_li3ps4": cal, "candidates": rows}, indent=1), encoding="utf-8")
+    out.write_text(json.dumps({"calibration_li3ps4": cal, "parents": parents, "candidates": rows}, indent=1),
+                   encoding="utf-8")
     print(f"saved {out}")
 
 
