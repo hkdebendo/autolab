@@ -60,7 +60,8 @@ def fake_gap(gap=3.1):
 
 
 def tools(**kw):
-    return Tools(relax=kw.get("relax", fake_relax()), hull_entries=fake_hull, bandgap=kw.get("bandgap", fake_gap()))
+    return Tools(relax=kw.get("relax", fake_relax()), hull_entries=fake_hull, bandgap=kw.get("bandgap", fake_gap()),
+                 known=kw.get("known", lambda formula: []))
 
 
 # --- funnel ------------------------------------------------------------------
@@ -80,10 +81,32 @@ def test_passing_candidate_keeps_lowest_arrangement_and_emits_events(li3ps4):
     assert out["arrangements"] == out["converged"] >= 2
     assert out["energy_spread_meV"] == pytest.approx(1.0 * (out["arrangements"] - 1))
     assert out["e_hull"] < 0 and out["gap_optb88"] == 3.1 and out["ss_bonds"] is False
+    assert (out["n_atoms"], out["n_substituted"]) == (31, 1)
+    assert out["e_hull_per_substitution"] == pytest.approx(out["e_hull"] * 31, abs=1e-3)
     assert out["new_relaxations"] == out["arrangements"]
-    assert [e["step"] for e in events.events] == ["generate", "relax", "hull", "bandgap", "ss_check", "done"]
+    assert [e["step"] for e in events.events] == ["generate", "known_check", "relax", "hull", "bandgap", "ss_check",
+                                                  "done"]
     assert all(set(e) == {"type", "candidate_id", "step", "data", "timestamp"} for e in events.events)
     json.dumps(out)  # serialisable
+
+
+def test_known_composition_reported_not_computed(li3ps4):
+    calls = []
+    out = evaluate_candidate("c1", PARENT, li3ps4, {"remove": "P", "add": "Sb", "count": "all"},
+                             tools(relax=fake_relax(calls=calls),
+                                   known=lambda f: [{"material_id": "mp-756316", "theoretical": True}]))
+    assert (out["status"], out["rejected_at"], out["known_in_mp"]) == ("rejected", "known", ["mp-756316"])
+    assert out["n_substituted"] == 4 and calls == []  # all 4 P of Li12P4S16, nothing relaxed
+
+
+def test_known_check_failure_still_computes(li3ps4):
+    def unreachable(formula):
+        raise ConnectionError("MP down")
+
+    events = EventLog()
+    out = evaluate_candidate("c1", PARENT, li3ps4, SUB_CL, tools(known=unreachable), events)
+    assert out["status"] == "passed"
+    assert any("MP down" in e["data"].get("error", "") for e in events.events if e["step"] == "known_check")
 
 
 def test_unstable_candidate_rejected_at_hull(li3ps4):
@@ -171,11 +194,24 @@ def test_loop_two_iterations_filters_and_report(li3ps4):
     assert second_request["history"][0]["lessons"] == ["lesson"]
     system = brain.requests[0]["messages"][0]["content"]
     assert str(config.EHULL_SYNTHESIZABLE) in system and str(config.BANDGAP_MIN) in system
+    assert "per substitution" in system
     assert brain.requests[0]["reasoning_effort"] == config.AGENT_REASONING_EFFORT
 
+    # The analysis gets code-computed comparisons over all candidates so far, and is told to rely on them.
+    analysis_request = brain.requests[3]["messages"]
+    assert "never compare values yourself" in analysis_request[0]["content"]
+    comps = json.loads(analysis_request[1]["content"])["comparisons"]
+    assert any(c["kind"] == "same parent, different added element" and "S->Br" in c["about"] for c in comps)
+    assert result["iterations"][1]["comparisons"] == comps
+
     assert result["usage"]["llm"]["meta"]["calls"] == 4
+    passed = [c for r in result["iterations"] for c in r["candidates"] if c["status"] == "passed"]
+    by_id = {c["id"]: c for c in passed}
+    costs = [by_id[cid]["e_hull_per_substitution"] for cid in result["final_ranking"]]
+    assert costs == sorted(costs)  # final ranking by E_hull per substitution
     report = render(result)
-    for text in ("## Iteration 2", "## Final ranking", "Li3SbS4", "Reasoning summary", "meta: 4 calls"):
+    for text in ("## Iteration 2", "## Final ranking", "Li3SbS4", "Reasoning summary", "meta: 4 calls",
+                 "E_hull per substitution", "Comparisons computed by the code"):
         assert text in report
     json.dumps(result)
 

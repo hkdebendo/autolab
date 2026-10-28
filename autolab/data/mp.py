@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any, Iterable
 
 from monty.json import MontyDecoder, MontyEncoder
-from pymatgen.core import Structure
+from pymatgen.core import Composition, Structure
 from pymatgen.entries.computed_entries import ComputedEntry
 
 from autolab import config
@@ -171,3 +171,34 @@ def get_band_gaps(material_ids: Iterable[str]) -> dict[str, float | None]:
             cache.setdefault(m, None)
         _write(path, cache)
     return {m: cache[m] for m in ids}
+
+
+def formula_key(formula: str) -> str:
+    """Canonical reduced formula, e.g. 'NaLi11(PS4)4' -> 'Li11NaP4S16'."""
+    comp = Composition(formula).reduced_composition
+    return "".join(f"{el.symbol}{'' if n == 1 else int(n)}" for el, n in sorted(comp.items(), key=lambda x: x[0].symbol))
+
+
+def known_formulas(formulas: Iterable[str]) -> dict[str, list[dict]]:
+    """Materials Project materials with the same reduced composition as each formula.
+
+    One batched request for the formulas not yet cached; [] means none in MP.
+    `theoretical` is False when MP links the material to an experimental (ICSD) entry.
+    """
+    path = config.MP_CACHE_DIR / "formulas.json"
+    cache: dict[str, list[dict]] = _read(path) or {}
+    keys = {f: formula_key(f) for f in formulas}
+    missing = sorted({k for k in keys.values() if k not in cache})
+    if missing:
+        with _rester() as mpr:
+            docs = mpr.materials.summary.search(
+                formula=missing, fields=["material_id", "formula_pretty", "energy_above_hull", "theoretical"])
+        for k in missing:
+            cache[k] = []
+        for d in docs:
+            k = formula_key(d.formula_pretty)
+            if k in cache:
+                cache[k].append({"material_id": str(d.material_id), "energy_above_hull": d.energy_above_hull,
+                                 "theoretical": d.theoretical})
+        _write(path, cache)
+    return {f: cache[k] for f, k in keys.items()}

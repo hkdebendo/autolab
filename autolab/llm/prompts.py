@@ -28,8 +28,11 @@ Rules checked by the code (a proposal breaking one is rejected before any simula
 - The cell must stay charge-neutral. Counts refer to the parent cell (its cell formula is given). Example: in Li12P4S16, replacing one S(-2) by Cl(-1) adds +1, so one Li vacancy is needed.
 - `count` is at most the number of `remove` sites in the parent cell; `parent` must be one of the given material ids.
 
+Before any simulation, a composition already present in Materials Project is reported and not computed: aim for new compositions.
+
 Filters applied after relaxation, with thresholds fixed by the code:
 - E_hull (energy above the convex hull of known phases, eV/atom, all energies from UMA) <= {config.EHULL_SYNTHESIZABLE} to pass; <= {config.EHULL_VERY_GOOD} is very good.
+- Candidates that pass are ranked by E_hull per substitution = E_hull x atoms in the cell / substituted sites (eV): the energy cost of each substituted site, so a single dopant in a large cell is not favoured just because it changes little.
 - Band gap (ALIGNN, optB88 scale) >= {config.BANDGAP_MIN} eV: the electrolyte must be an electronic insulator.
 - S-S bonds shorter than {config.SS_BOND_CUTOFF} A are flagged: UMA is less reliable for polysulfides.
 
@@ -41,15 +44,17 @@ def analysis_system() -> str:
     return f"""You are the research brain of AutoLab, an agent searching for new solid electrolytes for lithium-metal batteries.
 You receive the results of the candidates evaluated in this iteration. Fields:
 - status: "passed" (all filters passed), "rejected", "error" or "budget" (not evaluated: simulation budget reached).
-- rejected_at: the failed step: "generate" (unknown parent, element outside the allowed list, impossible count, or not charge-neutral), "relax" (no arrangement converged), "hull" (E_hull above {config.EHULL_SYNTHESIZABLE}), "bandgap" (gap below {config.BANDGAP_MIN} eV).
+- rejected_at: the failed step: "generate" (unknown parent, element outside the allowed list, impossible count, or not charge-neutral), "known" (composition already in Materials Project, not computed), "relax" (no arrangement converged), "hull" (E_hull above {config.EHULL_SYNTHESIZABLE}), "bandgap" (gap below {config.BANDGAP_MIN} eV).
 - e_hull: energy above the UMA convex hull in eV/atom (0 or negative = on or below the hull of known phases); decomposition: the phases it would decompose into, with fractions.
+- e_hull_per_substitution: e_hull x n_atoms / n_substituted, in eV per substituted site (Li vacancies not counted). This is the ranking criterion: a single dopant in a large cell gets a low e_hull just because it changes little, while its cost per substituted site can be high.
 - known_in_mp: Materials Project ids with the same reduced formula (the composition is already known, so not novel).
 - arrangements / converged: random arrangements relaxed and how many converged; energy_spread_meV: energy difference between the best and worst arrangement.
 - gap_optb88: band gap used by the filter (eV); gap_mbj: closer to experiment; gap_low_confidence: the two models disagree on insulating.
 - ss_bonds: true = S-S chains present, UMA less reliable for this candidate.
+- comparisons: statements computed by the code over all candidates so far (same substitution on different parents, same parent with a different added element, rankings on one parent). Whenever a lesson compares candidates, base it only on these statements and quote their numbers; never compare values yourself.
 Electrochemical window and ionic conductivity are not computed yet: do not claim them.
 
-Rank only candidates with status "passed", best first (empty list if none). Give 1 to 3 short lessons, one sentence of next direction, and stop=true only if more iterations are unlikely to help.
+Rank only candidates with status "passed", best first by e_hull_per_substitution unless the comparisons give a reason otherwise (empty list if none). Give 1 to 3 short lessons, one sentence of next direction, and stop=true only if more iterations are unlikely to help.
 Reply with JSON only, exactly this shape: {template("analysis")}"""
 
 
@@ -61,9 +66,10 @@ def proposal_messages(goal: str, parents: list[dict], history: list[dict], max_p
             {"role": "user", "content": json.dumps(user)}]
 
 
-def analysis_messages(goal: str, iteration: int, hypothesis: str, results: list[dict], history: list[dict]) -> list[dict]:
-    """Messages asking to analyse one iteration's results."""
+def analysis_messages(goal: str, iteration: int, hypothesis: str, results: list[dict], history: list[dict],
+                      comparisons: list[dict] | None = None) -> list[dict]:
+    """Messages asking to analyse one iteration's results, with code-computed comparisons."""
     user = {"goal": goal, "iteration": iteration, "hypothesis": hypothesis, "results": results,
-            "previous_iterations": history}
+            "comparisons": comparisons or [], "previous_iterations": history}
     return [{"role": "system", "content": analysis_system()},
             {"role": "user", "content": json.dumps(user)}]

@@ -1,7 +1,8 @@
 """Filter funnel for one candidate (SPEC 6.1).
 
-generate (rule + neutrality) -> relax every arrangement with UMA, keep the lowest
--> E_hull against UMA-relaxed references -> ALIGNN band gap -> S-S bond flag.
+generate (rule + neutrality) -> composition already in Materials Project? (then not computed)
+-> relax every arrangement with UMA, keep the lowest -> E_hull against UMA-relaxed references
+-> ALIGNN band gap -> S-S bond flag.
 The first failed filter rejects the candidate; every step emits an event.
 Electrodes (top 20) and molecular dynamics (top 3-5) are not run here yet.
 """
@@ -36,6 +37,12 @@ def _default_bandgap(structure):
     return evaluate_bandgap(structure)
 
 
+def _default_known(formula):
+    from autolab.data.mp import known_formulas
+
+    return known_formulas([formula])[formula]
+
+
 @dataclass
 class Tools:
     """Expensive steps, injectable so that tests run without UMA, ALIGNN or Materials Project."""
@@ -43,6 +50,7 @@ class Tools:
     relax: Callable = _default_relax  # (structures, budget) -> list of relax results
     hull_entries: Callable = _default_hull_entries  # (elements, budget) -> (entries, skipped ids)
     bandgap: Callable = _default_bandgap  # (structure) -> evaluate_bandgap dict
+    known: Callable = _default_known  # (formula) -> MP materials with that reduced composition
     not_run: list[str] = field(default_factory=lambda: ["electrodes", "molecular_dynamics"])
 
 
@@ -52,6 +60,13 @@ def _relaxed_structure(res: dict) -> Structure:
     from autolab.sim.serialize import atoms_from_dict
 
     return AseAtomsAdaptor.get_structure(atoms_from_dict(res["atoms"]))
+
+
+def n_substituted(parent: Structure, substitution: dict) -> int:
+    """Number of replaced sites (Li vacancies not counted)."""
+    if substitution["count"] == "all":
+        return sum(site.specie.symbol == substitution["remove"] for site in parent)
+    return int(substitution["count"])
 
 
 def evaluate_candidate(
@@ -78,8 +93,9 @@ def evaluate_candidate(
     out = {
         "id": candidate_id, "parent": parent_id, "parent_formula": parent.composition.reduced_formula,
         "substitution": substitution, "formula": None, "status": "rejected", "rejected_at": None, "reason": None,
-        "arrangements": 0, "converged": 0, "energy_spread_meV": None,
-        "e_hull": None, "decomposition": None, "known_in_mp": [], "skipped_references": [],
+        "arrangements": 0, "converged": 0, "energy_spread_meV": None, "n_atoms": None, "n_substituted": None,
+        "e_hull": None, "e_hull_per_substitution": None, "decomposition": None, "known_in_mp": [],
+        "skipped_references": [],
         "gap_optb88": None, "gap_mbj": None, "gap_low_confidence": None, "ss_bonds": None,
         "not_run": list(tools.not_run),
     }
@@ -101,10 +117,23 @@ def evaluate_candidate(
          arrangements=len(gen["candidates"]), reason=gen["reason"])
     if not gen["accepted"]:
         return finish(step="generate", reason=gen["reason"])
+    out["n_substituted"] = n_substituted(parent, substitution)
+
+    # 2. A composition already in Materials Project is reported, not recomputed.
+    try:
+        known = tools.known(gen["formula"])
+    except Exception as e:  # MP unreachable: compute anyway, but say so
+        known = []
+        emit("known_check", error=f"{type(e).__name__}: {e}")
+    else:
+        emit("known_check", known=known)
+    if known:
+        out["known_in_mp"] = [k["material_id"] for k in known]
+        return finish(step="known", reason=f"composition already in Materials Project: {', '.join(out['known_in_mp'])}")
     structures = [Structure.from_dict(c["structure"]) for c in gen["candidates"]]
     out["arrangements"] = len(structures)
 
-    # 2. UMA relaxation of every arrangement; keep the lowest converged one.
+    # 3. UMA relaxation of every arrangement; keep the lowest converged one.
     results = tools.relax(structures, budget)
     converged = [r for r in results if r["converged"]]
     out["converged"] = len(converged)
@@ -118,28 +147,30 @@ def evaluate_candidate(
     best = min(converged, key=lambda r: r["energy_per_atom"])
     structure = _relaxed_structure(best)
 
-    # 3. E_hull against references of the same chemical system, all relaxed by UMA.
+    # 4. E_hull against references of the same chemical system, all relaxed by UMA.
+    #    Per substitution: E_hull x atoms / replaced sites, the energy cost of each substituted site,
+    #    so that a single dopant in a large cell is not favoured just for changing little.
     elements = sorted(el.symbol for el in structure.composition.elements)
     entries, skipped = tools.hull_entries(elements, budget)
     out["skipped_references"] = skipped
     target = make_entry(Composition(structure.composition), best["energy"], candidate_id, "uma")
     hull = e_hull(target, entries)
+    out["n_atoms"] = len(structure)
     out.update(e_hull=hull["e_hull"], decomposition=hull["decomposition"][:4],
-               known_in_mp=sorted(e.name for e in entries
-                                  if e.composition.reduced_formula == structure.composition.reduced_formula))
-    emit("hull", e_hull=hull["e_hull"], decomposition=out["decomposition"], references=len(entries),
-         skipped_references=skipped, known_in_mp=out["known_in_mp"])
+               e_hull_per_substitution=round(hull["e_hull"] * out["n_atoms"] / out["n_substituted"], 4))
+    emit("hull", e_hull=hull["e_hull"], e_hull_per_substitution=out["e_hull_per_substitution"],
+         decomposition=out["decomposition"], references=len(entries), skipped_references=skipped)
     if hull["e_hull"] > config.EHULL_SYNTHESIZABLE:
         return finish(step="hull", reason=f"E_hull {hull['e_hull']:.3f} > {config.EHULL_SYNTHESIZABLE} eV/atom")
 
-    # 4. Band gap (ALIGNN): the electrolyte must be an electronic insulator.
+    # 5. Band gap (ALIGNN): the electrolyte must be an electronic insulator.
     gap = tools.bandgap(structure)
     out.update(gap_optb88=gap["gap_optb88"], gap_mbj=gap["gap_mbj"], gap_low_confidence=gap["low_confidence"])
     emit("bandgap", **{k: gap[k] for k in ("gap_optb88", "gap_mbj", "passes", "low_confidence")})
     if not gap["passes"]:
         return finish(step="bandgap", reason=f"gap {gap['gap_optb88']:.2f} < {config.BANDGAP_MIN} eV")
 
-    # 5. S-S bonds: a warning only (UMA less reliable for polysulfides).
+    # 6. S-S bonds: a warning only (UMA less reliable for polysulfides).
     out["ss_bonds"] = bool(has_ss_bonds(structure))
     emit("ss_check", ss_bonds=out["ss_bonds"])
     return finish(status="passed")
