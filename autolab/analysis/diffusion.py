@@ -23,8 +23,8 @@ def windowed_msd(positions: np.ndarray, max_lag: int, origin_stride: int = 5) ->
 
 
 def block_diffusion(positions, dt_record_fs: float, n_blocks: int = config.MD_D_BLOCKS) -> dict:
-    """D in each of `n_blocks` consecutive blocks (lags up to half a block, fit from a quarter of the
-    window), their mean and standard error: the uncertainty of D from one trajectory."""
+    """D (Angstrom^2/ps) in each of `n_blocks` consecutive blocks (MSD averaged over time origins, lags up to half a
+    block, fit from a quarter of the window), their mean and standard error: D and its uncertainty from one run."""
     pos = np.asarray(positions, dtype=float)
     size = len(pos) // n_blocks
     if size < 8:
@@ -33,31 +33,58 @@ def block_diffusion(positions, dt_record_fs: float, n_blocks: int = config.MD_D_
     fit = lag_ps >= lag_ps[-1] / 4
     d = np.array([np.polyfit(lag_ps[fit], windowed_msd(pos[b * size:(b + 1) * size], size // 2)[fit], 1)[0] / 6.0
                   for b in range(n_blocks)])
-    return {
-        "D_block_cm2_per_s": float(d.mean()) * A2_PER_PS_TO_CM2_PER_S,
-        "D_block_sem_cm2_per_s": float(d.std(ddof=1) / np.sqrt(n_blocks)) * A2_PER_PS_TO_CM2_PER_S,
-        "D_blocks_cm2_per_s": [float(x) * A2_PER_PS_TO_CM2_PER_S for x in d],
-    }
+    return {"D_A2_per_ps": float(d.mean()), "sem_A2_per_ps": float(d.std(ddof=1) / np.sqrt(n_blocks)),
+            "blocks_A2_per_ps": [float(x) for x in d]}
 
 
 def diffusion_coefficient(positions, dt_record_fs: float) -> dict:
-    """D = slope / 6 of MSD(t), fitted on the second half of the trajectory, plus its block estimate."""
+    """D from the block estimate (mean over blocks, standard error as uncertainty; SPEC 5.10), with the older
+    one-origin D (MSD from the first frame, slope / 6 on the second half) kept for comparison."""
     m = msd(positions)
     t_ps = np.arange(len(m)) * dt_record_fs / 1000.0
     half = len(m) // 2
     if len(m) - half < 2:
         raise ValueError("trajectory too short to fit a diffusion coefficient")
-    slope = float(np.polyfit(t_ps[half:], m[half:], 1)[0])
-    d = slope / 6.0
-    out = {
+    one_origin = float(np.polyfit(t_ps[half:], m[half:], 1)[0]) / 6.0
+    if len(m) // config.MD_D_BLOCKS >= 8:
+        b = block_diffusion(positions, dt_record_fs)
+        d, sem, blocks, method = b["D_A2_per_ps"], b["sem_A2_per_ps"], b["blocks_A2_per_ps"], "blocks"
+    else:  # too short for blocks (tests, smoke runs): one-origin D without uncertainty
+        d, sem, blocks, method = one_origin, None, [], "one_origin"
+    k = A2_PER_PS_TO_CM2_PER_S
+    return {
         "D_A2_per_ps": d,
-        "D_cm2_per_s": d * A2_PER_PS_TO_CM2_PER_S,
+        "D_cm2_per_s": d * k,
+        "D_sem_cm2_per_s": None if sem is None else sem * k,
+        "D_blocks_cm2_per_s": [x * k for x in blocks],
+        "D_method": method,
+        "D_one_origin_cm2_per_s": one_origin * k,
         "msd_final_A2": float(m[-1]),
         "duration_ps": float(t_ps[-1]),
     }
-    if len(m) // config.MD_D_BLOCKS >= 8:
-        out.update(block_diffusion(positions, dt_record_fs))
-    return out
+
+
+def compare(d: float, sem: float, d_ref: float, sem_ref: float, n_sigma: float = config.MD_TIE_SIGMA) -> dict:
+    """Ratio d / d_ref with its propagated uncertainty; "tied" when the ratio is within n_sigma of 1."""
+    ratio = d / d_ref
+    err = ratio * float(np.hypot(sem / d, sem_ref / d_ref))
+    verdict = "tied" if abs(ratio - 1) <= n_sigma * err else ("higher" if ratio > 1 else "lower")
+    return {"ratio": ratio, "ratio_err": err, "verdict": verdict, "n_sigma": n_sigma}
+
+
+def arrhenius(temperatures_K, d, sem) -> dict:
+    """Activation energy (eV) and its uncertainty from D(T) = D0 exp(-Ea / kT), weighted fit of ln D against 1/T."""
+    t, d, sem = (np.asarray(x, dtype=float) for x in (temperatures_K, d, sem))
+    x, y, w = 1.0 / t, np.log(d), d / sem  # sigma(ln D) = sem / D
+    k_b = 8.617333262e-5  # eV/K
+    if len(t) == 2:  # exact line through two points; error from the two D uncertainties
+        slope = (y[1] - y[0]) / (x[1] - x[0])
+        slope_err = float(np.hypot(1 / w[0], 1 / w[1]) / abs(x[1] - x[0]))
+    else:
+        (slope, _), cov = np.polyfit(x, y, 1, w=w, cov="unscaled")
+        slope_err = float(np.sqrt(cov[0, 0]))
+    return {"Ea_eV": float(-slope * k_b), "Ea_err_eV": slope_err * k_b,
+            "temperatures_K": [float(v) for v in t]}
 
 
 def framework_check(framework_msd: dict[str, list[float]], dt_record_fs: float, d_li_A2_per_ps: float,

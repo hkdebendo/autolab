@@ -58,3 +58,51 @@ def md_screen(jobs: list[dict], temperature_K: float = config.MD_SCREEN_TEMPERAT
         if on_done:
             on_done(row)
     return out
+
+
+def calibration_runs(parents: dict[str, dict], runs=config.MD_CALIBRATION_RUNS) -> list[dict]:
+    """The MD runs of the calibration: every (temperature, ps, seed) of `runs` for each parent job
+    (`parents`: role -> parent_job, roles "fast" and "slow")."""
+    return [{"role": role, "id": job["id"], "formula": job["formula"], "atoms": job["atoms"], "temperature_K": t,
+             "ps": ps, "n_steps": round(ps * 1000 / config.MD_TIMESTEP_FS), "seed": seed}
+            for role, job in parents.items() for t, ps, seed in runs]
+
+
+def md_calibration(rows: list[dict], test_t=config.MD_CALIBRATION_TEST_T,
+                   n_sigma: float = config.MD_CALIBRATION_SIGMA) -> dict:
+    """Truth test of the MD (SPEC 5.10) from analysed runs (role, formula, temperature_K, D_cm2_per_s,
+    D_sem_cm2_per_s, framework): framework intact everywhere, D(fast) > D(slow) by more than n_sigma combined
+    standard errors at each test temperature (framework reported at every T, tested at the test temperatures);
+    activation energies below the Li3PS4 transition and over all temperatures."""
+    import numpy as np
+
+    from autolab.analysis.diffusion import arrhenius
+
+    by = {(r["role"], r["temperature_K"]): r for r in rows}
+    order = []
+    for t in test_t:
+        f, s = by[("fast", t)], by[("slow", t)]
+        diff = f["D_cm2_per_s"] - s["D_cm2_per_s"]
+        err = float(np.hypot(f["D_sem_cm2_per_s"], s["D_sem_cm2_per_s"]))
+        order.append({"temperature_K": t, "D_fast": f["D_cm2_per_s"], "D_slow": s["D_cm2_per_s"],
+                      "ratio": f["D_cm2_per_s"] / s["D_cm2_per_s"], "diff_in_sigma": diff / err if err else None,
+                      "ok": diff > n_sigma * err})
+    framework = [{"formula": r["formula"], "temperature_K": r["temperature_K"],
+                  "intact": r["framework"]["intact"] if r.get("framework") else None} for r in rows]
+    barriers = {}
+    for role in ("fast", "slow"):
+        mine = sorted((r for r in rows if r["role"] == role), key=lambda r: r["temperature_K"])
+        low = [r for r in mine if r["temperature_K"] in test_t]
+        def fit(rs):  # no barrier from a D at or below zero (no Li hop seen at that temperature)
+            if len(rs) < 2 or any(r["D_cm2_per_s"] <= 0 or not r["D_sem_cm2_per_s"] for r in rs):
+                return None
+            return arrhenius([r["temperature_K"] for r in rs], [r["D_cm2_per_s"] for r in rs],
+                             [r["D_sem_cm2_per_s"] for r in rs])
+
+        formula = mine[0]["formula"]
+        barriers[formula] = {"role": role, "low_T": fit(low), "all_T": fit(mine),
+                             "literature_eV": config.MD_EA_LITERATURE_EV.get(formula)}
+    tests = {"framework_intact": all(f["intact"] for f in framework if f["temperature_K"] in test_t),
+             "fast_faster_than_slow": all(o["ok"] for o in order)}
+    return {"passed": all(tests.values()), "tests": tests, "order": order, "framework": framework,
+            "barriers": barriers, "n_sigma": n_sigma}

@@ -9,7 +9,8 @@ from ase.build import bulk
 from ase.calculators.emt import EMT
 
 from autolab import config
-from autolab.analysis.diffusion import block_diffusion, diffusion_coefficient, framework_check, msd
+from autolab.analysis.diffusion import (arrhenius, block_diffusion, compare, diffusion_coefficient,
+                                        framework_check, msd)
 from autolab.sim import backend as sim_backend
 from autolab.sim.md import run_md, supercell_reps
 from autolab.sim.relax import relax
@@ -97,11 +98,33 @@ def test_block_diffusion_gives_d_and_its_uncertainty():
     sigma = np.sqrt(2 * d_true * dt_fs / 1000.0)
     pos = np.concatenate([np.zeros((1, 40, 3)), np.cumsum(rng.normal(0, sigma, size=(2000, 40, 3)), axis=0)])
     out = block_diffusion(pos, dt_fs)
-    d_blocks = np.array(out["D_blocks_cm2_per_s"]) / 1e-4
-    assert len(d_blocks) == config.MD_D_BLOCKS
-    assert out["D_block_cm2_per_s"] / 1e-4 == pytest.approx(d_true, rel=0.2)
-    assert 0 < out["D_block_sem_cm2_per_s"] / 1e-4 < 0.2 * d_true
-    assert abs(out["D_block_cm2_per_s"] / 1e-4 - d_true) < 4 * out["D_block_sem_cm2_per_s"] / 1e-4
+    assert len(out["blocks_A2_per_ps"]) == config.MD_D_BLOCKS
+    assert out["D_A2_per_ps"] == pytest.approx(d_true, rel=0.2)
+    assert 0 < out["sem_A2_per_ps"] < 0.2 * d_true and abs(out["D_A2_per_ps"] - d_true) < 4 * out["sem_A2_per_ps"]
+    main = diffusion_coefficient(pos, dt_fs)  # the block D is the main D; the one-origin D is kept beside it
+    assert main["D_method"] == "blocks" and main["D_A2_per_ps"] == out["D_A2_per_ps"]
+    assert main["D_sem_cm2_per_s"] == pytest.approx(out["sem_A2_per_ps"] * 1e-4)
+    assert main["D_one_origin_cm2_per_s"] > 0
+    short = diffusion_coefficient(pos[:20], dt_fs)
+    assert short["D_method"] == "one_origin" and short["D_sem_cm2_per_s"] is None
+
+
+def test_compare_calls_a_ratio_within_two_errors_a_tie():
+    tie = compare(7.12e-5, 0.90e-5, 6.20e-5, 0.39e-5)  # the Cl candidate against Li3PS4 at 1000 K
+    assert tie["verdict"] == "tied" and tie["ratio"] == pytest.approx(1.15, abs=0.01)
+    assert tie["ratio_err"] == pytest.approx(0.16, abs=0.01)
+    assert compare(4.64e-5, 0.45e-5, 6.20e-5, 0.39e-5)["verdict"] == "lower"  # 0.75 +- 0.09
+    assert compare(2.0, 0.1, 1.0, 0.05)["verdict"] == "higher"
+
+
+def test_arrhenius_recovers_the_activation_energy():
+    k_b, ea = 8.617333262e-5, 0.19
+    t = np.array([600.0, 700.0, 1000.0])
+    d = 1e-3 * np.exp(-ea / (k_b * t))
+    out = arrhenius(t, d, 0.05 * d)
+    assert out["Ea_eV"] == pytest.approx(ea, abs=1e-6) and 0 < out["Ea_err_eV"] < 0.05
+    two = arrhenius(t[:2], d[:2], 0.05 * d[:2])
+    assert two["Ea_eV"] == pytest.approx(ea, abs=1e-6) and two["Ea_err_eV"] > out["Ea_err_eV"]
 
 
 def test_diffusion_on_synthetic_random_walk():

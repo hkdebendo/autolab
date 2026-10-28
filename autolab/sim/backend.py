@@ -169,24 +169,34 @@ def run_md_batch(atoms_list: list, temperature_K: float, n_steps: int, precision
 
     Other backends are left alone: run_md computes each structure when it is asked for.
     """
+    run_md_runs([{"atoms": a, "temperature_K": temperature_K, "n_steps": n_steps, "seed": seed} for a in atoms_list],
+                precision, backend, cache)
+
+
+def run_md_runs(runs: list[dict], precision: str = config.UMA_PRECISION_MD, backend=None,
+                cache: JsonCache | None = None) -> int:
+    """Fill the MD cache for runs that each have their own settings ({"atoms", "temperature_K", "n_steps",
+    "seed"}) in one backend call when the backend can batch (Kaggle: one session). Returns the number sent."""
     cache = cache or JsonCache(config.CACHE_DIR / "md")
     backend = backend or get_backend()
     if not hasattr(backend, "md_batch"):
-        return
-    settings = {"model": config.UMA_MODEL, "precision": precision, "T": temperature_K, "n_steps": n_steps, "seed": seed}
-    missing: dict[str, dict] = {}
-    for a in atoms_list:
-        d = _as_atoms_dict(a)
-        key = atoms_key(d, **settings)
+        return 0
+    missing: dict[str, tuple[dict, dict]] = {}
+    for r in runs:
+        d = _as_atoms_dict(r["atoms"])
+        settings = {"model": config.UMA_MODEL, "precision": precision, "T": r["temperature_K"],
+                    "n_steps": r["n_steps"], "seed": r.get("seed", 0)}
+        key = atoms_key(d, **settings)  # the key of run_md, which then reads the cache
         if cache.get(key) is None:
-            missing.setdefault(key, d)
+            missing.setdefault(key, (d, settings))
     if not missing:
-        return
-    results = backend.md_batch([{"atoms": d, "seed": seed} for d in missing.values()], precision=precision,
-                               temperature_K=temperature_K, n_steps=n_steps)
-    for key, res in zip(missing, results):
+        return 0
+    results = backend.md_batch([{"atoms": d, "seed": s["seed"], "temperature_K": s["T"], "n_steps": s["n_steps"]}
+                                for d, s in missing.values()], precision=precision)
+    for (key, (_, settings)), res in zip(missing.items(), results):
         if res is not None:
             cache.set(key, {**res, "settings": settings})
+    return len(missing)
 
 
 def prefetch(relax: list = (), md: list = (), temperature_K: float | None = None, n_steps: int | None = None,

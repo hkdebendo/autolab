@@ -1,7 +1,8 @@
 """Kaggle GPU backend: the PC sends a batch of structures to a Kaggle notebook and reads the results back.
 
 No secret goes to Kaggle. The generated notebook clones the public repository at the current (pushed) commit,
-installs it, loads UMA offline from the output of the notebook config.KAGGLE_UMA_KERNEL and runs
+installs it (offline from the wheels in the output of config.KAGGLE_WHEELS_KERNEL, online if that fails),
+loads UMA offline from the output of the notebook config.KAGGLE_UMA_KERNEL and runs
 scripts/kaggle_worker.py on every GPU. The PC drives it with the official kaggle CLI (push, status, output),
 which reads its own credentials. One job = one Kaggle session; a failed session is never retried automatically.
 """
@@ -69,8 +70,9 @@ def relax_job(dicts: list[dict], precision: str, fmax: float, steps: int) -> dic
     return _job({"relax": {"precision": precision, "fmax": fmax, "steps": steps}}, tasks)
 
 
-def md_job(items: list[dict], precision: str, temperature_K: float, n_steps: int) -> dict:
-    """`items`: [{"atoms": atoms dict, "seed": int}]; the cost counts the atoms of the MD supercell."""
+def md_job(items: list[dict], precision: str, temperature_K: float | None = None, n_steps: int | None = None) -> dict:
+    """`items`: [{"atoms": atoms dict, "seed": int, "temperature_K"?, "n_steps"?}]: each run may have its own
+    temperature and length (default: the arguments). The cost counts the atoms of the MD supercell."""
     from autolab.sim.md import supercell_reps
     from autolab.sim.serialize import atoms_from_dict
 
@@ -78,8 +80,10 @@ def md_job(items: list[dict], precision: str, temperature_K: float, n_steps: int
     for it in items:
         atoms = atoms_from_dict(it["atoms"])
         n = len(atoms) * math.prod(supercell_reps(atoms))
+        steps = it.get("n_steps", n_steps)
         tasks.append({"kind": "md", "atoms": it["atoms"], "seed": it.get("seed", 0),
-                      "cost": n * n_steps * config.KAGGLE_MD_MS_PER_ATOM_STEP / 1000})
+                      "temperature_K": it.get("temperature_K", temperature_K), "n_steps": steps,
+                      "cost": n * steps * config.KAGGLE_MD_MS_PER_ATOM_STEP / 1000})
     return _job({"md": {"precision": precision, "temperature_K": temperature_K, "n_steps": n_steps}}, tasks)
 
 
@@ -125,8 +129,14 @@ status["gpus"] = [g for g in subprocess.run(["nvidia-smi", "--query-gpu=name", "
                                             capture_output=True, text=True).stdout.splitlines() if g.strip()]
 save()
 ok = (step("clone", ["git", "clone", "--quiet", "__REPO_URL__", REPO])
-      and step("checkout", ["git", "-C", REPO, "checkout", "--quiet", COMMIT])
-      and step("install", [sys.executable, "-m", "pip", "install", "-q", "-e", REPO, "fairchem-core==2.24.0"]))
+      and step("checkout", ["git", "-C", REPO, "checkout", "--quiet", COMMIT]))
+if ok:  # offline from the wheels notebook's output (seconds), online otherwise (several minutes)
+    wheels = next((m.parent for m in Path("/kaggle/input").rglob("wheels/manifest.json")), None)
+    status["wheels"] = str(wheels)
+    ok = ((wheels is not None
+           and step("install_offline", [sys.executable, "-m", "pip", "install", "-q", "--no-index", "--find-links",
+                                        wheels, "--no-build-isolation", "-e", REPO, "__FAIRCHEM__"]))
+          or step("install", [sys.executable, "-m", "pip", "install", "-q", "-e", REPO, "__FAIRCHEM__"]))
 if ok:
     try:
         src = next(p.parent for p in Path("/kaggle/input").rglob("models--facebook--UMA"))
@@ -151,7 +161,12 @@ save()
 def notebook(job: dict, commit: str) -> dict:
     payload = base64.b64encode(gzip.compress(json.dumps(job).encode())).decode()
     src = (CELL.strip("\n").replace("__JOB_ID__", job["job_id"]).replace("__COMMIT__", commit)
-           .replace("__REPO_URL__", REPO_URL).replace("__PAYLOAD__", payload))
+           .replace("__REPO_URL__", REPO_URL).replace("__FAIRCHEM__", config.KAGGLE_FAIRCHEM)
+           .replace("__PAYLOAD__", payload))
+    return _ipynb(src)
+
+
+def _ipynb(src: str) -> dict:
     return {"nbformat": 4, "nbformat_minor": 5,
             "metadata": {"kernelspec": {"display_name": "Python 3", "language": "python", "name": "python3"},
                          "language_info": {"name": "python"}},
@@ -162,8 +177,97 @@ def notebook(job: dict, commit: str) -> dict:
 def metadata(kernel: str = config.KAGGLE_KERNEL) -> dict:
     return {"id": kernel, "title": kernel.split("/")[1], "code_file": NOTEBOOK, "language": "python",
             "kernel_type": "notebook", "is_private": True, "enable_gpu": True, "enable_tpu": False,
-            "enable_internet": True, "dataset_sources": [], "kernel_sources": [config.KAGGLE_UMA_KERNEL],
+            "enable_internet": True, "dataset_sources": [], "kernel_sources": [config.KAGGLE_UMA_KERNEL, config.KAGGLE_WHEELS_KERNEL],
             "competition_sources": [], "model_sources": [], "machine_shape": config.KAGGLE_ACCELERATOR}
+
+
+WHEELS_CELL = r'''
+# AutoLab wheels, generated on the PC by autolab/sim/kaggle_gpu.py (CPU session, no secret): downloads fairchem and
+# every dependency of the repository at __COMMIT__ into /kaggle/working/wheels, then checks an offline install.
+# The GPU notebooks attach this output and install from it in seconds instead of downloading several GB.
+import json, platform, subprocess, sys, time, tomllib
+from pathlib import Path
+
+COMMIT, OUT, REPO = "__COMMIT__", Path("/kaggle/working"), Path("/tmp/autolab")
+WHEELS = OUT / "wheels"
+status = {"commit": COMMIT, "python": platform.python_version(), "steps": {}}
+
+
+def save():
+    (OUT / "wheels_status.json").write_text(json.dumps(status, indent=1), encoding="utf-8")
+
+
+def step(name, cmd):
+    t0 = time.time()
+    code = subprocess.run([str(c) for c in cmd]).returncode
+    status["steps"][name] = {"code": code, "seconds": round(time.time() - t0, 1)}
+    save()
+    print(f"[{name}] code {code}, {time.time() - t0:.0f} s", flush=True)
+    return code == 0
+
+
+PIP = [sys.executable, "-m", "pip"]
+ok = (step("clone", ["git", "clone", "--quiet", "__REPO_URL__", REPO])
+      and step("checkout", ["git", "-C", REPO, "checkout", "--quiet", COMMIT]))
+if ok:
+    project = tomllib.loads((REPO / "pyproject.toml").read_text(encoding="utf-8"))
+    reqs = [*project["project"]["dependencies"], *project["build-system"]["requires"], "__FAIRCHEM__"]
+    status["requirements"] = reqs
+    ok = step("download", [*PIP, "download", "-q", "-d", WHEELS, *reqs])
+if ok:  # source archives become wheels, so the GPU install never builds anything
+    for sdist in [p for p in WHEELS.iterdir() if not p.name.endswith(".whl")]:
+        if step(f"wheel {sdist.name}", [*PIP, "wheel", "-q", "--no-deps", "-w", WHEELS, sdist]):
+            sdist.unlink()
+    files = sorted(p.name for p in WHEELS.iterdir())
+    status.update(files=len(files), size_gb=round(sum(p.stat().st_size for p in WHEELS.iterdir()) / 1e9, 2),
+                  sdists=[f for f in files if not f.endswith(".whl")])
+    (WHEELS / "manifest.json").write_text(json.dumps({"commit": COMMIT, "python": status["python"],
+                                                      "requirements": reqs, "files": files}), encoding="utf-8")
+    ok = step("check_install_offline", [*PIP, "install", "-q", "--no-index", "--find-links", WHEELS,
+                                        "--no-build-isolation", "-e", REPO, "__FAIRCHEM__"])
+status["done"], status["ok"] = True, ok
+save()
+'''
+WHEELS_STATUS_PATTERN = r"^wheels_status\.json$"  # never download the wheels themselves to the PC
+
+
+def wheels_notebook(commit: str) -> dict:
+    return _ipynb(WHEELS_CELL.strip("\n").replace("__COMMIT__", commit).replace("__REPO_URL__", REPO_URL)
+                  .replace("__FAIRCHEM__", config.KAGGLE_FAIRCHEM))
+
+
+def wheels_metadata(kernel: str = config.KAGGLE_WHEELS_KERNEL) -> dict:
+    """CPU session with Internet: costs no GPU quota."""
+    meta = {**metadata(kernel), "enable_gpu": False, "kernel_sources": []}
+    meta.pop("machine_shape")
+    return meta
+
+
+def build_wheels(kernel: str = config.KAGGLE_WHEELS_KERNEL, cli: Callable[[list[str]], str] = kaggle_cli,
+                 sleep: Callable[[float], None] = time.sleep, commit: str | None = None, timeout_s: int = 3600,
+                 log: Callable[[str], None] = print) -> dict:
+    """Run the wheels notebook once (CPU), wait for it and return its status (only that file is downloaded)."""
+    commit = commit or pushed_commit()
+    folder = (config.CACHE_DIR / "kaggle" / "wheels").resolve()
+    folder.mkdir(parents=True, exist_ok=True)
+    (folder / "kernel-metadata.json").write_text(json.dumps(wheels_metadata(kernel), indent=1), encoding="utf-8")
+    (folder / NOTEBOOK).write_text(json.dumps(wheels_notebook(commit)), encoding="utf-8")
+    out = cli(["kernels", "push", "-p", str(folder), "-t", str(timeout_s)])
+    if "successfully pushed" not in out or "not valid" in out:
+        raise KaggleJobError(f"push refused: {out.strip()[-400:]}")
+    log(f"wheels notebook {kernel} pushed (CPU session, commit {commit[:7]})")
+    deadline = time.monotonic() + timeout_s + 3600
+    while time.monotonic() < deadline:
+        sleep(config.KAGGLE_POLL_S)
+        state = cli(["kernels", "status", kernel]).upper()
+        if any(w in state for w in ("COMPLETE", "ERROR", "CANCEL")):
+            cli(["kernels", "output", kernel, "-p", str(folder / "output"), "-o", "-q",
+                 "--file-pattern", WHEELS_STATUS_PATTERN])
+            f = folder / "output" / "wheels_status.json"
+            status = json.loads(f.read_text(encoding="utf-8")) if f.exists() else {}
+            if status.get("commit") == commit:
+                return {**status, "state": state.strip()}
+    raise KaggleJobError(f"wheels notebook: no finished session after {(timeout_s + 3600) / 60:.0f} min")
 
 
 def pushed_commit(root: Path = config.ROOT) -> str:
@@ -257,7 +361,8 @@ class KaggleBackend:
             yield results[i:i + len(c)]
             i += len(c)
 
-    def md_batch(self, items: list[dict], precision: str, temperature_K: float, n_steps: int) -> list[dict | None]:
+    def md_batch(self, items: list[dict], precision: str, temperature_K: float | None = None,
+                 n_steps: int | None = None) -> list[dict | None]:
         results, _ = self.run(md_job(items, precision, temperature_K, n_steps))
         return results
 
