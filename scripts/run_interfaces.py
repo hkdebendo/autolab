@@ -17,7 +17,8 @@ import time
 from pathlib import Path
 
 from autolab import config
-from autolab.agent.electrochem import interface_calibration, uma_interface
+from autolab.agent.electrochem import (candidate_entry, interface_calibration, prefetch_interface_references,
+                                       uma_interface)
 from autolab.sim.backend import BudgetExceeded, RelaxBudget
 
 
@@ -52,6 +53,9 @@ def main() -> None:
         backup(args.backup)
 
     try:
+        # References in batches (one GPU session each on Kaggle): calibrations first, candidates only if they pass.
+        n = prefetch_interface_references([("Li3PS4", c) for c in config.CALIBRATION_CATHODES], budget=budget)
+        print(f"calibration references: {n} structures, new relaxations {budget.used}", flush=True)
         for cathode in config.CALIBRATION_CATHODES:
             t0 = time.perf_counter()
             cal = interface_calibration(cathode, budget=budget)
@@ -65,6 +69,9 @@ def main() -> None:
         if bad:
             out["stopped"] = f"calibration outside tolerance for {bad}: candidate interfaces not computed"
         else:
+            n = prefetch_interface_references(
+                [(candidate_entry(by_id[cid]).composition, args.cathode) for cid in args.ids], budget=budget)
+            print(f"candidate references: {n} structures, new relaxations {budget.used}", flush=True)
             for cid in args.ids:
                 t0 = time.perf_counter()
                 res = uma_interface(by_id[cid], args.cathode, budget=budget)

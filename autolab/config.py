@@ -121,6 +121,19 @@ MODAL_RELAX_TIMEOUT = 1200  # s, per chunk of structures
 MODAL_MD_TIMEOUT = 1800  # s
 MODAL_RELAX_CHUNK = 10  # structures per remote call
 
+# --- Kaggle (GPU worker driven from the PC, no secret on Kaggle) -------------------
+
+KAGGLE_KERNEL = "adladeeba/autolab-gpu"  # notebook overwritten by each job (kaggle kernels push)
+KAGGLE_UMA_DATASET = "adladeeba/uma-s-1p2"  # private dataset: FAIRCHEM_CACHE_DIR with the uma-s-1p2 checkpoint
+KAGGLE_ACCELERATOR = "NvidiaTeslaT4"  # "GPU T4 x2"
+KAGGLE_N_GPUS = 2
+KAGGLE_POLL_S = 60  # s between two status checks (free)
+KAGGLE_SETUP_S = 420  # s per session: start, pip install fairchem, checkpoint copy, model load
+KAGGLE_RELAX_S = 45  # s per relaxation (estimate, T4, high precision)
+KAGGLE_MD_MS_PER_ATOM_STEP = 0.35  # ms (estimate, T4, default precision)
+KAGGLE_TIMEOUT_FACTOR = 2.0  # session time limit = setup + factor x estimated compute
+KAGGLE_MAX_SESSION_S = 4 * 3600  # hard cap per session (weekly quota ~30 h)
+
 # --- Language models (SPEC 5.11) ---------------------------------------------
 
 # One OpenAI-compatible client; prices in USD per million tokens (reasoning is billed as output).
