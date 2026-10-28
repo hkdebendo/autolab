@@ -138,7 +138,7 @@ KAGGLE_N_GPUS = 2
 KAGGLE_POLL_S = 60  # s between two status checks (free)
 KAGGLE_SETUP_S = 420  # s per session: start, pip install fairchem, checkpoint copy, model load
 KAGGLE_RELAX_S = 45  # s per relaxation (estimate, T4, high precision)
-KAGGLE_MD_MS_PER_ATOM_STEP = 0.35  # ms (estimate, T4, default precision)
+KAGGLE_MD_MS_PER_ATOM_STEP = 1.2  # ms, T4, default precision; measured 0.56-1.16 on step 9 (small cells slower per atom)
 KAGGLE_TIMEOUT_FACTOR = 2.0  # session time limit = factor x (setup + estimated compute)
 KAGGLE_MAX_SESSION_S = 4 * 3600  # hard cap per session (weekly quota ~30 h)
 
