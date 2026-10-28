@@ -121,7 +121,7 @@ AutoLab's outputs are **computationally predicted candidates**, not experimental
 - [x] UMA relaxation, energies and convex hull on GPU (validated on a Colab T4; Modal deployment pending)
 - [x] Language-model client (Muse Spark via the Meta Model API, Muse Spark Open via Baseten)
 - [ ] Electrode checks with UMA energies
-- [ ] Muse Spark agent loop
+- [x] Muse Spark agent loop (first run on a Colab T4: 2 iterations, 10 candidates; see `results/2026-10-28_first_loop_colab/`)
 - [ ] Molecular dynamics on top candidates
 - [ ] Rediscovery benchmark
 - [ ] Web interface and final report

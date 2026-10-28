@@ -1,0 +1,741 @@
+{
+  "goal": "Find new sulfide solid electrolytes for lithium-metal batteries: thermodynamically stable or slightly metastable, electronically insulating, by substitutions in known Li-P-S crystals.",
+  "parents": [
+    {
+      "id": "mp-985583",
+      "formula": "Li3PS4",
+      "cell_formula": "Li12P4S16",
+      "nsites": 32
+    },
+    {
+      "id": "mp-641703",
+      "formula": "Li7P3S11",
+      "cell_formula": "Li14P6S22",
+      "nsites": 42
+    }
+  ],
+  "settings": {
+    "n_iterations": 2,
+    "max_candidates": 5,
+    "max_relaxations": 250,
+    "brain": "meta",
+    "fallback": "baseten"
+  },
+  "iterations": [
+    {
+      "iteration": 1,
+      "proposal": {
+        "reply": {
+          "hypothesis": "Soft-lattice expansion with isovalent Sb/Se/Na/O mixing plus dilute halide vacancy doping improves stability and Li mobility.",
+          "proposals": [
+            {
+              "parent": "mp-985583",
+              "substitution": {
+                "remove": "S",
+                "add": "Cl",
+                "count": 1,
+                "li_vacancies": 1
+              },
+              "rationale": "Dilute Cl-for-S with Li vacancy mimics argyrodite doping to boost conductivity."
+            },
+            {
+              "parent": "mp-985583",
+              "substitution": {
+                "remove": "S",
+                "add": "O",
+                "count": 2,
+                "li_vacancies": 0
+              },
+              "rationale": "Partial O-for-S strengthens P-(O,S) bonds for moisture and Li-metal stability."
+            },
+            {
+              "parent": "mp-985583",
+              "substitution": {
+                "remove": "P",
+                "add": "Sb",
+                "count": "all"
+              },
+              "rationale": "Full Sb-for-P gives Li3SbS4-type softer lattice for wider Li channels."
+            },
+            {
+              "parent": "mp-641703",
+              "substitution": {
+                "remove": "S",
+                "add": "Se",
+                "count": 2,
+                "li_vacancies": 0
+              },
+              "rationale": "Se-for-S expands the sulfide framework to lower Li migration barriers."
+            },
+            {
+              "parent": "mp-641703",
+              "substitution": {
+                "remove": "Li",
+                "add": "Na",
+                "count": 2,
+                "li_vacancies": 0
+              },
+              "rationale": "Isovalent Na-for-Li probes mixed-alkali lattice expansion without vacancies."
+            }
+          ]
+        },
+        "provider": "meta",
+        "attempts": 1,
+        "reasoning": "Evaluating charge-neutral anion and cation substitutions for sulfide solid electrolytes within the allowed element set.\n\nResolving charge balance for P-site substitutions and the resulting lithium vacancy count.\n\nDeriving charge-balance rules and allowed element substitutions for Li, P, and S sites.\n\nFinalizing five charge-neutral substitution proposals with vacancy counts and stability rationales.\n\nSelecting a diverse final set of five substitutions across anion, cation, and total replacement strategies.\n\nReplacing Mg with Na for safer cation diversity and finalizing five isovalent and halide substitutions with neutrality checks.",
+        "input_tokens": 695,
+        "output_tokens": 4123,
+        "cost_usd": 0.01839,
+        "seconds": 18.0
+      },
+      "candidates": [
+        {
+          "id": "it1-c1",
+          "parent": "mp-985583",
+          "parent_formula": "Li3PS4",
+          "substitution": {
+            "remove": "S",
+            "add": "Cl",
+            "count": 1,
+            "li_vacancies": 1
+          },
+          "formula": "Li11P4S15Cl",
+          "status": "passed",
+          "rejected_at": null,
+          "reason": null,
+          "arrangements": 7,
+          "converged": 7,
+          "energy_spread_meV": 17.3,
+          "e_hull": 0.025728,
+          "decomposition": [
+            {
+              "formula": "Li3PS4",
+              "id": "mp-985583",
+              "fraction": 0.860215
+            },
+            {
+              "formula": "P2S5",
+              "id": "mp-541788",
+              "fraction": 0.075269
+            },
+            {
+              "formula": "LiCl",
+              "id": "mp-1185319",
+              "fraction": 0.064516
+            }
+          ],
+          "known_in_mp": [],
+          "skipped_references": [],
+          "gap_optb88": 2.669,
+          "gap_mbj": 3.261,
+          "gap_low_confidence": false,
+          "ss_bonds": false,
+          "not_run": [
+            "electrodes",
+            "molecular_dynamics"
+          ],
+          "new_relaxations": 16,
+          "seconds": 233.0,
+          "rationale": "Dilute Cl-for-S with Li vacancy mimics argyrodite doping to boost conductivity."
+        },
+        {
+          "id": "it1-c2",
+          "parent": "mp-985583",
+          "parent_formula": "Li3PS4",
+          "substitution": {
+            "remove": "S",
+            "add": "O",
+            "count": 2,
+            "li_vacancies": 0
+          },
+          "formula": "Li6P2S7O",
+          "status": "passed",
+          "rejected_at": null,
+          "reason": null,
+          "arrangements": 6,
+          "converged": 6,
+          "energy_spread_meV": 11.4,
+          "e_hull": 0.024011,
+          "decomposition": [
+            {
+              "formula": "Li3PS4",
+              "id": "mp-985583",
+              "fraction": 0.875
+            },
+            {
+              "formula": "Li3PO4",
+              "id": "mp-13725",
+              "fraction": 0.125
+            }
+          ],
+          "known_in_mp": [],
+          "skipped_references": [
+            "mp-2414"
+          ],
+          "gap_optb88": 2.838,
+          "gap_mbj": 3.394,
+          "gap_low_confidence": false,
+          "ss_bonds": false,
+          "not_run": [
+            "electrodes",
+            "molecular_dynamics"
+          ],
+          "new_relaxations": 45,
+          "seconds": 580.1,
+          "rationale": "Partial O-for-S strengthens P-(O,S) bonds for moisture and Li-metal stability."
+        },
+        {
+          "id": "it1-c3",
+          "parent": "mp-985583",
+          "parent_formula": "Li3PS4",
+          "substitution": {
+            "remove": "P",
+            "add": "Sb",
+            "count": "all"
+          },
+          "formula": "Li3SbS4",
+          "status": "rejected",
+          "rejected_at": "bandgap",
+          "reason": "gap 1.94 < 2.0 eV",
+          "arrangements": 1,
+          "converged": 1,
+          "energy_spread_meV": 0.0,
+          "e_hull": 0.046612,
+          "decomposition": [
+            {
+              "formula": "Li3SbS4",
+              "id": "mp-756316",
+              "fraction": 1.0
+            }
+          ],
+          "known_in_mp": [
+            "mp-756316",
+            "mp-760415"
+          ],
+          "skipped_references": [],
+          "gap_optb88": 1.938,
+          "gap_mbj": 3.065,
+          "gap_low_confidence": true,
+          "ss_bonds": null,
+          "not_run": [
+            "electrodes",
+            "molecular_dynamics"
+          ],
+          "new_relaxations": 26,
+          "seconds": 47.9,
+          "rationale": "Full Sb-for-P gives Li3SbS4-type softer lattice for wider Li channels."
+        },
+        {
+          "id": "it1-c4",
+          "parent": "mp-641703",
+          "parent_formula": "Li7P3S11",
+          "substitution": {
+            "remove": "S",
+            "add": "Se",
+            "count": 2,
+            "li_vacancies": 0
+          },
+          "formula": "Li7P3SeS10",
+          "status": "passed",
+          "rejected_at": null,
+          "reason": null,
+          "arrangements": 8,
+          "converged": 8,
+          "energy_spread_meV": 2.6,
+          "e_hull": 0.017963,
+          "decomposition": [
+            {
+              "formula": "Li3PS4",
+              "id": "mp-985583",
+              "fraction": 0.888889
+            },
+            {
+              "formula": "P4S7",
+              "id": "mp-2650",
+              "fraction": 0.049887
+            },
+            {
+              "formula": "Se",
+              "id": "mp-570481",
+              "fraction": 0.034014
+            },
+            {
+              "formula": "PSe",
+              "id": "mp-28885",
+              "fraction": 0.027211
+            }
+          ],
+          "known_in_mp": [],
+          "skipped_references": [],
+          "gap_optb88": 2.355,
+          "gap_mbj": 2.886,
+          "gap_low_confidence": false,
+          "ss_bonds": false,
+          "not_run": [
+            "electrodes",
+            "molecular_dynamics"
+          ],
+          "new_relaxations": 20,
+          "seconds": 135.2,
+          "rationale": "Se-for-S expands the sulfide framework to lower Li migration barriers."
+        },
+        {
+          "id": "it1-c5",
+          "parent": "mp-641703",
+          "parent_formula": "Li7P3S11",
+          "substitution": {
+            "remove": "Li",
+            "add": "Na",
+            "count": 2,
+            "li_vacancies": 0
+          },
+          "formula": "NaLi6P3S11",
+          "status": "passed",
+          "rejected_at": null,
+          "reason": null,
+          "arrangements": 8,
+          "converged": 8,
+          "energy_spread_meV": 5.3,
+          "e_hull": 0.016521,
+          "decomposition": [
+            {
+              "formula": "Li3PS4",
+              "id": "mp-985583",
+              "fraction": 0.761905
+            },
+            {
+              "formula": "NaPS3",
+              "id": "mp-1189520",
+              "fraction": 0.238095
+            }
+          ],
+          "known_in_mp": [],
+          "skipped_references": [],
+          "gap_optb88": 2.397,
+          "gap_mbj": 3.01,
+          "gap_low_confidence": false,
+          "ss_bonds": false,
+          "not_run": [
+            "electrodes",
+            "molecular_dynamics"
+          ],
+          "new_relaxations": 40,
+          "seconds": 128.8,
+          "rationale": "Isovalent Na-for-Li probes mixed-alkali lattice expansion without vacancies."
+        }
+      ],
+      "analysis": {
+        "reply": {
+          "ranking": [
+            "it1-c5",
+            "it1-c4",
+            "it1-c2",
+            "it1-c1"
+          ],
+          "lessons": [
+            "Full P-to-Sb substitution fails bandgap filter and reproduces known Li3SbS4.",
+            "Na-for-Li and Se-for-S substitutions give lowest E_hull under 0.018 eV/atom while retaining gaps above 2.3 eV.",
+            "Dilute O and Cl mixing passes filters but with higher metastability near 0.024-0.026 eV/atom."
+          ],
+          "next_direction": "Combine Na plus Se co-substitution with dilute Cl vacancy doping on Li7P3S11-type parent.",
+          "stop": false
+        },
+        "provider": "meta",
+        "attempts": 1,
+        "reasoning": "Ranking passed candidates by stability, band gap, and reliability while preparing a concise JSON with lessons, next step, and stop flag.\n\nFinalizing the ranking by prioritizing lowest hull energy and acceptable band gap while noting decomposition and lattice softness factors.",
+        "input_tokens": 1608,
+        "output_tokens": 1138,
+        "cost_usd": 0.00685,
+        "seconds": 4.8
+      }
+    },
+    {
+      "iteration": 2,
+      "proposal": {
+        "reply": {
+          "hypothesis": "Dilute halide vacancy doping plus soft As/dilute Sb and Na mixing retains low E_hull and wide gap while adding carriers.",
+          "proposals": [
+            {
+              "parent": "mp-641703",
+              "substitution": {
+                "remove": "S",
+                "add": "Cl",
+                "count": 1,
+                "li_vacancies": 1
+              },
+              "rationale": "Dilute Cl on Li7P3S11 creates one Li vacancy for conductivity with minimal strain as in Li3PS4 success."
+            },
+            {
+              "parent": "mp-641703",
+              "substitution": {
+                "remove": "P",
+                "add": "As",
+                "count": 2,
+                "li_vacancies": 0
+              },
+              "rationale": "Isovalent As softens PS4 framework more than P but keeps larger gap than failed full Sb."
+            },
+            {
+              "parent": "mp-641703",
+              "substitution": {
+                "remove": "P",
+                "add": "Sb",
+                "count": 1,
+                "li_vacancies": 0
+              },
+              "rationale": "Dilute Sb avoids bandgap collapse of full Li3SbS4 while expanding lattice for Li motion."
+            },
+            {
+              "parent": "mp-985583",
+              "substitution": {
+                "remove": "Li",
+                "add": "Na",
+                "count": 1,
+                "li_vacancies": 0
+              },
+              "rationale": "Na expansion stabilized Li7P3S11 best and should stabilize Li3PS4 framework similarly."
+            },
+            {
+              "parent": "mp-985583",
+              "substitution": {
+                "remove": "S",
+                "add": "I",
+                "count": 1,
+                "li_vacancies": 1
+              },
+              "rationale": "Large I with Li vacancy widens diffusion bottleneck and softens lattice versus Cl."
+            }
+          ]
+        },
+        "provider": "meta",
+        "attempts": 1,
+        "reasoning": "Reviewing substitution rules and rejection criteria for solid electrolyte proposals before simulation.\n\nFiltering substitution candidates against charge neutrality, hull energy, band gap, and S-S bond constraints.\n\nExtending charge-neutrality validation to enforce non-negative Li vacancy counts for higher-valence substitutions.\n\nExpanding the substitution set to aliovalent Li\u2192Mg/Al and S\u2192halide cases with vacancy balancing.\n\nSelecting five new parent-specific substitutions while avoiding prior parent-substitution pairs.\n\nValidating charge neutrality and band-gap constraints while finalizing five distinct substitution proposals.",
+        "input_tokens": 1990,
+        "output_tokens": 4170,
+        "cost_usd": 0.02021,
+        "seconds": 16.3
+      },
+      "candidates": [
+        {
+          "id": "it2-c1",
+          "parent": "mp-641703",
+          "parent_formula": "Li7P3S11",
+          "substitution": {
+            "remove": "S",
+            "add": "Cl",
+            "count": 1,
+            "li_vacancies": 1
+          },
+          "formula": "Li13P6S21Cl",
+          "status": "passed",
+          "rejected_at": null,
+          "reason": null,
+          "arrangements": 8,
+          "converged": 8,
+          "energy_spread_meV": 14.4,
+          "e_hull": 0.030159,
+          "decomposition": [
+            {
+              "formula": "Li3PS4",
+              "id": "mp-985583",
+              "fraction": 0.780488
+            },
+            {
+              "formula": "P2S5",
+              "id": "mp-541788",
+              "fraction": 0.170732
+            },
+            {
+              "formula": "LiCl",
+              "id": "mp-1185319",
+              "fraction": 0.04878
+            }
+          ],
+          "known_in_mp": [],
+          "skipped_references": [],
+          "gap_optb88": 2.25,
+          "gap_mbj": 2.877,
+          "gap_low_confidence": false,
+          "ss_bonds": false,
+          "not_run": [
+            "electrodes",
+            "molecular_dynamics"
+          ],
+          "new_relaxations": 8,
+          "seconds": 94.2,
+          "rationale": "Dilute Cl on Li7P3S11 creates one Li vacancy for conductivity with minimal strain as in Li3PS4 success."
+        },
+        {
+          "id": "it2-c2",
+          "parent": "mp-641703",
+          "parent_formula": "Li7P3S11",
+          "substitution": {
+            "remove": "P",
+            "add": "As",
+            "count": 2,
+            "li_vacancies": 0
+          },
+          "formula": "Li7AsP2S11",
+          "status": "passed",
+          "rejected_at": null,
+          "reason": null,
+          "arrangements": 6,
+          "converged": 6,
+          "energy_spread_meV": 5.3,
+          "e_hull": 0.036846,
+          "decomposition": [
+            {
+              "formula": "Li3PS4",
+              "id": "mp-985583",
+              "fraction": 0.761905
+            },
+            {
+              "formula": "LiAsS2",
+              "id": "mp-555874",
+              "fraction": 0.190476
+            },
+            {
+              "formula": "S",
+              "id": "mp-666931",
+              "fraction": 0.047619
+            }
+          ],
+          "known_in_mp": [],
+          "skipped_references": [],
+          "gap_optb88": 2.2,
+          "gap_mbj": 2.876,
+          "gap_low_confidence": false,
+          "ss_bonds": false,
+          "not_run": [
+            "electrodes",
+            "molecular_dynamics"
+          ],
+          "new_relaxations": 27,
+          "seconds": 138.6,
+          "rationale": "Isovalent As softens PS4 framework more than P but keeps larger gap than failed full Sb."
+        },
+        {
+          "id": "it2-c3",
+          "parent": "mp-641703",
+          "parent_formula": "Li7P3S11",
+          "substitution": {
+            "remove": "P",
+            "add": "Sb",
+            "count": 1,
+            "li_vacancies": 0
+          },
+          "formula": "Li14SbP5S22",
+          "status": "passed",
+          "rejected_at": null,
+          "reason": null,
+          "arrangements": 3,
+          "converged": 3,
+          "energy_spread_meV": 1.3,
+          "e_hull": 0.03999,
+          "decomposition": [
+            {
+              "formula": "Li3PS4",
+              "id": "mp-985583",
+              "fraction": 0.888889
+            },
+            {
+              "formula": "SbPS4",
+              "id": "mp-572597",
+              "fraction": 0.047619
+            },
+            {
+              "formula": "Sb2S3",
+              "id": "mp-1189633",
+              "fraction": 0.039683
+            },
+            {
+              "formula": "S",
+              "id": "mp-666931",
+              "fraction": 0.02381
+            }
+          ],
+          "known_in_mp": [],
+          "skipped_references": [],
+          "gap_optb88": 2.231,
+          "gap_mbj": 2.923,
+          "gap_low_confidence": false,
+          "ss_bonds": false,
+          "not_run": [
+            "electrodes",
+            "molecular_dynamics"
+          ],
+          "new_relaxations": 4,
+          "seconds": 28.7,
+          "rationale": "Dilute Sb avoids bandgap collapse of full Li3SbS4 while expanding lattice for Li motion."
+        },
+        {
+          "id": "it2-c4",
+          "parent": "mp-985583",
+          "parent_formula": "Li3PS4",
+          "substitution": {
+            "remove": "Li",
+            "add": "Na",
+            "count": 1,
+            "li_vacancies": 0
+          },
+          "formula": "NaLi11(PS4)4",
+          "status": "passed",
+          "rejected_at": null,
+          "reason": null,
+          "arrangements": 2,
+          "converged": 2,
+          "energy_spread_meV": 3.6,
+          "e_hull": 0.002783,
+          "decomposition": [
+            {
+              "formula": "Li3PS4",
+              "id": "mp-985583",
+              "fraction": 0.916667
+            },
+            {
+              "formula": "Na3PS4",
+              "id": "mp-28782",
+              "fraction": 0.083333
+            }
+          ],
+          "known_in_mp": [],
+          "skipped_references": [],
+          "gap_optb88": 2.705,
+          "gap_mbj": 3.213,
+          "gap_low_confidence": false,
+          "ss_bonds": false,
+          "not_run": [
+            "electrodes",
+            "molecular_dynamics"
+          ],
+          "new_relaxations": 2,
+          "seconds": 9.6,
+          "rationale": "Na expansion stabilized Li7P3S11 best and should stabilize Li3PS4 framework similarly."
+        },
+        {
+          "id": "it2-c5",
+          "parent": "mp-985583",
+          "parent_formula": "Li3PS4",
+          "substitution": {
+            "remove": "S",
+            "add": "I",
+            "count": 1,
+            "li_vacancies": 1
+          },
+          "formula": "Li11P4S15I",
+          "status": "passed",
+          "rejected_at": null,
+          "reason": null,
+          "arrangements": 7,
+          "converged": 7,
+          "energy_spread_meV": 16.1,
+          "e_hull": 0.023389,
+          "decomposition": [
+            {
+              "formula": "Li3PS4",
+              "id": "mp-985583",
+              "fraction": 0.860215
+            },
+            {
+              "formula": "P2S5",
+              "id": "mp-541788",
+              "fraction": 0.075269
+            },
+            {
+              "formula": "LiI",
+              "id": "mp-570935",
+              "fraction": 0.064516
+            }
+          ],
+          "known_in_mp": [],
+          "skipped_references": [],
+          "gap_optb88": 2.522,
+          "gap_mbj": 3.178,
+          "gap_low_confidence": false,
+          "ss_bonds": false,
+          "not_run": [
+            "electrodes",
+            "molecular_dynamics"
+          ],
+          "new_relaxations": 17,
+          "seconds": 87.4,
+          "rationale": "Large I with Li vacancy widens diffusion bottleneck and softens lattice versus Cl."
+        }
+      ],
+      "analysis": {
+        "reply": {
+          "ranking": [
+            "it2-c4",
+            "it2-c5",
+            "it2-c1",
+            "it2-c2",
+            "it2-c3"
+          ],
+          "lessons": [
+            "Ultra-dilute Na-for-Li gives near-hull stability at 0.0028 eV/atom with the widest gap of 2.71 eV.",
+            "Dilute I-for-S vacancy doping passes with lower E_hull and wider gap than the Cl analogs.",
+            "As and dilute Sb for P retain gaps above 2.2 eV but raise E_hull to 0.037-0.040 eV/atom."
+          ],
+          "next_direction": "Co-combine ultra-dilute Na with Se and I vacancy doping on Li3PS4-type parent.",
+          "stop": false
+        },
+        "provider": "meta",
+        "attempts": 1,
+        "reasoning": "Ranking passed candidates by lowest e_hull and highest gap, with it2-c4 first.\n\nFinalizing the ranking order by weighing hull stability against gap margin for the last two candidates.",
+        "input_tokens": 2970,
+        "output_tokens": 1483,
+        "cost_usd": 0.01002,
+        "seconds": 5.7
+      }
+    }
+  ],
+  "stop_reason": "iterations done",
+  "final_ranking": [
+    "it2-c4",
+    "it1-c5",
+    "it1-c4",
+    "it2-c5",
+    "it1-c2",
+    "it1-c1",
+    "it2-c1",
+    "it2-c2",
+    "it2-c3"
+  ],
+  "model_ranking": [
+    "it2-c4",
+    "it2-c5",
+    "it2-c1",
+    "it2-c2",
+    "it2-c3"
+  ],
+  "usage": {
+    "llm": {
+      "meta": {
+        "calls": 4,
+        "input_tokens": 7263,
+        "output_tokens": 10914,
+        "cost_usd": 0.05546,
+        "by_provider": {
+          "meta": {
+            "calls": 4,
+            "input_tokens": 7263,
+            "output_tokens": 10914,
+            "cost_usd": 0.05546
+          }
+        }
+      },
+      "baseten": {
+        "calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "by_provider": {}
+      }
+    },
+    "relaxations": {
+      "new": 205,
+      "limit": 250
+    },
+    "events": 66,
+    "seconds": 1533.7
+  }
+}
