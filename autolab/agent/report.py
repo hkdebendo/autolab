@@ -61,8 +61,8 @@ def render(result: dict) -> str:
         if p["reasoning"]:
             lines += ["", "<details><summary>Reasoning summary (proposals)</summary>", "",
                       _short(p["reasoning"]), "", "</details>"]
-        lines += ["", "| Candidate | Formula | Arrangements/converged | Spread (meV/at) | E_hull (eV/at) | "
-                      "E_hull per substitution (eV) | Gap optB88/mBJ (eV) | S-S | Known in MP | Result |",
+        lines += ["", "| Candidate | Formula | Arrangements/converged | Spread (meV/at) | E_hull per atom (eV/atom) | "
+                      "E_hull per substitution (eV per modified site) | Gap optB88/mBJ (eV) | S-S | Known in MP | Result |",
                   "|---|---|---|---|---|---|---|---|---|---|"]
         lines += [_candidate_row(c) for c in r["candidates"]]
         for c in r["candidates"]:
@@ -91,8 +91,8 @@ def render(result: dict) -> str:
         for i, cid in enumerate(result["final_ranking"], 1):
             c = by_id[cid]
             lines.append(f"{i}. {cid} {c['formula']} ({_sub(c['substitution'])} in {c['parent']}): "
-                         f"E_hull per substitution {_num(c.get('e_hull_per_substitution'))} eV, "
-                         f"E_hull {_num(c['e_hull'])} eV/atom, gap {_num(c['gap_optb88'], '.2f')} eV"
+                         f"E_hull per substitution {_num(c.get('e_hull_per_substitution'))} eV per modified site, "
+                         f"E_hull per atom {_num(c['e_hull'])} eV/atom, gap {_num(c['gap_optb88'], '.2f')} eV"
                          f"{', S-S bonds (reduced reliability)' if c.get('ss_bonds') else ''}")
     else:
         lines.append("No candidate passed all filters.")

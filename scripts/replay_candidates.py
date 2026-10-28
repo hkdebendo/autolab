@@ -34,8 +34,8 @@ def main() -> None:
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(out, indent=1), encoding="utf-8")
     for i, c in enumerate(passed, 1):
-        print(f"{i}. {c['id']} {c['formula']}: E_hull {c['e_hull']:.3f} eV/atom, "
-              f"per substitution {c['e_hull_per_substitution']:.3f} eV (n_modified {c['n_modified']}), "
+        print(f"{i}. {c['id']} {c['formula']}: E_hull per atom {c['e_hull']:.3f} eV/atom, "
+              f"per substitution {c['e_hull_per_substitution']:.3f} eV per modified site (n_modified {c['n_modified']}), "
               f"gap {c['gap_optb88']:.2f} eV")
     print(f"saved {args.out}")
 

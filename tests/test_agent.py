@@ -46,6 +46,12 @@ def fake_relax(epa=lambda s, i: -1.2 - 0.001 * i, converged=True, calls=None):
     return relax
 
 
+@pytest.fixture(autouse=True)
+def raw_uma_energies(monkeypatch):
+    """The fake hull holds raw energies with round numbers: the funnel target must not get MP2020 corrections."""
+    monkeypatch.setattr(config, "UMA_MP2020", False)
+
+
 def fake_hull(elements, budget):
     """Elements at 0 eV/atom, plus Li3PS4 at -1.0 eV/atom when Li, P and S are all present."""
     entries = [make_entry(el, 0.0, el, "uma") for el in elements]

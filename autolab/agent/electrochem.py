@@ -1,8 +1,8 @@
 """Electrode checks with UMA energies (step 9): window, passivation, cathode interfaces, calibrations.
 
 UMA and MP energies are never mixed: each phase diagram uses one source only.
-Interfaces use on-hull MP structures only (config.INTERFACE_REF_EHULL_MAX), relaxed by UMA, with the MP2020
-corrections added to the UMA energies (config.INTERFACE_MP2020).
+Interfaces use on-hull MP structures only (config.INTERFACE_REF_EHULL_MAX), relaxed by UMA. UMA energies carry
+the MP2020 corrections (config.UMA_MP2020), as MP energies do.
 """
 
 from __future__ import annotations
@@ -14,7 +14,7 @@ from pymatgen.core import Composition
 
 from autolab import config
 from autolab.analysis.electrodes import cathode_interface, electrochemical_window, passivation
-from autolab.analysis.stability import make_entry, mp2020_corrected
+from autolab.analysis.stability import energy_source, uma_entry
 
 
 def candidate_entry(c: dict):
@@ -24,7 +24,7 @@ def candidate_entry(c: dict):
     from autolab.sim.serialize import atoms_from_dict
 
     structure = AseAtomsAdaptor.get_structure(atoms_from_dict(c["relaxed_atoms"]))
-    return make_entry(structure.composition, c["energy"], c["id"], "uma", structure=structure)
+    return uma_entry(structure.composition, c["energy"], c["id"], structure=structure)
 
 
 def _elements(*formulas) -> list[str]:
@@ -96,11 +96,8 @@ def uma_interface(electrolyte, cathode: str, entries_fn: Callable = _default_ent
     comp = extra[0].composition if extra else Composition(electrolyte)
     entries, skipped = entries_fn(_elements(comp, cathode), budget, ehull_max=config.INTERFACE_REF_EHULL_MAX)
     hull = [*entries, *extra]
-    if config.INTERFACE_MP2020:  # oxides of U metals next to sulfides: raw energies are not comparable
-        hull = mp2020_corrected(hull)
     res = cathode_interface(comp, cathode, PhaseDiagram(hull))
-    return {**res, "source": "uma+mp2020" if config.INTERFACE_MP2020 else "uma", "references": len(entries),
-            "skipped_references": skipped}
+    return {**res, "source": energy_source(hull[0]), "references": len(entries), "skipped_references": skipped}
 
 
 def mp_interface(electrolyte: str, cathode: str, get_entries: Callable | None = None) -> dict:

@@ -78,6 +78,12 @@ def mp2020_inputs(entries: list) -> list[ComputedEntry]:
     return raw
 
 
+def uma_entry(composition: Composition | str, energy: float, name: str, structure=None) -> PDEntry:
+    """Entry of a UMA total energy, with the MP2020 corrections when config.UMA_MP2020 (source 'uma+mp2020')."""
+    entry = make_entry(composition, energy, name, "uma", structure=structure)
+    return mp2020_corrected([entry])[0] if config.UMA_MP2020 else entry
+
+
 def mp2020_corrected(entries: list) -> list[PDEntry]:
     """UMA entries plus the MP2020 corrections (anions, GGA/GGA+U mixing), tagged 'uma+mp2020'.
 
@@ -91,6 +97,45 @@ def mp2020_corrected(entries: list) -> list[PDEntry]:
         kept = {c.entry_id for c in done}
         raise ValueError(f"MP2020 scheme rejected {[c.entry_id for c in raw if c.entry_id not in kept]}")
     return [make_entry(c.composition, c.energy, c.entry_id, "uma+mp2020") for c in done]
+
+
+def anion_balance(entries: list, tol: float = 1e-6) -> list[str]:
+    """Phases of a hull whose MP2020-corrected anion atoms differ from those of their decomposition products.
+
+    `entries`: raw UMA entries of one hull (candidates included). For each phase, the corrected anion atoms
+    per atom (from the scheme's own adjustments) must equal the fraction-weighted sum over its decomposition
+    in the corrected hull. An empty list means the corrections cancel consistently.
+    Phases with an anion of formal oxidation state between -1 and 0 (e.g. Sb in the alloy LiSb3) are left out:
+    the scheme does not correct them on purpose (strict_anions="require_bound"), in MP's own data too.
+    """
+    from pymatgen.entries.compatibility import MaterialsProject2020Compatibility
+
+    compat = MaterialsProject2020Compatibility(check_potcar=False)
+    per_atom = {}
+    for ce in mp2020_inputs(entries):
+        atoms: dict[str, float] = {}
+        for adj in compat.get_adjustments(ce):
+            if "anion correction" in adj.name:
+                el = adj.name.split("(")[-1].rstrip(")")
+                el = "O" if el in ("oxide", "peroxide", "superoxide", "ozonide") else el
+                atoms[el] = atoms.get(el, 0.0) + adj.n_atoms / ce.composition.num_atoms
+        per_atom[ce.entry_id] = atoms
+    pd = PhaseDiagram(mp2020_corrected(entries))
+    bad = []
+    for e in pd.all_entries:
+        decomp, _ = pd.get_decomp_and_e_above_hull(e, allow_negative=True)
+        products: dict[str, float] = {}
+        for p, f in decomp.items():
+            for el, n in per_atom[p.name].items():
+                products[el] = products.get(el, 0.0) + f * n
+        if any(-1 < ox < 0 for ox in oxidation_guess(e.composition.reduced_formula).values()):
+            continue
+        own = per_atom[e.name]
+        diff = {el: round(own.get(el, 0.0) - products.get(el, 0.0), 6) for el in set(own) | set(products)
+                if abs(own.get(el, 0.0) - products.get(el, 0.0)) > tol}
+        if diff:
+            bad.append(f"{e.name} {e.composition.reduced_formula}: {diff}")
+    return bad
 
 
 def entry_label(entry) -> str:
@@ -133,8 +178,8 @@ def uma_reference_entries(elements: Iterable[str], backend=None, budget=None,
         if not res["converged"]:
             skipped.append(ref["material_id"])
             continue
-        entries.append(make_entry(ref["structure"].composition, res["energy"], ref["material_id"], "uma",
-                                  structure=ref["structure"]))
+        entries.append(uma_entry(ref["structure"].composition, res["energy"], ref["material_id"],
+                                 structure=ref["structure"]))
     return entries, skipped
 
 

@@ -84,7 +84,7 @@ def evaluate_candidate(
 
     sim.backend.BudgetExceeded propagates: the caller stops the run cleanly.
     """
-    from autolab.analysis.stability import e_hull, make_entry
+    from autolab.analysis.stability import e_hull, uma_entry
     from autolab.chem.checks import has_ss_bonds
     from autolab.chem.generator import generate_candidates
 
@@ -156,7 +156,7 @@ def evaluate_candidate(
     elements = sorted(el.symbol for el in structure.composition.elements)
     entries, skipped = tools.hull_entries(elements, budget)
     out["skipped_references"] = skipped
-    target = make_entry(Composition(structure.composition), best["energy"], candidate_id, "uma")
+    target = uma_entry(Composition(structure.composition), best["energy"], candidate_id, structure=structure)
     hull = e_hull(target, entries)
     out["n_atoms"] = len(structure)
     out.update(e_hull=hull["e_hull"], decomposition=hull["decomposition"][:4],

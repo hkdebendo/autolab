@@ -1,0 +1,125 @@
+{
+ "cathode": "LiFePO4",
+ "tolerance": 0.05,
+ "max_relaxations": 140,
+ "calibrations": [
+  {
+   "electrolyte": "Li3PS4",
+   "cathode": "LiCoO2",
+   "uma": {
+    "electrolyte": "Li3PS4",
+    "cathode": "LiCoO2",
+    "min_reaction_energy": -0.417248,
+    "mixing_ratio": 0.478261,
+    "reaction": "0.3143 Li3PS4 + 0.6857 LiCoO2 -> 0.3143 Li3PO4 + 0.02857 Li2SO4 + 0.2286 Co3S4 + 0.3143 Li2S",
+    "source": "uma+mp2020",
+    "references": 56,
+    "skipped_references": []
+   },
+   "mp": {
+    "electrolyte": "Li3PS4",
+    "cathode": "LiCoO2",
+    "min_reaction_energy": -0.415794,
+    "mixing_ratio": 0.478261,
+    "reaction": "0.3143 Li3PS4 + 0.6857 LiCoO2 -> 0.02857 Li2SO4 + 0.2286 Co3S4 + 0.3143 Li2S + 0.3143 Li3PO4",
+    "source": "mp",
+    "references": 952
+   },
+   "diff": -0.0015,
+   "ok": true,
+   "tolerance": 0.05,
+   "seconds": 7.0
+  },
+  {
+   "electrolyte": "Li3PS4",
+   "cathode": "LiFePO4",
+   "uma": {
+    "electrolyte": "Li3PS4",
+    "cathode": "LiFePO4",
+    "min_reaction_energy": -0.144061,
+    "mixing_ratio": 0.328767,
+    "reaction": "0.7 LiFePO4 + 0.3 Li3PS4 -> 0.2 FePS + 0.4 Li4P2O7 + 0.5 FeS2",
+    "source": "uma+mp2020",
+    "references": 57,
+    "skipped_references": []
+   },
+   "mp": {
+    "electrolyte": "Li3PS4",
+    "cathode": "LiFePO4",
+    "min_reaction_energy": -0.13278,
+    "mixing_ratio": 0.328767,
+    "reaction": "0.7 LiFePO4 + 0.3 Li3PS4 -> 0.2 FePS + 0.4 Li4P2O7 + 0.5 FeS2",
+    "source": "mp",
+    "references": 1185
+   },
+   "diff": -0.0113,
+   "ok": true,
+   "tolerance": 0.05,
+   "seconds": 5.2
+  }
+ ],
+ "candidates": [
+  {
+   "electrolyte": "Li6P2S7O",
+   "cathode": "LiFePO4",
+   "min_reaction_energy": -0.137598,
+   "mixing_ratio": 0.358879,
+   "reaction": "0.2182 Li6P2S7O + 0.8909 LiFePO4 -> 0.2545 FePS + 0.5091 Li4P2O7 + 0.05455 Li3PO4 + 0.6364 FeS2",
+   "source": "uma+mp2020",
+   "references": 57,
+   "skipped_references": [],
+   "id": "it1-c2",
+   "seconds": 1.2
+  },
+  {
+   "electrolyte": "Li11P4S15I",
+   "cathode": "LiFePO4",
+   "min_reaction_energy": -0.139139,
+   "mixing_ratio": 0.337466,
+   "reaction": "0.1032 Li11P4S15I + 0.8968 LiFePO4 -> 0.5014 Li4P2O7 + 0.03438 PI3 + 0.2464 FePS + 0.02579 LiPO3 + 0.6504 FeS2",
+   "source": "uma+mp2020",
+   "references": 71,
+   "skipped_references": [],
+   "id": "it2-c5",
+   "seconds": 0.8
+  },
+  {
+   "electrolyte": "Li11P4S15Cl",
+   "cathode": "LiFePO4",
+   "min_reaction_energy": -0.138003,
+   "mixing_ratio": 0.336043,
+   "reaction": "0.8974 LiFePO4 + 0.1026 Li11P4S15Cl -> 0.4359 Li4P2O7 + 0.1795 LiPO3 + 0.2564 FePS + 0.641 FeS2 + 0.1026 LiCl",
+   "source": "uma+mp2020",
+   "references": 71,
+   "skipped_references": [],
+   "id": "it1-c1",
+   "seconds": 0.8
+  },
+  {
+   "electrolyte": "Li13P6S21Cl",
+   "cathode": "LiFePO4",
+   "min_reaction_energy": -0.135381,
+   "mixing_ratio": 0.323471,
+   "reaction": "0.9245 LiFePO4 + 0.07547 Li13P6S21Cl -> 0.3585 Li4P2O7 + 0.3962 LiPO3 + 0.2642 FePS + 0.6604 FeS2 + 0.07547 LiCl",
+   "source": "uma+mp2020",
+   "references": 71,
+   "skipped_references": [],
+   "id": "it2-c1",
+   "seconds": 0.9
+  },
+  {
+   "electrolyte": "Li7AsP2S11",
+   "cathode": "LiFePO4",
+   "min_reaction_energy": -0.149435,
+   "mixing_ratio": 0.355263,
+   "reaction": "0.1682 Li7AsP2S11 + 0.9159 LiFePO4 -> 0.1522 AsS + 0.008011 As2P2S7 + 0.5234 Li4P2O7 + 0.1896 FePS + 0.7263 FeS2",
+   "source": "uma+mp2020",
+   "references": 81,
+   "skipped_references": [],
+   "id": "it2-c2",
+   "seconds": 2.3
+  }
+ ],
+ "stopped": null,
+ "new_relaxations": 34
+}
