@@ -19,10 +19,12 @@ from autolab.analysis.stability import make_entry, mp2020_corrected
 
 def candidate_entry(c: dict):
     """UMA entry of a candidate from its funnel result (best relaxed cell and its total energy)."""
+    from pymatgen.io.ase import AseAtomsAdaptor
+
     from autolab.sim.serialize import atoms_from_dict
 
-    comp = Composition(atoms_from_dict(c["relaxed_atoms"]).get_chemical_formula())
-    return make_entry(comp, c["energy"], c["id"], "uma")
+    structure = AseAtomsAdaptor.get_structure(atoms_from_dict(c["relaxed_atoms"]))
+    return make_entry(structure.composition, c["energy"], c["id"], "uma", structure=structure)
 
 
 def _elements(*formulas) -> list[str]:

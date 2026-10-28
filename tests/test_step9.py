@@ -154,6 +154,23 @@ def test_mp2020_corrections_on_uma_entries():
         mp2020_corrected([ComputedEntry("Li2S", -4.5)])  # MP entries are already corrected
 
 
+def test_mp2020_corrects_the_same_anion_atoms_on_both_sides():
+    from conftest import load_structure
+
+    # Li7P3SeS10 has 21 atoms: pymatgen alone would not guess oxidation states and would skip Se (less
+    # electronegative than S), while Se is corrected in P2Se5. Here both are selenides.
+    raw = [make_entry("Li7P3SeS10", -100.0, "cand", "uma"), make_entry("P2Se5", -30.0, "mp-28860", "uma"),
+           make_entry("Li2S", -12.0, "s", "uma")]
+    fixed = {e.name: e.energy - r.energy for e, r in zip(mp2020_corrected(raw), raw)}
+    per_se = fixed["mp-28860"] / 5  # P2Se5 has no S: its correction is all Se
+    assert fixed["cand"] == pytest.approx(10 * fixed["s"] + per_se)  # 10 S and 1 Se corrected
+    # A sulfate with its structure gets the oxide correction only, not the sulfide one.
+    li2so4 = load_structure("Li2SO4_mp-4556")
+    corr = mp2020_corrected([make_entry(li2so4.composition, -200.0, "mp-4556", "uma", structure=li2so4)])[0]
+    no_s = mp2020_corrected([make_entry("Li2O", -14.0, "x", "uma")])[0].energy + 14.0  # 1 O
+    assert corr.energy + 200.0 == pytest.approx(li2so4.composition["O"] * no_s)
+
+
 def test_cathode_calibrations_with_cached_uma_energies():
     """Truth test: Li3PS4 / LiCoO2 and Li3PS4 / LiFePO4 with UMA + MP2020 within tolerance of MP (PC cache)."""
     try:
