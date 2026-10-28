@@ -1,0 +1,36 @@
+# Secrets: never committed
+.env
+.env.*
+!.env.example
+
+# Caches (Materials Project, relaxations, band gaps)
+.cache/
+cache/
+
+# Simulation outputs and checkpoints
+*.traj
+*.pt
+*.ckpt
+checkpoints/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.venv/
+venv/
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Claude Code local config
+.claude/
