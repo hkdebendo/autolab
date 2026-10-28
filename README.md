@@ -90,7 +90,18 @@ See `SPEC.md` for the architecture and validated parameters.
 | Band gap Li / Li₂S / LiCl (ALIGNN) | 0.00 / 3.44 / 6.59 eV | metal / insulator / insulator |
 | S→Cl + 1 Li vacancy in Li₃PS₄ | 7 distinct arrangements, all neutral | — |
 
-The same checks with UMA energies come next (stability, electrodes), run on GPU.
+With UMA energies (`uma-s-1p2`, high precision, every hull reference relaxed by UMA), on an NVIDIA T4:
+
+| Check | AutoLab (UMA) | Reference |
+|---|---|---|
+| LiCl lattice parameter (relaxed from 5.0 Å) | 5.135 Å, converged | ≈ 5.13 Å (experiment) |
+| E_hull Li₂S | 0.000 eV/atom | on the hull |
+| E_hull of a fictitious rock-salt LiS | 0.508 eV/atom | unstable (≥ 0.3 expected) |
+| E_hull Li₃PS₄ polymorphs | 0.000 / 0.007 / 0.015 eV/atom | 0.000 / 0.007 / 0.014 (Materials Project) |
+| E_hull Li₇P₃S₁₁ | 0.010 eV/atom | 0.020 (Materials Project) |
+| 52 Li-P-S references | mean \|UMA − MP\| = 0.009 eV/atom | — |
+
+Cost on a T4: ≈ 7 s per relaxation (median), plus ≈ 2 min of one-time model compilation; molecular dynamics at 75 ms/step for 128 atoms (50 ps ≈ 1 h).
 
 **Rediscovery benchmark (planned).** To check that the agent finds good materials rather than just recalling them, known electrolytes (Li₆PS₅Cl, LGPS, LLZO, Li₃PS₄) are hidden from the search space, and we measure whether, and how fast, the agent finds them again. Results are compared with random search and a simple heuristic, at the same simulation budget.
 
@@ -107,8 +118,9 @@ AutoLab's outputs are **computationally predicted candidates**, not experimental
 - [x] Materials Project access with disk cache
 - [x] Band gap filter (ALIGNN, CPU)
 - [x] Convex hull and electrode checks (window, passivation, cathode interface), validated with Materials Project energies
-- [ ] UMA relaxation and energies on Modal (GPU)
-- [ ] Stability and electrode checks with UMA energies
+- [x] UMA relaxation, energies and convex hull on GPU (validated on a Colab T4; Modal deployment pending)
+- [x] Language-model client (Muse Spark via the Meta Model API, Muse Spark Open via Baseten)
+- [ ] Electrode checks with UMA energies
 - [ ] Muse Spark agent loop
 - [ ] Molecular dynamics on top candidates
 - [ ] Rediscovery benchmark
