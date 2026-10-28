@@ -9,6 +9,7 @@ again, at most JSON_MAX_RETRIES times.
 
 from __future__ import annotations
 
+import contextlib
 import logging
 import time
 from dataclasses import asdict, dataclass, field
@@ -52,12 +53,16 @@ class Reply:
     cost_usd: float
     seconds: float
     usage_estimated: bool = False
+    web_searches: int = 0
+    citations: list = field(default_factory=list)  # [{"url", "title", "start_index", "end_index"}] from the API
+    sources_considered: list = field(default_factory=list)  # [{"url", "title"}] from web_search_call results
 
 
-def cost_usd(provider: str, input_tokens: int, output_tokens: int) -> float:
-    """Estimated cost from the prices in config.LLM_PROVIDERS."""
+def cost_usd(provider: str, input_tokens: int, output_tokens: int, web_searches: int = 0) -> float:
+    """Estimated cost from the prices in config.LLM_PROVIDERS (tokens, plus web searches when any)."""
     p = config.LLM_PROVIDERS[provider]
-    return (input_tokens * p["usd_per_m_input"] + output_tokens * p["usd_per_m_output"]) / 1e6
+    searches = web_searches * p.get("usd_per_web_search", 0.0)
+    return (input_tokens * p["usd_per_m_input"] + output_tokens * p["usd_per_m_output"]) / 1e6 + searches
 
 
 @dataclass
@@ -110,6 +115,11 @@ def _estimate_tokens(text: str) -> int:
     return max(1, len(text) // 4)
 
 
+def _get(obj, key: str):
+    """Field of an SDK object or of a plain dict (extra fields such as `results` may be either)."""
+    return obj.get(key) if isinstance(obj, dict) else getattr(obj, key, None)
+
+
 def _split_system(messages: list[dict]) -> tuple[str | None, list[dict]]:
     system = "\n\n".join(m["content"] for m in messages if m["role"] == "system")
     return system or None, [m for m in messages if m["role"] != "system"]
@@ -144,12 +154,22 @@ class LLMClient:
         max_output_tokens: int = config.LLM_MAX_OUTPUT_TOKENS,
     ) -> Reply:
         """Send messages, return text, reasoning and usage. Streams through the callbacks."""
+        call = self._responses if self.spec["api"] == "responses" else self._chat_completions
+        t0 = self._start()
+        with self._errors():
+            text, reasoning, usage = call(messages, stream, on_text, on_reasoning, reasoning_effort, max_output_tokens)
+        return self._finish(messages, text, reasoning, usage, t0)
+
+    def _start(self) -> float:
         self.tracker.check()
         self.tracker.count_call(self.provider)
-        t0 = time.perf_counter()
-        call = self._responses if self.spec["api"] == "responses" else self._chat_completions
+        return time.perf_counter()
+
+    @contextlib.contextmanager
+    def _errors(self):
+        """Map SDK errors: quota, payment, auth and rate limits stop the run (no retry)."""
         try:
-            text, reasoning, usage = call(messages, stream, on_text, on_reasoning, reasoning_effort, max_output_tokens)
+            yield
         except (openai.RateLimitError, openai.AuthenticationError, openai.PermissionDeniedError) as e:
             raise QuotaError(f"{self.provider}: {type(e).__name__} (HTTP {e.status_code}): stopping, no retry") from e
         except openai.APIStatusError as e:
@@ -159,17 +179,53 @@ class LLMClient:
         except openai.APIError as e:
             raise LLMError(f"{self.provider}: {type(e).__name__}: {e}") from e
 
+    def _finish(self, messages, text, reasoning, usage, t0, **extra) -> Reply:
         estimated = usage is None
         if estimated:
             prompt = " ".join(str(m["content"]) for m in messages)
             usage = (_estimate_tokens(prompt), _estimate_tokens(text + reasoning), None)
         n_in, n_out, n_reason = usage
+        searches = extra.get("web_searches", 0)
         reply = Reply(self.provider, self.model, text, reasoning, n_in, n_out, n_reason,
-                      cost_usd(self.provider, n_in, n_out), round(time.perf_counter() - t0, 2), estimated)
+                      cost_usd(self.provider, n_in, n_out, searches), round(time.perf_counter() - t0, 2), estimated,
+                      **extra)
         self.tracker.add(reply)
-        log.info("llm %s: in %d, out %d (reasoning %s), $%.5f, %.1f s%s", self.provider, n_in, n_out, n_reason,
-                 reply.cost_usd, reply.seconds, " (usage estimated)" if estimated else "")
+        log.info("llm %s: in %d, out %d (reasoning %s)%s, $%.5f, %.1f s%s", self.provider, n_in, n_out, n_reason,
+                 f", {searches} web searches" if searches else "", reply.cost_usd, reply.seconds,
+                 " (usage estimated)" if estimated else "")
         return reply
+
+    def web_search(self, messages: list[dict], search_context_size: str = config.NOVELTY_SEARCH_CONTEXT,
+                   reasoning_effort: str | None = None,
+                   max_output_tokens: int = config.LLM_MAX_OUTPUT_TOKENS) -> Reply:
+        """One answer grounded in a live web search (Responses API `web_search` tool).
+
+        Links must come only from the url_citation annotations returned here, never from the text.
+        """
+        if self.spec["api"] != "responses":
+            raise LLMError(f"{self.provider}: web search needs the Responses API")
+        instructions, rest = _split_system(messages)
+        reasoning_opts = {"summary": "auto", **({"effort": reasoning_effort} if reasoning_effort else {})}
+        kwargs = {"model": self.model, "input": rest, "max_output_tokens": max_output_tokens,
+                  "tools": [{"type": "web_search", "search_context_size": search_context_size}],
+                  "include": ["web_search_call.results"], "reasoning": reasoning_opts}
+        if instructions:
+            kwargs["instructions"] = instructions
+        t0 = self._start()
+        with self._errors():
+            resp = self.client.responses.create(**kwargs)
+        citations, considered, searches = [], [], 0
+        for item in resp.output or []:
+            kind = _get(item, "type")
+            if kind == "web_search_call":
+                searches += 1
+                considered += [{"url": _get(r, "url"), "title": _get(r, "title")} for r in _get(item, "results") or []]
+            elif kind == "message":
+                for part in _get(item, "content") or []:
+                    citations += [{k: _get(a, k) for k in ("url", "title", "start_index", "end_index")}
+                                  for a in _get(part, "annotations") or [] if _get(a, "type") == "url_citation"]
+        return self._finish(messages, resp.output_text or "", self._summary(resp), self._responses_usage(resp.usage),
+                            t0, web_searches=searches, citations=citations, sources_considered=considered)
 
     def _chat_completions(self, messages, stream, on_text, on_reasoning, effort, max_tokens):
         kwargs = {"model": self.model, "messages": messages, "max_tokens": max_tokens}

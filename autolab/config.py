@@ -128,6 +128,7 @@ LLM_PROVIDERS: dict[str, dict] = {
     "meta": {  # main brain; reasoning summaries only through the Responses API
         "base_url": "https://api.meta.ai/v1", "key": "MODEL_API_KEY", "model": "muse-spark-1.3",
         "api": "responses", "usd_per_m_input": 1.25, "usd_per_m_output": 4.25,
+        "usd_per_web_search": 0.0025,  # web_search tool, $2.50 per 1,000 queries, on top of tokens
     },
     "baseten": {  # parallel candidate analyses, fallback for meta
         "base_url": "https://inference.baseten.co/v1", "key": "BASETEN_API_KEY",
@@ -155,6 +156,14 @@ AGENT_GOAL = ("Find new sulfide solid electrolytes for lithium-metal batteries: 
 AGENT_PARENTS = ["mp-985583", "mp-641703"]  # Li3PS4 (32 atoms), Li7P3S11 (42 atoms); UMA references cached
 AGENT_REASONING_EFFORT = "medium"
 AGENT_MAX_OUTPUT_TOKENS = 8000  # proposals and analyses: reasoning + JSON
+
+# Novelty check (last step, final candidates only): Meta web search, links only from API citations.
+NOVELTY_PROVIDER = "meta"
+NOVELTY_COST_CAP_USD = 1.0
+NOVELTY_SEARCH_CONTEXT = "medium"  # low | medium | high
+NOVELTY_REASONING_EFFORT = "low"
+NOVELTY_MAX_OUTPUT_TOKENS = 3000
+NOVELTY_CONTROL = {"id": "control-LGPS", "formula": "Li10GeP2S12", "parent": None, "substitution": None}
 
 # --- Budget limits (CLAUDE.md) -----------------------------------------------
 
