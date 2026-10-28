@@ -81,8 +81,8 @@ def test_passing_candidate_keeps_lowest_arrangement_and_emits_events(li3ps4):
     assert out["arrangements"] == out["converged"] >= 2
     assert out["energy_spread_meV"] == pytest.approx(1.0 * (out["arrangements"] - 1))
     assert out["e_hull"] < 0 and out["gap_optb88"] == 3.1 and out["ss_bonds"] is False
-    assert (out["n_atoms"], out["n_substituted"]) == (31, 1)
-    assert out["e_hull_per_substitution"] == pytest.approx(out["e_hull"] * 31, abs=1e-3)
+    assert (out["n_atoms"], out["n_modified"]) == (31, 2)  # 1 S->Cl + 1 Li vacancy
+    assert out["e_hull_per_substitution"] == pytest.approx(out["e_hull"] * 31 / 2, abs=1e-3)
     assert out["new_relaxations"] == out["arrangements"]
     assert [e["step"] for e in events.events] == ["generate", "known_check", "relax", "hull", "bandgap", "ss_check",
                                                   "done"]
@@ -96,7 +96,7 @@ def test_known_composition_reported_not_computed(li3ps4):
                              tools(relax=fake_relax(calls=calls),
                                    known=lambda f: [{"material_id": "mp-756316", "theoretical": True}]))
     assert (out["status"], out["rejected_at"], out["known_in_mp"]) == ("rejected", "known", ["mp-756316"])
-    assert out["n_substituted"] == 4 and calls == []  # all 4 P of Li12P4S16, nothing relaxed
+    assert out["n_modified"] == 4 and calls == []  # all 4 P of Li12P4S16, nothing relaxed
 
 
 def test_known_check_failure_still_computes(li3ps4):

@@ -25,7 +25,7 @@ from autolab.sim.backend import RelaxBudget
 
 # Result fields sent back to the model (the rest stays in the report).
 _FOR_MODEL = ("id", "parent", "substitution", "formula", "status", "rejected_at", "reason", "arrangements",
-              "converged", "energy_spread_meV", "n_atoms", "n_substituted", "e_hull", "e_hull_per_substitution",
+              "converged", "energy_spread_meV", "n_atoms", "n_modified", "e_hull", "e_hull_per_substitution",
               "decomposition", "known_in_mp", "gap_optb88", "gap_mbj", "gap_low_confidence", "ss_bonds")
 
 

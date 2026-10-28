@@ -62,11 +62,13 @@ def _relaxed_structure(res: dict) -> Structure:
     return AseAtomsAdaptor.get_structure(atoms_from_dict(res["atoms"]))
 
 
-def n_substituted(parent: Structure, substitution: dict) -> int:
-    """Number of replaced sites (Li vacancies not counted)."""
+def n_modified(parent: Structure, substitution: dict) -> int:
+    """Number of modified sites: replaced sites plus Li vacancies (each vacancy is a modification)."""
     if substitution["count"] == "all":
-        return sum(site.specie.symbol == substitution["remove"] for site in parent)
-    return int(substitution["count"])
+        replaced = sum(site.specie.symbol == substitution["remove"] for site in parent)
+    else:
+        replaced = int(substitution["count"])
+    return replaced + int(substitution.get("li_vacancies", 0))
 
 
 def evaluate_candidate(
@@ -93,9 +95,9 @@ def evaluate_candidate(
     out = {
         "id": candidate_id, "parent": parent_id, "parent_formula": parent.composition.reduced_formula,
         "substitution": substitution, "formula": None, "status": "rejected", "rejected_at": None, "reason": None,
-        "arrangements": 0, "converged": 0, "energy_spread_meV": None, "n_atoms": None, "n_substituted": None,
+        "arrangements": 0, "converged": 0, "energy_spread_meV": None, "n_atoms": None, "n_modified": None,
         "e_hull": None, "e_hull_per_substitution": None, "decomposition": None, "known_in_mp": [],
-        "skipped_references": [],
+        "skipped_references": [], "energy": None, "relaxed_atoms": None,
         "gap_optb88": None, "gap_mbj": None, "gap_low_confidence": None, "ss_bonds": None,
         "not_run": list(tools.not_run),
     }
@@ -117,7 +119,7 @@ def evaluate_candidate(
          arrangements=len(gen["candidates"]), reason=gen["reason"])
     if not gen["accepted"]:
         return finish(step="generate", reason=gen["reason"])
-    out["n_substituted"] = n_substituted(parent, substitution)
+    out["n_modified"] = n_modified(parent, substitution)
 
     # 2. A composition already in Materials Project is reported, not recomputed.
     try:
@@ -146,10 +148,11 @@ def evaluate_candidate(
         return finish(step="relax", reason="no arrangement converged")
     best = min(converged, key=lambda r: r["energy_per_atom"])
     structure = _relaxed_structure(best)
+    out.update(energy=best["energy"], relaxed_atoms=best["atoms"])  # for electrodes and dynamics
 
     # 4. E_hull against references of the same chemical system, all relaxed by UMA.
-    #    Per substitution: E_hull x atoms / replaced sites, the energy cost of each substituted site,
-    #    so that a single dopant in a large cell is not favoured just for changing little.
+    #    Per substitution: E_hull x atoms / modified sites (replaced + Li vacancies), the energy cost
+    #    of each modification, so that a single dopant in a large cell is not favoured for changing little.
     elements = sorted(el.symbol for el in structure.composition.elements)
     entries, skipped = tools.hull_entries(elements, budget)
     out["skipped_references"] = skipped
@@ -157,7 +160,7 @@ def evaluate_candidate(
     hull = e_hull(target, entries)
     out["n_atoms"] = len(structure)
     out.update(e_hull=hull["e_hull"], decomposition=hull["decomposition"][:4],
-               e_hull_per_substitution=round(hull["e_hull"] * out["n_atoms"] / out["n_substituted"], 4))
+               e_hull_per_substitution=round(hull["e_hull"] * out["n_atoms"] / out["n_modified"], 4))
     emit("hull", e_hull=hull["e_hull"], e_hull_per_substitution=out["e_hull_per_substitution"],
          decomposition=out["decomposition"], references=len(entries), skipped_references=skipped)
     if hull["e_hull"] > config.EHULL_SYNTHESIZABLE:

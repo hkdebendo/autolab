@@ -32,7 +32,7 @@ Before any simulation, a composition already present in Materials Project is rep
 
 Filters applied after relaxation, with thresholds fixed by the code:
 - E_hull (energy above the convex hull of known phases, eV/atom, all energies from UMA) <= {config.EHULL_SYNTHESIZABLE} to pass; <= {config.EHULL_VERY_GOOD} is very good.
-- Candidates that pass are ranked by E_hull per substitution = E_hull x atoms in the cell / substituted sites (eV): the energy cost of each substituted site, so a single dopant in a large cell is not favoured just because it changes little.
+- Candidates that pass are ranked by E_hull per substitution = E_hull x atoms in the cell / modified sites (replaced sites + Li vacancies), in eV: the energy cost of each modification, so a single dopant in a large cell is not favoured just because it changes little.
 - Band gap (ALIGNN, optB88 scale) >= {config.BANDGAP_MIN} eV: the electrolyte must be an electronic insulator.
 - S-S bonds shorter than {config.SS_BOND_CUTOFF} A are flagged: UMA is less reliable for polysulfides.
 
@@ -46,7 +46,7 @@ You receive the results of the candidates evaluated in this iteration. Fields:
 - status: "passed" (all filters passed), "rejected", "error" or "budget" (not evaluated: simulation budget reached).
 - rejected_at: the failed step: "generate" (unknown parent, element outside the allowed list, impossible count, or not charge-neutral), "known" (composition already in Materials Project, not computed), "relax" (no arrangement converged), "hull" (E_hull above {config.EHULL_SYNTHESIZABLE}), "bandgap" (gap below {config.BANDGAP_MIN} eV).
 - e_hull: energy above the UMA convex hull in eV/atom (0 or negative = on or below the hull of known phases); decomposition: the phases it would decompose into, with fractions.
-- e_hull_per_substitution: e_hull x n_atoms / n_substituted, in eV per substituted site (Li vacancies not counted). This is the ranking criterion: a single dopant in a large cell gets a low e_hull just because it changes little, while its cost per substituted site can be high.
+- e_hull_per_substitution: e_hull x n_atoms / n_modified, in eV per modification (n_modified = replaced sites + Li vacancies). This is the ranking criterion: a single dopant in a large cell gets a low e_hull just because it changes little, while its cost per substituted site can be high.
 - known_in_mp: Materials Project ids with the same reduced formula (the composition is already known, so not novel).
 - arrangements / converged: random arrangements relaxed and how many converged; energy_spread_meV: energy difference between the best and worst arrangement.
 - gap_optb88: band gap used by the filter (eV); gap_mbj: closer to experiment; gap_low_confidence: the two models disagree on insulating.
