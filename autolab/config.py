@@ -85,6 +85,13 @@ METALLIC_GAP_MAX = 0.1  # eV, MP band gap below which a product is metallic
 PASSIVATION_FORCE_MAX = 0.1  # eV/atom, reaction energy at 0 V tolerated with metallic products
 DEFAULT_CATHODES = ["LiFePO4", "LiMn2O4"]
 
+# Electrodes with UMA energies (step 9). Interfaces add Fe/Mn/Co-O to the system: with every phase
+# up to 0.05 eV/atom that is ~1300 new relaxations for 5 candidates, with on-hull phases only ~100.
+INTERFACE_REF_EHULL_MAX = 0.0  # eV/atom, MP references kept for cathode interfaces
+INTERFACE_CALIBRATION_MAX_DIFF = 0.05  # eV/atom, max |UMA - MP| on Li3PS4/cathode before trusting UMA interfaces
+CALIBRATION_CATHODES = ["LiCoO2", "LiFePO4"]  # LiCoO2: MP -0.416 eV/atom; LiFePO4: magnetic Fe, checked too
+LI3PS4_WINDOW_MP = (1.72, 2.34)  # V, Li3PS4 window with MP energies (validated, SPEC 5.9)
+
 # --- UMA simulation (SPEC 5.5, 5.6, 5.10) ------------------------------------
 
 UMA_MODEL = "uma-s-1p2"
@@ -99,6 +106,9 @@ MD_TIMESTEP_FS = 1.0
 MD_FRICTION_PER_FS = 0.01
 MD_RECORD_EVERY = 10
 MD_MIN_LENGTH = 10.0  # Angstrom, minimum supercell side
+MD_SCREEN_TEMPERATURE_K = 1000  # first screening of Li diffusion (SPEC 5.10: 1000-1200 K)
+MD_SCREEN_PS = 20  # ps per screening run (2 ps is not enough)
+MD_SCREEN_MAX_RUNS = 6  # simulations per screening run
 
 # --- Modal (GPU) ---------------------------------------------------------------
 

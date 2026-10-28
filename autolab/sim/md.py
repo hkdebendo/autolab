@@ -66,7 +66,7 @@ def run_md(
         "n_atoms": len(sc),
         "reps": list(reps),
         "dt_record_fs": timestep_fs * record_every,
-        "positions": np.array(frames).tolist(),
+        "positions": np.round(np.array(frames), 3).tolist(),  # 0.001 A is plenty; halves the JSON size
         "seconds": round(elapsed, 2),
         "ms_per_step": round(1000 * elapsed / max(n_steps, 1), 2),
         "trajectory": trajectory_path,
