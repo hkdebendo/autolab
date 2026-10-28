@@ -6,6 +6,7 @@ mixing them raises ValueError.
 
 from __future__ import annotations
 
+from functools import lru_cache
 from typing import Iterable
 
 from pymatgen.analysis.phase_diagram import PDEntry, PhaseDiagram
@@ -17,9 +18,13 @@ from autolab import config
 FRACTION_EPS = 1e-8
 
 
-def make_entry(composition: Composition | str, energy: float, name: str, source: str) -> PDEntry:
-    """PDEntry tagged with its energy source; `energy` is the total energy (eV)."""
-    return PDEntry(Composition(composition), energy, name=name, attribute={"source": source})
+def make_entry(composition: Composition | str, energy: float, name: str, source: str, structure=None) -> PDEntry:
+    """PDEntry tagged with its energy source; `energy` is the total energy (eV).
+
+    `structure` (pymatgen, optional) lets the MP2020 scheme tell sulfides from sulfates.
+    """
+    attribute = {"source": source, **({"structure": structure} if structure is not None else {})}
+    return PDEntry(Composition(composition), energy, name=name, attribute=attribute)
 
 
 def energy_source(entry) -> str:
@@ -40,13 +45,22 @@ def check_single_source(entries: Iterable) -> str:
     return sources.pop()
 
 
-def mp2020_corrected(entries: list) -> list[PDEntry]:
-    """UMA entries plus the MP2020 corrections (anions, GGA/GGA+U mixing), tagged 'uma+mp2020'.
+@lru_cache(maxsize=None)
+def oxidation_guess(reduced_formula: str) -> dict:
+    """Most likely oxidation states, without the 20-atom limit pymatgen uses inside the MP2020 scheme
+    (above it, only the most electronegative element would be corrected: S but not Se in Li7P3SeS10)."""
+    guesses = Composition(reduced_formula).oxi_state_guesses()
+    return dict(guesses[0]) if guesses else {}
 
-    The energies stay UMA's: only the empirical per-element adjustments of the MP2020 scheme are added,
-    with GGA+U for compounds holding O or F and a metal of config.MP2020_HUBBARD_U (as in the MP sets).
+
+def mp2020_inputs(entries: list) -> list[ComputedEntry]:
+    """Raw UMA entries as the MP2020 scheme needs them: run type, U values, oxidation states, structure.
+
+    GGA+U for compounds holding O or F and a metal of config.MP2020_HUBBARD_U (as in the MP sets).
+    Oxidation states and structures (sulfide vs sulfate, oxide vs peroxide) make the corrected anion
+    atoms the same on both sides of a reaction.
     """
-    from pymatgen.entries.compatibility import MaterialsProject2020Compatibility
+    from pymatgen.entries.computed_entries import ComputedStructureEntry
 
     if check_single_source(entries) != "uma":
         raise ValueError("MP2020 corrections apply to raw UMA entries only")
@@ -55,8 +69,23 @@ def mp2020_corrected(entries: list) -> list[PDEntry]:
     for e in entries:
         els = {el.symbol for el in e.composition.elements}
         plus_u = bool(els & {"O", "F"}) and bool(els & set(u))
-        raw.append(ComputedEntry(e.composition, e.energy, entry_id=e.name, parameters={
-            "run_type": "GGA+U" if plus_u else "GGA", "hubbards": {el: u[el] for el in els & set(u)} if plus_u else {}}))
+        kwargs = {"entry_id": e.name, "data": {"oxidation_states": oxidation_guess(e.composition.reduced_formula)},
+                  "parameters": {"run_type": "GGA+U" if plus_u else "GGA",
+                                 "hubbards": {el: u[el] for el in els & set(u)} if plus_u else {}}}
+        structure = (e.attribute or {}).get("structure") if isinstance(e.attribute, dict) else None
+        raw.append(ComputedStructureEntry(structure, e.energy, **kwargs) if structure is not None
+                   else ComputedEntry(e.composition, e.energy, **kwargs))
+    return raw
+
+
+def mp2020_corrected(entries: list) -> list[PDEntry]:
+    """UMA entries plus the MP2020 corrections (anions, GGA/GGA+U mixing), tagged 'uma+mp2020'.
+
+    The energies stay UMA's: only the empirical per-element adjustments of the MP2020 scheme are added.
+    """
+    from pymatgen.entries.compatibility import MaterialsProject2020Compatibility
+
+    raw = mp2020_inputs(entries)
     done = MaterialsProject2020Compatibility(check_potcar=False).process_entries(raw, clean=True, inplace=False)
     if len(done) != len(raw):
         kept = {c.entry_id for c in done}
@@ -104,7 +133,8 @@ def uma_reference_entries(elements: Iterable[str], backend=None, budget=None,
         if not res["converged"]:
             skipped.append(ref["material_id"])
             continue
-        entries.append(make_entry(ref["structure"].composition, res["energy"], ref["material_id"], "uma"))
+        entries.append(make_entry(ref["structure"].composition, res["energy"], ref["material_id"], "uma",
+                                  structure=ref["structure"]))
     return entries, skipped
 
 
