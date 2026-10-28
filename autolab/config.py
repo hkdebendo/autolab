@@ -124,7 +124,8 @@ MODAL_RELAX_CHUNK = 10  # structures per remote call
 # --- Kaggle (GPU worker driven from the PC, no secret on Kaggle) -------------------
 
 KAGGLE_KERNEL = "adladeeba/autolab-gpu"  # notebook overwritten by each job (kaggle kernels push)
-KAGGLE_UMA_DATASET = "adladeeba/uma-s-1p2"  # private dataset: FAIRCHEM_CACHE_DIR with the uma-s-1p2 checkpoint
+KAGGLE_UMA_KERNEL = "adladeeba/autolab-uma-download"  # its output (run once from the UI with HF_TOKEN) holds
+# FAIRCHEM_CACHE_DIR with the uma-s-1p2 checkpoint; the GPU notebooks attach it as a kernel source
 KAGGLE_ACCELERATOR = "NvidiaTeslaT4"  # "GPU T4 x2"
 KAGGLE_N_GPUS = 2
 KAGGLE_POLL_S = 60  # s between two status checks (free)
