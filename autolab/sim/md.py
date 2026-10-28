@@ -32,7 +32,8 @@ def run_md(
     seed: int = 0,
     trajectory_path: str | None = None,
 ) -> dict:
-    """Run NVT dynamics on a supercell and record unwrapped positions of `species`."""
+    """Run NVT dynamics on a supercell, record unwrapped positions of `species` and the MSD of every other element
+    (to check that the framework did not melt)."""
     reps = supercell_reps(atoms, min_length)
     sc = atoms.repeat(reps)
     sc.calc = calc
@@ -48,8 +49,19 @@ def run_md(
         rng=rng,
     )
     idx = [i for i, s in enumerate(sc.get_chemical_symbols()) if s == species]
+    symbols = np.array(sc.get_chemical_symbols())
+    others = {el: symbols == el for el in sorted(set(symbols) - {species})}
+    start = sc.get_positions().copy()
     frames: list[np.ndarray] = []
-    dyn.attach(lambda: frames.append(sc.get_positions()[idx].copy()), interval=record_every)
+    framework: dict[str, list[float]] = {el: [] for el in others}
+
+    def record() -> None:
+        pos = sc.get_positions()
+        frames.append(pos[idx].copy())
+        for el, mask in others.items():
+            framework[el].append(round(float(((pos[mask] - start[mask]) ** 2).sum(axis=1).mean()), 4))
+
+    dyn.attach(record, interval=record_every)
     if trajectory_path:
         from ase.io.trajectory import Trajectory
 
@@ -67,6 +79,7 @@ def run_md(
         "reps": list(reps),
         "dt_record_fs": timestep_fs * record_every,
         "positions": np.round(np.array(frames), 3).tolist(),  # 0.001 A is plenty; halves the JSON size
+        "framework_msd": framework,  # A^2 per recorded frame, per element other than `species`
         "seconds": round(elapsed, 2),
         "ms_per_step": round(1000 * elapsed / max(n_steps, 1), 2),
         "trajectory": trajectory_path,

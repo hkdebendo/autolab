@@ -8,7 +8,8 @@ from ase import Atoms
 from ase.build import bulk
 from ase.calculators.emt import EMT
 
-from autolab.analysis.diffusion import diffusion_coefficient, msd
+from autolab import config
+from autolab.analysis.diffusion import block_diffusion, diffusion_coefficient, framework_check, msd
 from autolab.sim import backend as sim_backend
 from autolab.sim.md import run_md, supercell_reps
 from autolab.sim.relax import relax
@@ -68,6 +69,39 @@ def test_md_mechanics_with_emt():
                  record_every=10, min_length=8.0)
     assert out["reps"] == [2, 2, 2] and out["n_atoms"] == 32
     assert np.array(out["positions"]).shape == (3, 32, 3)  # steps 0, 10, 20
+    assert out["framework_msd"] == {}
+
+
+def test_md_records_the_framework_msd_of_other_elements():
+    atoms = bulk("Cu", "fcc", a=3.61, cubic=True)
+    atoms.symbols[0] = "Al"
+    out = run_md(atoms, EMT(), temperature_K=300, n_steps=20, species="Al", record_every=10, min_length=7.0)
+    assert list(out["framework_msd"]) == ["Cu"] and len(out["framework_msd"]["Cu"]) == 3
+    assert out["framework_msd"]["Cu"][0] == 0 and out["framework_msd"]["Cu"][-1] > 0
+
+
+def test_framework_check_separates_vibration_from_melting():
+    t = np.arange(2001)
+    vibrating = 0.3 * (1 - np.exp(-t / 20))  # bounded MSD: P and S vibrate or rotate in place
+    melting = 0.06 * t  # grows like the Li MSD below
+    d_li = 0.06 * 100 / 6  # A^2/ps for MSD = 0.06 A^2 per 10 fs frame
+    ok = framework_check({"P": vibrating.tolist(), "S": vibrating.tolist()}, 10.0, d_li)
+    assert ok["intact"] and ok["elements"]["P"]["D_ratio_to_Li"] < 0.01
+    bad = framework_check({"P": vibrating.tolist(), "S": melting.tolist()}, 10.0, d_li)
+    assert not bad["intact"] and bad["elements"]["S"]["D_ratio_to_Li"] == pytest.approx(1.0, rel=0.01)
+
+
+def test_block_diffusion_gives_d_and_its_uncertainty():
+    rng = np.random.default_rng(1)
+    d_true, dt_fs = 0.5, 10.0  # Angstrom^2/ps
+    sigma = np.sqrt(2 * d_true * dt_fs / 1000.0)
+    pos = np.concatenate([np.zeros((1, 40, 3)), np.cumsum(rng.normal(0, sigma, size=(2000, 40, 3)), axis=0)])
+    out = block_diffusion(pos, dt_fs)
+    d_blocks = np.array(out["D_blocks_cm2_per_s"]) / 1e-4
+    assert len(d_blocks) == config.MD_D_BLOCKS
+    assert out["D_block_cm2_per_s"] / 1e-4 == pytest.approx(d_true, rel=0.2)
+    assert 0 < out["D_block_sem_cm2_per_s"] / 1e-4 < 0.2 * d_true
+    assert abs(out["D_block_cm2_per_s"] / 1e-4 - d_true) < 4 * out["D_block_sem_cm2_per_s"] / 1e-4
 
 
 def test_diffusion_on_synthetic_random_walk():

@@ -50,18 +50,20 @@ Calibrations (Li3PS4, tolerance 0.05 eV/atom):
 
 New UMA relaxations: 0 / 80
 
-## 9C. Li diffusion (molecular dynamics, UMA normal precision)
+## 9C. Li diffusion: first screening, NOT calibrated (molecular dynamics, UMA normal precision)
 
-| Structure | Formula | Kind | Atoms / Li | T (K) | ps | D (cm²/s) | D / D(parent) | MSD final (Å²) | ms/step |
-|---|---|---|---|---|---|---|---|---|---|
-| mp-985583 | Li3PS4 | parent | 128 / 48 | 1000 | 20 | 9.51e-05 | — | 93.5 | 72.11 |
-| mp-641703 | Li7P3S11 | parent | 84 / 28 | 1000 | 20 | 4.81e-05 | — | 43.7 | 94.54 |
-| it1-c4 | Li7P3SeS10 | candidate | 84 / 28 | 1000 | 20 | 3.79e-05 | 0.79 | 45.5 | 97.81 |
-| it2-c5 | Li11P4S15I | candidate | 124 / 44 | 1000 | 20 | 5.74e-05 | 0.60 | 71.1 | 121.14 |
-| it1-c2 | Li6P2S7O | candidate | 128 / 48 | 1000 | 20 | 5.05e-05 | 0.53 | 61.7 | 79.16 |
-| it1-c1 | Li11P4S15Cl | candidate | 124 / 44 | 1000 | 20 | 8.21e-05 | 0.86 | 76.1 | 128.37 |
+| Structure | Formula | Kind | Atoms / Li | T (K) | ps | D, one origin (cm²/s) | D, block mean ± s.e. (cm²/s) | D / D(parent), blocks | Framework | ms/step |
+|---|---|---|---|---|---|---|---|---|---|---|
+| mp-985583 | Li3PS4 | parent | 128 / 48 | 1000 | 20 | 9.51e-05 | 6.20e-05 ± 3.9e-06 | — | not recorded | 72.11 |
+| mp-641703 | Li7P3S11 | parent | 84 / 28 | 1000 | 20 | 4.81e-05 | 5.57e-05 ± 3.4e-06 | — | not recorded | 94.54 |
+| it1-c4 | Li7P3SeS10 | candidate | 84 / 28 | 1000 | 20 | 3.79e-05 | 4.83e-05 ± 6.8e-06 | 0.87 ± 0.13 | not recorded | 97.81 |
+| it2-c5 | Li11P4S15I | candidate | 124 / 44 | 1000 | 20 | 5.74e-05 | 5.48e-05 ± 3.5e-06 | 0.88 ± 0.08 | not recorded | 121.14 |
+| it1-c2 | Li6P2S7O | candidate | 128 / 48 | 1000 | 20 | 5.05e-05 | 4.64e-05 ± 4.5e-06 | 0.75 ± 0.09 | not recorded | 79.16 |
+| it1-c1 | Li11P4S15Cl | candidate | 124 / 44 | 1000 | 20 | 8.21e-05 | 7.12e-05 ± 9.0e-06 | 1.15 ± 0.16 | not recorded | 128.37 |
 
-One temperature and one seed per structure: a first screening, not a conductivity value. Cells of ~84 atoms hold only ~24-28 Li, so D is noisy.
+Not calibrated yet: the two parents come out in the opposite order to experiment at room temperature (Li7P3S11 conducts better than beta-Li3PS4). Expected at 1000 K, not a proof of a fault: Li3PS4 has the larger barrier (literature MD ~0.35-0.41 eV vs ~0.19 eV for Li7P3S11), so it catches up at high temperature, and it turns into its alpha phase near 746 K. A calibration on the parents at lower temperatures must pass before any candidate is judged.
+
+D, one origin: the method of SPEC 5.10 (MSD from the first frame, fit on the second half). D, block mean: the trajectory cut into 4 blocks of 5 ps, MSD averaged over many time origins in each block; ± is the standard error across blocks. The gap between the two columns (up to 50 % for Li3PS4) shows how noisy one-origin D is. One temperature and one seed per structure; cells of ~84 atoms hold only 28 Li. Framework: whether P, S and the other non-Li elements stayed in place; the runs above recorded Li positions only.
 
 ## Method notes
 
