@@ -4,6 +4,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from ase import Atoms
 from ase.build import bulk
 from ase.calculators.emt import EMT
 
@@ -34,6 +35,20 @@ def test_serialize_roundtrip_and_key():
     assert np.allclose(atoms_from_dict(d).get_positions(), atoms.get_positions())
     assert atoms_key(d, precision="a") == atoms_key(atoms_to_dict(atoms.copy()), precision="a")
     assert atoms_key(d, precision="a") != atoms_key(d, precision="b")
+
+
+def test_key_stable_under_float_noise():
+    """MP-style 6-decimal coordinates ending in 5 must not flip the key (bug seen between Colab and PC)."""
+    cell = [[12.734745, 0, 0], [0, 6.0, 0], [0, 0, 7.5]]
+    frac = np.array([[0.737775, 0.954825, 0.0], [0.378425, 0.272405, 0.999999999999]])
+    base = Atoms("S2", scaled_positions=frac, cell=cell, pbc=True)
+    noisy = base.copy()
+    noisy.positions = np.nextafter(noisy.positions, np.inf)
+    noisy.cell = np.nextafter(np.array(cell), np.inf)
+    assert atoms_key(atoms_to_dict(base), p=1) == atoms_key(atoms_to_dict(noisy), p=1)
+    wrapped = base.copy()
+    wrapped.set_scaled_positions(np.where(frac > 0.99, 0.0, frac))  # 0.999999999999 ~ 0.0
+    assert atoms_key(atoms_to_dict(base), p=1) == atoms_key(atoms_to_dict(wrapped), p=1)
 
 
 def test_relax_cell_with_emt():
