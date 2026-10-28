@@ -61,17 +61,18 @@ def decomposition_dict(decomp: dict) -> list[dict]:
     return sorted(items, key=lambda d: -d["fraction"])
 
 
-def uma_reference_entries(elements: Iterable[str], backend=None) -> tuple[list[PDEntry], list[str]]:
+def uma_reference_entries(elements: Iterable[str], backend=None, budget=None) -> tuple[list[PDEntry], list[str]]:
     """Hull references of a chemical system, relaxed by UMA (cached).
 
     MP only provides the structures; every energy comes from UMA. Returns the
     entries and the material ids skipped because their relaxation did not converge.
+    `budget` (sim.backend.RelaxBudget) limits the new relaxations of a whole run.
     """
     from autolab.data.mp import get_references
     from autolab.sim.backend import relax_structures
 
     refs = get_references(elements)
-    results = relax_structures([r["structure"] for r in refs], backend=backend)
+    results = relax_structures([r["structure"] for r in refs], backend=backend, budget=budget)
     entries, skipped = [], []
     for ref, res in zip(refs, results):
         if not res["converged"]:

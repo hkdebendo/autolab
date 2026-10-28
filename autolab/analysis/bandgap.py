@@ -17,14 +17,15 @@ from functools import lru_cache
 from pymatgen.core import Structure
 
 from autolab import config
+from autolab.sim.serialize import KEY_GRID
 
 
 def structure_hash(structure: Structure) -> str:
-    """Stable fingerprint of a structure (lattice, species, rounded coordinates)."""
+    """Fingerprint of a structure, stable across machines (values snapped to KEY_GRID)."""
     payload = {
-        "lattice": [[round(x, 5) for x in row] for row in structure.lattice.matrix.tolist()],
+        "lattice": [[round(x * KEY_GRID) for x in row] for row in structure.lattice.matrix.tolist()],
         "species": [site.specie.symbol for site in structure],
-        "coords": [[round(x % 1.0, 5) % 1.0 for x in fc] for fc in structure.frac_coords.tolist()],
+        "coords": [[round(x * KEY_GRID) % KEY_GRID for x in fc] for fc in structure.frac_coords.tolist()],
     }
     return hashlib.sha1(json.dumps(payload, sort_keys=True).encode()).hexdigest()
 

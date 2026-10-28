@@ -133,8 +133,18 @@ LLM_PROVIDERS: dict[str, dict] = {
     },
 }
 LLM_FAST_PROVIDER = "baseten"  # small tasks (formula checks, JSON conversion, iteration summaries)
+LLM_FALLBACK_PROVIDER = "baseten"  # used when the main provider fails
 LLM_TIMEOUT = 300  # s per call
 LLM_MAX_OUTPUT_TOKENS = 4000  # includes reasoning tokens
+LLM_COST_CAPS_USD = {"meta": 1.0, "baseten": 0.5, "fireworks": 0.5}  # per run and provider
+
+# --- Agent loop (SPEC 6) -------------------------------------------------------
+
+AGENT_GOAL = ("Find new sulfide solid electrolytes for lithium-metal batteries: thermodynamically "
+              "stable or slightly metastable, electronically insulating, by substitutions in known Li-P-S crystals.")
+AGENT_PARENTS = ["mp-985583", "mp-641703"]  # Li3PS4 (32 atoms), Li7P3S11 (42 atoms); UMA references cached
+AGENT_REASONING_EFFORT = "medium"
+AGENT_MAX_OUTPUT_TOKENS = 8000  # proposals and analyses: reasoning + JSON
 
 # --- Budget limits (CLAUDE.md) -----------------------------------------------
 
