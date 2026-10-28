@@ -14,6 +14,7 @@ import time
 from pymatgen.core import Structure
 
 from autolab import config
+from autolab.agent.compare import comparisons
 from autolab.agent.events import EventLog
 from autolab.agent.pipeline import Tools, evaluate_candidate
 from autolab.llm import prompts
@@ -24,8 +25,8 @@ from autolab.sim.backend import RelaxBudget
 
 # Result fields sent back to the model (the rest stays in the report).
 _FOR_MODEL = ("id", "parent", "substitution", "formula", "status", "rejected_at", "reason", "arrangements",
-              "converged", "energy_spread_meV", "e_hull", "decomposition", "known_in_mp", "gap_optb88", "gap_mbj",
-              "gap_low_confidence", "ss_bonds")
+              "converged", "energy_spread_meV", "n_atoms", "n_substituted", "e_hull", "e_hull_per_substitution",
+              "decomposition", "known_in_mp", "gap_optb88", "gap_mbj", "gap_low_confidence", "ss_bonds")
 
 
 class LoopStopped(RuntimeError):
@@ -101,7 +102,7 @@ class Agent:
         seen: set[str] = set()
 
         for it in range(1, n_iterations + 1):
-            record = {"iteration": it, "proposal": None, "candidates": [], "analysis": None}
+            record = {"iteration": it, "proposal": None, "candidates": [], "comparisons": [], "analysis": None}
             result["iterations"].append(record)
             self.events.emit("loop", "iteration", {"iteration": it})
             try:
@@ -141,9 +142,12 @@ class Agent:
                 record["candidates"].append(res)
 
             for_model = [{k: c.get(k) for k in _FOR_MODEL if k in c} for c in record["candidates"]]
+            # Comparisons over every candidate so far, so that the model never compares tables itself.
+            record["comparisons"] = comparisons([c for r in result["iterations"] for c in r["candidates"]])
             try:
                 record["analysis"] = self.ask(
-                    prompts.analysis_messages(goal, it, proposal["hypothesis"], for_model, history),
+                    prompts.analysis_messages(goal, it, proposal["hypothesis"], for_model, history,
+                                              record["comparisons"]),
                     "analysis", "analysis")
             except LoopStopped as e:
                 result["stop_reason"] = f"language model: {e}"
@@ -159,7 +163,8 @@ class Agent:
                 break
 
         candidates = [c for r in result["iterations"] for c in r["candidates"]]
-        passed = sorted((c for c in candidates if c["status"] == "passed"), key=lambda c: c["e_hull"])
+        passed = sorted((c for c in candidates if c["status"] == "passed"),
+                        key=lambda c: (c["e_hull_per_substitution"], c["e_hull"]))
         last = next((r["analysis"]["reply"] for r in reversed(result["iterations"]) if r["analysis"]), None)
         result["final_ranking"] = [c["id"] for c in passed]
         result["model_ranking"] = last["ranking"] if last else []

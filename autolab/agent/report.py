@@ -35,7 +35,8 @@ def _candidate_row(c: dict) -> str:
     ss = {True: "yes", False: "no"}.get(c.get("ss_bonds"), "—")
     known = ", ".join(c.get("known_in_mp") or []) or "—"
     return (f"| {c['id']} | {c.get('formula') or '—'} | {c.get('arrangements', '—')}/{c.get('converged', '—')} | "
-            f"{_num(c.get('energy_spread_meV'), '.1f')} | {_num(c.get('e_hull'))} | {gap} | {ss} | {known} | {verdict} |")
+            f"{_num(c.get('energy_spread_meV'), '.1f')} | {_num(c.get('e_hull'))} | "
+            f"{_num(c.get('e_hull_per_substitution'))} | {gap} | {ss} | {known} | {verdict} |")
 
 
 def render(result: dict) -> str:
@@ -61,13 +62,18 @@ def render(result: dict) -> str:
             lines += ["", "<details><summary>Reasoning summary (proposals)</summary>", "",
                       _short(p["reasoning"]), "", "</details>"]
         lines += ["", "| Candidate | Formula | Arrangements/converged | Spread (meV/at) | E_hull (eV/at) | "
-                      "Gap optB88/mBJ (eV) | S-S | Known in MP | Result |",
-                  "|---|---|---|---|---|---|---|---|---|"]
+                      "E_hull per substitution (eV) | Gap optB88/mBJ (eV) | S-S | Known in MP | Result |",
+                  "|---|---|---|---|---|---|---|---|---|---|"]
         lines += [_candidate_row(c) for c in r["candidates"]]
         for c in r["candidates"]:
             if c.get("decomposition"):
                 products = ", ".join(f"{d['formula']} {d['fraction']:.2f}" for d in c["decomposition"])
                 lines.append(f"- {c['id']} decomposes into: {products}")
+        if r.get("comparisons"):
+            lines += ["", "<details><summary>Comparisons computed by the code (given to the model)</summary>", ""]
+            for comp in r["comparisons"]:
+                lines.append(f"- **{comp['kind']}**, {comp['about']}: " + "; ".join(comp["statements"]))
+            lines += ["", "</details>"]
         a = r["analysis"]
         if a:
             reply = a["reply"]
@@ -79,12 +85,13 @@ def render(result: dict) -> str:
                           _short(a["reasoning"]), "", "</details>"]
         lines.append("")
 
-    lines += ["## Final ranking (passed candidates, lowest E_hull first)", ""]
+    lines += ["## Final ranking (passed candidates, lowest E_hull per substitution first)", ""]
     by_id = {c["id"]: c for r in result["iterations"] for c in r["candidates"]}
     if result["final_ranking"]:
         for i, cid in enumerate(result["final_ranking"], 1):
             c = by_id[cid]
             lines.append(f"{i}. {cid} {c['formula']} ({_sub(c['substitution'])} in {c['parent']}): "
+                         f"E_hull per substitution {_num(c.get('e_hull_per_substitution'))} eV, "
                          f"E_hull {_num(c['e_hull'])} eV/atom, gap {_num(c['gap_optb88'], '.2f')} eV"
                          f"{', S-S bonds (reduced reliability)' if c.get('ss_bonds') else ''}")
     else:
