@@ -131,7 +131,7 @@ KAGGLE_POLL_S = 60  # s between two status checks (free)
 KAGGLE_SETUP_S = 420  # s per session: start, pip install fairchem, checkpoint copy, model load
 KAGGLE_RELAX_S = 45  # s per relaxation (estimate, T4, high precision)
 KAGGLE_MD_MS_PER_ATOM_STEP = 0.35  # ms (estimate, T4, default precision)
-KAGGLE_TIMEOUT_FACTOR = 2.0  # session time limit = setup + factor x estimated compute
+KAGGLE_TIMEOUT_FACTOR = 2.0  # session time limit = factor x (setup + estimated compute)
 KAGGLE_MAX_SESSION_S = 4 * 3600  # hard cap per session (weekly quota ~30 h)
 
 # --- Language models (SPEC 5.11) ---------------------------------------------

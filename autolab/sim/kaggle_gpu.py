@@ -83,8 +83,8 @@ def estimate_seconds(job: dict, n_gpus: int = config.KAGGLE_N_GPUS) -> float:
 
 
 def session_limit(job: dict) -> int:
-    """Kaggle time limit of the session (s): setup + safety factor x estimate, capped."""
-    return int(min(config.KAGGLE_SETUP_S + config.KAGGLE_TIMEOUT_FACTOR * estimate_seconds(job),
+    """Kaggle time limit of the session (s): safety factor x (setup + estimate), capped."""
+    return int(min(config.KAGGLE_TIMEOUT_FACTOR * (config.KAGGLE_SETUP_S + estimate_seconds(job)),
                    config.KAGGLE_MAX_SESSION_S))
 
 
