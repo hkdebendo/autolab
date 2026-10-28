@@ -52,14 +52,21 @@ def split(costs: list[float], n_parts: int) -> list[list[int]]:
     return parts
 
 
-def _job(kind: str, settings: dict, tasks: list[dict]) -> dict:
-    body = {"kind": kind, "settings": settings, "tasks": tasks}
+def _job(settings: dict, tasks: list[dict]) -> dict:
+    """Tasks carry their kind ("relax" or "md"); `settings` has one entry per kind present."""
+    kinds = sorted({t["kind"] for t in tasks})
+    body = {"kind": kinds[0] if len(kinds) == 1 else "mixed", "settings": settings, "tasks": tasks}
     return {"job_id": hashlib.sha1(json.dumps(body, sort_keys=True).encode()).hexdigest()[:12], **body}
 
 
+def combine(*jobs: dict) -> dict:
+    """One job (one Kaggle session, one fairchem install) from several: e.g. relaxations and MD runs."""
+    return _job({k: v for j in jobs for k, v in j["settings"].items()}, [t for j in jobs for t in j["tasks"]])
+
+
 def relax_job(dicts: list[dict], precision: str, fmax: float, steps: int) -> dict:
-    tasks = [{"atoms": d, "cost": float(config.KAGGLE_RELAX_S)} for d in dicts]
-    return _job("relax", {"precision": precision, "fmax": fmax, "steps": steps}, tasks)
+    tasks = [{"kind": "relax", "atoms": d, "cost": float(config.KAGGLE_RELAX_S)} for d in dicts]
+    return _job({"relax": {"precision": precision, "fmax": fmax, "steps": steps}}, tasks)
 
 
 def md_job(items: list[dict], precision: str, temperature_K: float, n_steps: int) -> dict:
@@ -71,9 +78,9 @@ def md_job(items: list[dict], precision: str, temperature_K: float, n_steps: int
     for it in items:
         atoms = atoms_from_dict(it["atoms"])
         n = len(atoms) * math.prod(supercell_reps(atoms))
-        tasks.append({"atoms": it["atoms"], "seed": it.get("seed", 0),
+        tasks.append({"kind": "md", "atoms": it["atoms"], "seed": it.get("seed", 0),
                       "cost": n * n_steps * config.KAGGLE_MD_MS_PER_ATOM_STEP / 1000})
-    return _job("md", {"precision": precision, "temperature_K": temperature_K, "n_steps": n_steps}, tasks)
+    return _job({"md": {"precision": precision, "temperature_K": temperature_K, "n_steps": n_steps}}, tasks)
 
 
 def estimate_seconds(job: dict, n_gpus: int = config.KAGGLE_N_GPUS) -> float:
@@ -253,6 +260,14 @@ class KaggleBackend:
     def md_batch(self, items: list[dict], precision: str, temperature_K: float, n_steps: int) -> list[dict | None]:
         results, _ = self.run(md_job(items, precision, temperature_K, n_steps))
         return results
+
+    def batch(self, relax: list[dict], relax_settings: dict, md: list[dict], md_settings: dict) -> tuple[list, list]:
+        """Relaxations and MD runs in one session (one fairchem install); None marks a failed task."""
+        jobs = ([relax_job(relax, **relax_settings)] if relax else []) + ([md_job(md, **md_settings)] if md else [])
+        if not jobs:
+            return [], []
+        results, _ = self.run(combine(*jobs))
+        return results[:len(relax)], results[len(relax):]
 
     def md(self, atoms: dict, precision: str, temperature_K: float, n_steps: int, seed: int = 0) -> dict:
         res = self.md_batch([{"atoms": atoms, "seed": seed}], precision, temperature_K, n_steps)[0]

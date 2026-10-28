@@ -159,6 +159,9 @@ def evaluate_candidate(
     target = uma_entry(Composition(structure.composition), best["energy"], candidate_id, structure=structure)
     hull = e_hull(target, entries)
     out["n_atoms"] = len(structure)
+    # Reduced confidence when the decomposition goes through a polysulfide (S-S bonds), where UMA is least reliable.
+    out["decomposition_polysulfides"] = hull["decomposition_polysulfides"]
+    out["reduced_confidence"] = bool(hull["decomposition_polysulfides"])
     out.update(e_hull=hull["e_hull"], decomposition=hull["decomposition"][:4],
                e_hull_per_substitution=round(hull["e_hull"] * out["n_atoms"] / out["n_modified"], 4))
     emit("hull", e_hull=hull["e_hull"], e_hull_per_substitution=out["e_hull_per_substitution"],

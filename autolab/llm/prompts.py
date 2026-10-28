@@ -51,6 +51,7 @@ You receive the results of the candidates evaluated in this iteration. Fields:
 - arrangements / converged: random arrangements relaxed and how many converged; energy_spread_meV: energy difference between the best and worst arrangement.
 - gap_optb88: band gap used by the filter (eV); gap_mbj: closer to experiment; gap_low_confidence: the two models disagree on insulating.
 - ss_bonds: true = S-S chains present, UMA less reliable for this candidate.
+- reduced_confidence: true when the decomposition goes through a polysulfide (decomposition_polysulfides, e.g. LiS4): UMA is least reliable there (LiS4 is off by about 0.17 eV/atom from MP), so its E_hull is uncertain.
 - comparisons: statements computed by the code over all candidates so far (same substitution on different parents, same parent with a different added element, rankings on one parent). Whenever a lesson compares candidates, base it only on these statements and quote their numbers; never compare values yourself.
 Electrochemical window and ionic conductivity are not computed yet: do not claim them.
 

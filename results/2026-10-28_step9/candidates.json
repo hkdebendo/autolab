@@ -275,8 +275,10 @@
     "electrodes",
     "molecular_dynamics"
    ],
+   "decomposition_polysulfides": [],
+   "reduced_confidence": false,
    "new_relaxations": 0,
-   "seconds": 2.3
+   "seconds": 2.2
   },
   {
    "id": "it1-c2",
@@ -544,8 +546,10 @@
     "electrodes",
     "molecular_dynamics"
    ],
+   "decomposition_polysulfides": [],
+   "reduced_confidence": false,
    "new_relaxations": 0,
-   "seconds": 0.9
+   "seconds": 1.0
   },
   {
    "id": "it1-c3",
@@ -919,6 +923,8 @@
     "electrodes",
     "molecular_dynamics"
    ],
+   "decomposition_polysulfides": [],
+   "reduced_confidence": false,
    "new_relaxations": 0,
    "seconds": 1.0
   },
@@ -1246,6 +1252,8 @@
     "electrodes",
     "molecular_dynamics"
    ],
+   "decomposition_polysulfides": [],
+   "reduced_confidence": false,
    "new_relaxations": 0,
    "seconds": 3.8
   },
@@ -1572,8 +1580,10 @@
     "electrodes",
     "molecular_dynamics"
    ],
+   "decomposition_polysulfides": [],
+   "reduced_confidence": false,
    "new_relaxations": 0,
-   "seconds": 3.3
+   "seconds": 3.2
   },
   {
    "id": "it2-c2",
@@ -1909,6 +1919,11 @@
     "electrodes",
     "molecular_dynamics"
    ],
+   "decomposition_polysulfides": [
+    "AsS2",
+    "LiS4"
+   ],
+   "reduced_confidence": true,
    "new_relaxations": 0,
    "seconds": 5.5
   },
@@ -2246,6 +2261,10 @@
     "electrodes",
     "molecular_dynamics"
    ],
+   "decomposition_polysulfides": [
+    "LiS4"
+   ],
+   "reduced_confidence": true,
    "new_relaxations": 0,
    "seconds": 14.0
   },
@@ -2513,8 +2532,10 @@
     "electrodes",
     "molecular_dynamics"
    ],
+   "decomposition_polysulfides": [],
+   "reduced_confidence": false,
    "new_relaxations": 0,
-   "seconds": 1.5
+   "seconds": 1.6
   },
   {
    "id": "it2-c5",
@@ -2779,8 +2800,10 @@
     "electrodes",
     "molecular_dynamics"
    ],
+   "decomposition_polysulfides": [],
+   "reduced_confidence": false,
    "new_relaxations": 0,
-   "seconds": 1.4
+   "seconds": 1.3
   }
  ]
 }

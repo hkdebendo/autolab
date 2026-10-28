@@ -27,12 +27,21 @@ def _llm_line(info: dict) -> str:
             f"{info['output_tokens']} out tokens, ~${info['cost_usd']:.4f}, {info['seconds']} s_")
 
 
+def _reduced(c: dict) -> str:
+    if not c.get("reduced_confidence"):
+        return ""
+    return (f", reduced confidence (decomposes via the polysulfide {', '.join(c['decomposition_polysulfides'])}, "
+            "where UMA is least reliable)")
+
+
 def _candidate_row(c: dict) -> str:
     gap = "—" if c.get("gap_optb88") is None else f"{c['gap_optb88']:.2f} / {c['gap_mbj']:.2f}"
     verdict = c["status"] if c["status"] == "passed" else f"{c['status']} at {c.get('rejected_at') or '—'}"
     if c.get("reason") and c["status"] != "passed":
         verdict += f": {c['reason']}"
     ss = {True: "yes", False: "no"}.get(c.get("ss_bonds"), "—")
+    if c.get("reduced_confidence"):
+        ss += f" (reduced confidence: decomposes via {', '.join(c['decomposition_polysulfides'])})"
     known = ", ".join(c.get("known_in_mp") or []) or "—"
     return (f"| {c['id']} | {c.get('formula') or '—'} | {c.get('arrangements', '—')}/{c.get('converged', '—')} | "
             f"{_num(c.get('energy_spread_meV'), '.1f')} | {_num(c.get('e_hull'))} | "
@@ -93,7 +102,8 @@ def render(result: dict) -> str:
             lines.append(f"{i}. {cid} {c['formula']} ({_sub(c['substitution'])} in {c['parent']}): "
                          f"E_hull per substitution {_num(c.get('e_hull_per_substitution'))} eV per modified site, "
                          f"E_hull per atom {_num(c['e_hull'])} eV/atom, gap {_num(c['gap_optb88'], '.2f')} eV"
-                         f"{', S-S bonds (reduced reliability)' if c.get('ss_bonds') else ''}")
+                         f"{', S-S bonds (reduced reliability)' if c.get('ss_bonds') else ''}"
+                         f"{_reduced(c)}")
     else:
         lines.append("No candidate passed all filters.")
     lines += ["", f"Model ranking (last analysis): {result['model_ranking'] or '[]'}", "",
