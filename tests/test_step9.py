@@ -107,12 +107,16 @@ def test_run_interfaces_stops_before_candidates_when_calibration_fails(tmp_path,
                                                       "uma": {"min_reaction_energy": -0.1},
                                                       "mp": {"min_reaction_energy": -0.3}})
     monkeypatch.setattr(run_interfaces, "uma_interface", lambda *a, **k: calls.append(a))
+    prefetched = []
+    monkeypatch.setattr(run_interfaces, "prefetch_interface_references",
+                        lambda systems, budget=None: prefetched.append(systems) or len(systems))
     cands = tmp_path / "candidates.json"
     cands.write_text(json.dumps({"candidates": [li2s_candidate]}), encoding="utf-8")
     monkeypatch.setattr(sys, "argv", ["run_interfaces.py", str(cands), "--ids", "c1", "--out", str(tmp_path)])
     run_interfaces.main()
     out = json.loads((tmp_path / "interfaces.json").read_text(encoding="utf-8"))
     assert calls == [] and "LiFePO4" in out["stopped"] and len(out["calibrations"]) == 2
+    assert prefetched == [[("Li3PS4", c) for c in config.CALIBRATION_CATHODES]]  # no candidate batch
 
 
 def test_step9_report_renders(li2s_candidate):

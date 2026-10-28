@@ -38,9 +38,11 @@ def md_screen(jobs: list[dict], temperature_K: float = config.MD_SCREEN_TEMPERAT
 
     if len(jobs) > max_runs:
         raise ValueError(f"{len(jobs)} MD jobs requested, limit is {max_runs} (MD_SCREEN_MAX_RUNS)")
-    if run is None:
-        from autolab.sim.backend import run_md as run
     n_steps = round(ps * 1000 / config.MD_TIMESTEP_FS)
+    if run is None:
+        from autolab.sim.backend import run_md as run, run_md_batch
+
+        run_md_batch([job["atoms"] for job in jobs], temperature_K, n_steps)  # one Kaggle session for all jobs
     out = []
     for job in jobs:
         t0 = time.perf_counter()

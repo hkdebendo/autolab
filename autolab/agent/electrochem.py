@@ -68,6 +68,22 @@ def li3ps4_window_calibration(entries_fn: Callable = _default_entries, budget=No
             "diff_high": None if win["v_high"] is None else round(win["v_high"] - hi, 3)}
 
 
+def prefetch_interface_references(systems: list[tuple], budget=None) -> int:
+    """Relax the references of several (electrolyte, cathode) systems in one backend call (one Kaggle session).
+
+    `electrolyte` is a formula or a Composition. Returns the number of distinct reference structures.
+    """
+    from autolab.data.mp import get_references
+    from autolab.sim.backend import relax_structures
+
+    refs = {}
+    for electrolyte, cathode in systems:
+        for r in get_references(_elements(electrolyte, cathode), ehull_max=config.INTERFACE_REF_EHULL_MAX):
+            refs.setdefault(r["material_id"], r["structure"])
+    relax_structures(list(refs.values()), budget=budget)
+    return len(refs)
+
+
 def uma_interface(electrolyte, cathode: str, entries_fn: Callable = _default_entries, budget=None) -> dict:
     """Interface reaction with a cathode, UMA energies (on-hull MP structures of the joint system).
 

@@ -1,9 +1,10 @@
-"""Simulation backend: local NVIDIA GPU or Modal, behind one interface (SPEC 2).
+"""Simulation backend: local NVIDIA GPU, Modal or Kaggle, behind one interface (SPEC 2).
 
 Callers use relax_structures / run_md; results are cached on disk and a
 relaxation already in cache is never recomputed. This module never imports
 fairchem: the local backend goes through sim/uma.py, the Modal one calls the
-functions deployed by modal_app/uma_app.py.
+functions deployed by modal_app/uma_app.py, the Kaggle one sends batches to a Kaggle
+notebook (sim/kaggle_gpu.py).
 """
 
 from __future__ import annotations
@@ -75,7 +76,11 @@ def get_backend(name: str | None = None):
         return LocalBackend()
     if name == "modal":
         return ModalBackend()
-    raise ValueError(f"unknown SIM_BACKEND {name!r} (expected 'modal' or 'local')")
+    if name == "kaggle":
+        from autolab.sim.kaggle_gpu import KaggleBackend
+
+        return KaggleBackend()
+    raise ValueError(f"unknown SIM_BACKEND {name!r} (expected 'modal', 'local' or 'kaggle')")
 
 
 def _as_atoms_dict(obj) -> dict:
@@ -128,10 +133,16 @@ def relax_structures(
         n = config.MODAL_RELAX_CHUNK
         chunks = [todo[i:i + n] for i in range(0, len(todo), n)]
         results = backend.relax_chunks([[d for _, d in c] for c in chunks], precision, fmax, steps)
+        failed = []
         for chunk, out in zip(chunks, results):
             for (key, _), res in zip(chunk, out):
+                if res is None:  # failed on a remote backend: keep the others, then stop
+                    failed.append(key)
+                    continue
                 cache.set(key, {**res, "settings": settings})  # saved as soon as each chunk returns
                 fresh.add(key)
+        if failed:
+            raise RuntimeError(f"{len(failed)} of {len(missing)} relaxations failed on the {getattr(backend, 'name', 'remote')} backend")
 
     return [{**cache.get(k), "cache_key": k, "cached": k not in fresh} for k in keys]
 
@@ -150,3 +161,29 @@ def run_md(atoms, temperature_K: float, n_steps: int, precision: str = config.UM
     res = backend.md(d, precision=precision, temperature_K=temperature_K, n_steps=n_steps, seed=seed)
     cache.set(key, {**res, "settings": settings})
     return {**res, "settings": settings, "cached": False}
+
+
+def run_md_batch(atoms_list: list, temperature_K: float, n_steps: int, precision: str = config.UMA_PRECISION_MD,
+                 backend=None, seed: int = 0, cache: JsonCache | None = None) -> None:
+    """Fill the MD cache for several structures in one backend call when the backend can batch (Kaggle).
+
+    Other backends are left alone: run_md computes each structure when it is asked for.
+    """
+    cache = cache or JsonCache(config.CACHE_DIR / "md")
+    backend = backend or get_backend()
+    if not hasattr(backend, "md_batch"):
+        return
+    settings = {"model": config.UMA_MODEL, "precision": precision, "T": temperature_K, "n_steps": n_steps, "seed": seed}
+    missing: dict[str, dict] = {}
+    for a in atoms_list:
+        d = _as_atoms_dict(a)
+        key = atoms_key(d, **settings)
+        if cache.get(key) is None:
+            missing.setdefault(key, d)
+    if not missing:
+        return
+    results = backend.md_batch([{"atoms": d, "seed": seed} for d in missing.values()], precision=precision,
+                               temperature_K=temperature_K, n_steps=n_steps)
+    for key, res in zip(missing, results):
+        if res is not None:
+            cache.set(key, {**res, "settings": settings})
