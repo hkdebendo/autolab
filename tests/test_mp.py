@@ -31,6 +31,29 @@ def _no_network(monkeypatch):
     monkeypatch.setattr(mp, "_rester", fail)
 
 
+
+def test_strict_references_get_missing_pure_phases(monkeypatch):
+    """On-hull only: the MP ground state of P is too large, so its best small pure phase is added."""
+    def ref(mid, formula, ehull):
+        return {"material_id": mid, "formula": formula, "mp_energy_above_hull": ehull, "nsites": 4, "structure": None}
+
+    fake = {("Li-P-S", 0.0): [ref("mp-1", "Li", 0.0), ref("mp-77", "S", 0.0), ref("mp-3", "Li3PS4", 0.0)],
+            ("P", config.MP_REF_EHULL_MAX): [ref("mp-157", "P", 0.02), ref("mp-1198724", "P", 0.002)]}
+    calls = []
+
+    def fetch(elements, ehull_max, max_sites):
+        calls.append((mp.chemsys_key(elements), ehull_max))
+        return fake[calls[-1]]
+
+    monkeypatch.setattr(mp, "_fetch_references", fetch)
+    refs = mp.get_references(["S", "P", "Li"], ehull_max=0.0)
+    assert [r["material_id"] for r in refs] == ["mp-1", "mp-77", "mp-3", "mp-1198724"]
+    assert calls == [("Li-P-S", 0.0), ("P", config.MP_REF_EHULL_MAX)]
+    calls.clear()
+    fake[("Li-P-S", config.MP_REF_EHULL_MAX)] = fake[("Li-P-S", 0.0)]
+    mp.get_references(["Li", "P", "S"])  # default threshold: never filled
+    assert calls == [("Li-P-S", config.MP_REF_EHULL_MAX)]
+
 @requires_mp
 def test_references_li_s(monkeypatch):
     refs = mp.get_references(["Li", "S"])

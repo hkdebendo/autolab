@@ -75,7 +75,8 @@ def main() -> None:
                 save()
     except BudgetExceeded as e:
         out["stopped"] = f"relaxation budget: {e}"
-    save()
+    finally:  # an unexpected error still keeps the finished items and the cache
+        save()
     print(f"stopped: {out['stopped']}" if out["stopped"] else "done", f"| new relaxations {budget.used}/{budget.max_new}")
 
 

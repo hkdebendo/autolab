@@ -90,6 +90,11 @@ def get_structure(material_id: str) -> Structure:
     return structure
 
 
+def _pure_elements(refs: list[dict]) -> set[str]:
+    """Elements that have at least one pure phase among the references."""
+    return {str(els[0]) for r in refs if len(els := Composition(r["formula"]).elements) == 1}
+
+
 def get_references(
     elements: Iterable[str],
     ehull_max: float = config.MP_REF_EHULL_MAX,
@@ -99,7 +104,22 @@ def get_references(
 
     These structures are the hull references to be relaxed by UMA; their MP
     energies are not returned on purpose (never mix UMA and MP energies).
+    A strict `ehull_max` can leave an element without a pure phase (the on-hull P
+    of MP has more than `max_sites` sites): its most stable pure phase within
+    config.MP_REF_EHULL_MAX and `max_sites` is then added, so every hull has its terminals.
     """
+    elements = sorted(set(elements))
+    refs = _fetch_references(elements, ehull_max, max_sites)
+    if ehull_max < config.MP_REF_EHULL_MAX:
+        for el in sorted(set(elements) - _pure_elements(refs)):
+            pure = _fetch_references([el], config.MP_REF_EHULL_MAX, max_sites)
+            if pure:
+                refs = [*refs, min(pure, key=lambda r: (r["mp_energy_above_hull"], r["material_id"]))]
+    return refs
+
+
+def _fetch_references(elements: list[str], ehull_max: float, max_sites: int) -> list[dict]:
+    """MP phases of a system and its sub-systems up to `ehull_max` (one request, cached)."""
     key = chemsys_key(elements)
     path = config.MP_CACHE_DIR / "references" / f"{key}_e{ehull_max}_n{max_sites}.json"
     cached = _read(path)
