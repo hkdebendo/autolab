@@ -25,3 +25,12 @@ Soumission : mercredi 4 nov. 21h00 ET (jeudi 5 nov. 3h00 au Bénin). Dépôt : h
 - S'arrêter seulement si : un budget serait dépassé ; erreur de paiement ou de quota ; action irréversible (supprimer des résultats, réécrire l'historique Git) ; un test de vérité scientifique échoue sans règle écrite qui dise quoi faire.
 - Sinon : option la plus raisonnable et la plus prudente, notée dans docs/DECISIONS.md (date, question, choix, raison).
 - Rapports : 5 lignes maximum par étape dans docs/PROGRESS.md (fait, chiffres clés, coût, suivant).
+
+## Production (owner's direction, 2026-10-29)
+
+- The link is sent to the jury only (not published). The jury must be able to watch the agents work.
+- Natural-language request in the web interface, 100 % autonomous loop (Muse Spark via the Meta API, Muse Spark Open via Baseten, Muse Glimmer via Fireworks once deployed with the owner's approval), replay mode and everything else.
+- Everything that cannot run on Render free, or carries a risk (keys, spending, long jobs), moves to Modal: the whole agent loop runs in a Modal function (CPU orchestration, ALIGNN, pymatgen; UMA and MD on Modal GPUs), keys in Modal secrets created by the owner, caches in a Modal volume seeded with everything already computed, events written as they happen and streamed by Render.
+- Cache first: a request already answered replays its whole workflow at a visible pace (reasoning shown), with no new computation and no paid call (model replies cached by their exact question); a request not in cache triggers the agents for real, every computation already done still coming from the cache.
+- Protections: jury access code (set by the owner), one live run at a time, per-run caps, a total production cap.
+- Order: after step 3, build the production backend (autolab/ and modal_app/, by Claude), then hand the web part to Muse Code (docs/MUSE_CODE_TASKS.md, updated with the live API).
