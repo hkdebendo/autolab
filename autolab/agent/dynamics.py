@@ -31,29 +31,37 @@ def candidate_job(c: dict) -> dict:
 
 def md_screen(jobs: list[dict], temperature_K: float = config.MD_SCREEN_TEMPERATURE_K,
               ps: float = config.MD_SCREEN_PS, run: Callable | None = None,
-              on_done: Callable[[dict], None] | None = None,
+              on_done: Callable[[dict], None] | None = None, seeds: int = config.MD_SCREEN_SEEDS,
               max_runs: int = config.MD_SCREEN_MAX_RUNS) -> list[dict]:
-    """Run each job (cached), fit D on the second half of the MSD, call on_done after each job."""
-    from autolab.analysis.diffusion import diffusion_coefficient, framework_check
+    """Run each job with `seeds` seeds (cached), pool the blocks of its seeds into one D with its error
+    (calibration v2, SPEC 5.10), check the framework of every run, call on_done after each job."""
+    from autolab.analysis.diffusion import diffusion_coefficient, framework_check, pool
 
-    if len(jobs) > max_runs:
-        raise ValueError(f"{len(jobs)} MD jobs requested, limit is {max_runs} (MD_SCREEN_MAX_RUNS)")
+    if len(jobs) * seeds > max_runs:
+        raise ValueError(f"{len(jobs)} MD jobs x {seeds} seeds requested, limit is {max_runs} (MD_SCREEN_MAX_RUNS)")
     n_steps = round(ps * 1000 / config.MD_TIMESTEP_FS)
     if run is None:
-        from autolab.sim.backend import run_md as run, run_md_batch
+        from autolab.sim.backend import run_md as run, run_md_runs
 
-        run_md_batch([job["atoms"] for job in jobs], temperature_K, n_steps)  # one Kaggle session for all jobs
+        # one Kaggle session, or all runs in parallel on Modal
+        run_md_runs([{"atoms": job["atoms"], "temperature_K": temperature_K, "n_steps": n_steps, "seed": s}
+                     for job in jobs for s in range(seeds)])
     out = []
     for job in jobs:
         t0 = time.perf_counter()
-        res = run(job["atoms"], temperature_K=temperature_K, n_steps=n_steps)
-        d = diffusion_coefficient(res["positions"], res["dt_record_fs"])
+        results = [run(job["atoms"], temperature_K=temperature_K, n_steps=n_steps, seed=s) for s in range(seeds)]
+        ds = [diffusion_coefficient(r["positions"], r["dt_record_fs"]) for r in results]
+        d = pool(ds)
         row = {k: v for k, v in job.items() if k != "atoms"}
-        row.update(temperature_K=temperature_K, ps=ps, n_atoms=res["n_atoms"], n_li=len(res["positions"][0]),
-                   ms_per_step=res["ms_per_step"], cached=res.get("cached", False),
-                   wall_s=round(time.perf_counter() - t0, 1), **{k: d[k] for k in d})
-        if res.get("framework_msd"):  # runs recorded before this check have Li positions only
-            row["framework"] = framework_check(res["framework_msd"], res["dt_record_fs"], d["D_A2_per_ps"])
+        res = results[0]
+        row.update(temperature_K=temperature_K, ps=ps, seeds=seeds, n_atoms=res["n_atoms"],
+                   n_li=len(res["positions"][0]), ms_per_step=res["ms_per_step"],
+                   cached=all(r.get("cached", False) for r in results), wall_s=round(time.perf_counter() - t0, 1),
+                   gpu=res.get("gpu"), **d)
+        checks = [framework_check(r["framework_msd"], r["dt_record_fs"], di["D_A2_per_ps"])
+                  for r, di in zip(results, ds) if r.get("framework_msd")]
+        if checks:  # runs recorded before this check have Li positions only
+            row["framework"] = {"intact": all(c["intact"] for c in checks), "per_seed": checks}
         out.append(row)
         if on_done:
             on_done(row)

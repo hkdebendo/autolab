@@ -139,11 +139,12 @@ def render(candidates: dict, electrodes: dict | None, interfaces: dict | None, m
             lines.append(f"| {r['id']} | {r['formula']} | {r['kind']} | {r['n_atoms']} / {r['n_li']} | "
                          f"{r['temperature_K']:.0f} | {r['ps']:.0f} | {r['D_cm2_per_s']:.2e}{sem} | {ratio} | "
                          f"{verdict} | {r['D_one_origin_cm2_per_s']:.2e} | {fw} | {r['ms_per_step']} |")
-        lines += ["", "Not calibrated yet: the two parents come out in the opposite order to experiment at room "
-                      "temperature (Li7P3S11 conducts better than beta-Li3PS4). Expected at 1000 K, not a proof of a "
-                      "fault: Li3PS4 has the larger barrier (literature MD ~0.35-0.41 eV vs ~0.19 eV for Li7P3S11), so "
-                      "it catches up at high temperature, and it turns into its alpha phase near 746 K. A calibration "
-                      "on the parents at lower temperatures must pass before any candidate is judged.",
+        lines += ["", "Not used for ranking: at 1000 K the two parents are tied (two seeds), although Li7P3S11 "
+                      "conducts better than beta-Li3PS4 at room temperature. The MD calibration v2 (SPEC 7, fixed before "
+                      "its runs) passed at 600 K: Li7P3S11 2.0 times faster than Li3PS4 (3.6 combined errors), framework "
+                      "intact, barriers 0.19 and 0.33 eV (literature MD 0.19 and 0.35-0.41 eV); the initial test at 600 "
+                      "and 700 K failed (1.9 and 0.4 errors). Candidates are to be screened again at 600 K, 2 seeds, "
+                      "40 ps, on the calibration GPU.",
                   "",
                   "D: mean of D fitted in 4 blocks of 5 ps (MSD averaged over many time origins), ± its standard "
                   "error across blocks (SPEC 5.10). D, one origin: the former method (MSD from the first frame, fit on "

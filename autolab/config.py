@@ -113,9 +113,10 @@ MD_TIMESTEP_FS = 1.0
 MD_FRICTION_PER_FS = 0.01
 MD_RECORD_EVERY = 10
 MD_MIN_LENGTH = 10.0  # Angstrom, minimum supercell side
-MD_SCREEN_TEMPERATURE_K = 1000  # first screening of Li diffusion (SPEC 5.10: 1000-1200 K)
-MD_SCREEN_PS = 20  # ps per screening run (2 ps is not enough)
-MD_SCREEN_MAX_RUNS = 7  # simulations per screening run (5 candidates + 2 parents)
+MD_SCREEN_TEMPERATURE_K = 600  # ✅ calibration v2 (2026-10-29): parents separate at 600 K, not at 1000 K
+MD_SCREEN_PS = 40  # ✅ ps per run (calibration v2)
+MD_SCREEN_SEEDS = 2  # ✅ runs per structure, blocks pooled (calibration v2)
+MD_SCREEN_MAX_RUNS = 14  # simulations per screening (structures x seeds: 5 candidates + 2 parents, 2 seeds)
 MD_D_BLOCKS = 4  # ✅ D = mean of D fitted in 4 blocks (MSD over many time origins); standard error across blocks
 MD_TIE_SIGMA = 2.0  # a candidate is "tied" with its parent when |D/D(parent) - 1| <= 2 x its propagated error
 MD_FRAMEWORK_D_RATIO_MAX = 0.05  # framework intact if every non-Li element diffuses < 5 % of Li
@@ -140,7 +141,8 @@ MODAL_VOLUME = "autolab-uma-cache"  # UMA checkpoint, downloaded once
 MODAL_HF_SECRET = "huggingface-secret"
 MODAL_DOWNLOAD_TIMEOUT = 900  # s
 MODAL_RELAX_TIMEOUT = 1200  # s, per chunk of structures
-MODAL_MD_TIMEOUT = 1800  # s
+MODAL_MD_TIMEOUT = 3600  # s per MD run (40 ps on A10G: 16-27 min)
+MODAL_MD_GPU = "A10G"  # GPU of the MD calibration: screening runs must use the same one (TF32)
 MODAL_SPEED_TIMEOUT = 600  # s, MD speed measurement (warm-up + 0.5 ps)
 MODAL_SPEED_DEADLINE_S = 900  # s; speed calls unfinished by then are cancelled (GPU never available)
 MODAL_SCALEDOWN_S = 2  # s a GPU container stays up after its work (Modal's default of 60 s is billed)

@@ -64,6 +64,24 @@ def diffusion_coefficient(positions, dt_record_fs: float) -> dict:
     }
 
 
+def pool(runs: list[dict]) -> dict:
+    """One D from several runs of the same structure (seeds): blocks pooled, D = their mean, error = their
+    standard deviation / sqrt(n), as in the MD calibration v2. `runs`: outputs of diffusion_coefficient."""
+    blocks = [b for r in runs for b in r["D_blocks_cm2_per_s"]]
+    mean = lambda k: float(np.mean([r[k] for r in runs]))
+    if len(runs) > 1 and all(r["D_blocks_cm2_per_s"] for r in runs):
+        d, sem, method = float(np.mean(blocks)), float(np.std(blocks, ddof=1) / np.sqrt(len(blocks))), "blocks_pooled"
+    else:
+        d, sem, method = runs[0]["D_cm2_per_s"], runs[0]["D_sem_cm2_per_s"], runs[0]["D_method"]
+        if len(runs) > 1:  # runs too short for blocks: plain mean, no uncertainty
+            d, sem, method = mean("D_cm2_per_s"), None, "one_origin_mean"
+    return {"D_A2_per_ps": d / A2_PER_PS_TO_CM2_PER_S, "D_cm2_per_s": d, "D_sem_cm2_per_s": sem,
+            "D_blocks_cm2_per_s": blocks, "D_method": method,
+            "D_per_seed_cm2_per_s": [r["D_cm2_per_s"] for r in runs],
+            "D_one_origin_cm2_per_s": mean("D_one_origin_cm2_per_s"), "msd_final_A2": mean("msd_final_A2"),
+            "duration_ps": runs[0]["duration_ps"]}
+
+
 def compare(d: float, sem: float, d_ref: float, sem_ref: float, n_sigma: float = config.MD_TIE_SIGMA) -> dict:
     """Ratio d / d_ref with its propagated uncertainty; "tied" when the ratio is within n_sigma of 1."""
     ratio = d / d_ref

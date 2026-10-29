@@ -83,11 +83,8 @@ class ModalBackend:
 
         import modal.exception
 
-        opts = {"max_containers": len(items)}
-        if self.gpu:
-            opts["gpu"] = self.gpu
-        if self.md_timeout_s:
-            opts["timeout"] = self.md_timeout_s
+        opts = {"max_containers": len(items), "gpu": self.gpu or config.MODAL_MD_GPU,
+                "timeout": self.md_timeout_s or config.MODAL_MD_TIMEOUT}
         fn = self._fn("md_run").with_options(**opts)
         calls = {}
         try:
