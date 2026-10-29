@@ -92,10 +92,14 @@ def fake_tools(calls: Calls, passivation=None, polysulfides=None, verdicts=None,
                             md_screen=md_screen, novelty=novelty, not_run=[])
 
 
-def run_agent(li3ps4, brain, tools, novelty_client=None, budget=40, prior=None, n_iterations=1, **kw):
+def review(priority="high"):
+    return {"strengths": ["soft anion"], "risks": ["moisture"], "md_priority": priority, "summary": "worth a look"}
+
+
+def run_agent(li3ps4, brain, tools, novelty_client=None, budget=40, prior=None, n_iterations=1, analyst=None, **kw):
     events = EventLog()
     agent = Agent(brain, tools=tools, events=events, budget=RelaxBudget(budget), get_structure=lambda pid: li3ps4,
-                  novelty_client=novelty_client)
+                  novelty_client=novelty_client, analyst=analyst)
     result = agent.run(parents=[PARENT], n_iterations=n_iterations, prior=prior, **kw)
     return result, events
 
@@ -125,12 +129,13 @@ def test_complete_loop_passes_data_from_step_to_step(li3ps4):
     brain = FakeLLM("meta", [proposal((PARENT, SUB_CL), (PARENT, I_SUB), (PARENT, BR)), analysis(["it1-c1"]),
                              md_selection("it1-c1", "it1-c2", "it1-c3", "mp-999")])
     client, fake = meta(novelty_replies(1))
-    result, events = run_agent(li3ps4, brain, tools, novelty_client=client)
+    analyst = FakeLLM("baseten", [review(), review("low")])
+    result, events = run_agent(li3ps4, brain, tools, novelty_client=client, analyst=analyst)
 
     st = result["stages"]
     assert [c["status"] for c in result["iterations"][0]["candidates"]] == ["passed"] * 3
     assert {k: v["status"] for k, v in st.items()} == {
-        "electrodes": "done", "md_selection": "done", "molecular_dynamics": "done", "ranking": "done",
+        "electrodes": "done", "candidate_analyses": "done", "md_selection": "done", "molecular_dynamics": "done", "ranking": "done",
         "novelty": "done"}
     # electrodes: the non-passivating candidate is excluded, the FeS2 reaction lowers the confidence
     assert st["electrodes"]["excluded"] == ["it1-c1"]
@@ -144,6 +149,11 @@ def test_complete_loop_passes_data_from_step_to_step(li3ps4):
     assert [c["id"] for c in request["candidates"]] == ["it1-c2", "it1-c3"] or \
         sorted(c["id"] for c in request["candidates"]) == ["it1-c2", "it1-c3"]
     assert all("interface_reaction_energy" in c and "passivation" in c for c in request["candidates"])
+    # Muse Spark Open reviewed the two eligible candidates (in parallel); Muse Spark reads the reviews
+    assert sorted(st["candidate_analyses"]["analysed"]) == ["it1-c2", "it1-c3"] and len(analyst.requests) == 2
+    assert all(r["schema"] == "candidate_analysis" for r in analyst.requests)
+    assert all(c["analysis"]["md_priority"] in ("high", "low") for c in request["candidates"])
+    assert "md_priority" in analyst.requests[0]["messages"][0]["content"]
     assert brain.requests[2]["schema"] == "md_selection"
     assert "never compare values yourself" in brain.requests[2]["messages"][0]["content"]
     assert str(config.MD_SCREEN_TEMPERATURE_K) in brain.requests[2]["messages"][0]["content"]
@@ -165,7 +175,7 @@ def test_complete_loop_passes_data_from_step_to_step(li3ps4):
     # events: every stage starts and ends, candidate events of each stage
     stage_events = [(e["step"], e["data"].get("status")) for e in events.events if e["type"] == "stage"
                     and ":" not in e["step"]]
-    for name in ("electrodes", "md_selection", "molecular_dynamics", "ranking", "novelty"):
+    for name in ("electrodes", "candidate_analyses", "md_selection", "molecular_dynamics", "ranking", "novelty"):
         assert (name, "start") in stage_events and (name, "done") in stage_events
     cand_steps = steps(events, "candidate")
     assert cand_steps.count("electrodes:done") == 3 and cand_steps.count("molecular_dynamics:done") == 2
@@ -178,7 +188,8 @@ def test_complete_loop_passes_data_from_step_to_step(li3ps4):
                  "reduced confidence of the window (decomposes via LiS4)",
                  "cathode reaction forms FeS2 (information)", "## Novelty check", "novelty web search: 2 calls"):
         assert text in report
-    assert result["usage"]["llm"]["meta"]["calls"] == 3
+    assert result["usage"]["llm"]["meta"]["calls"] == 3 and result["usage"]["analyst"]["calls"] == 2
+    assert "## Candidate analyses (Muse Spark Open, in parallel)" in report and "candidate analyses (baseten)" in report
 
 
 def test_cached_md_applies_to_candidates_not_selected(li3ps4):
@@ -191,6 +202,17 @@ def test_cached_md_applies_to_candidates_not_selected(li3ps4):
     assert md["from_cache"] == ["it1-c2"] and calls.md_screen == [["it1-c1", "it1-c2"]]
     br = result["iterations"][0]["candidates"][1]
     assert br["excluded_at"] == "molecular_dynamics" and "already simulated" in render(result)
+
+
+def test_a_failed_analysis_leaves_the_candidate_without_review(li3ps4):
+    calls = Calls()
+    brain = FakeLLM("meta", [proposal((PARENT, SUB_CL)), analysis(), md_selection("it1-c1")])
+    analyst = FakeLLM("baseten", [llm.QuotaError("baseten: payment required")])
+    result, _ = run_agent(li3ps4, brain, fake_tools(calls), analyst=analyst)
+    st = result["stages"]["candidate_analyses"]
+    assert st["status"] == "stopped" and "payment required" in st["failed"]["it1-c1"]
+    assert result["stages"]["md_selection"]["selected"] == ["it1-c1"]  # the next stages go on
+    assert "analysis" not in result["iterations"][0]["candidates"][0]
 
 
 def test_md_cost_above_cap_is_not_launched_and_ranking_goes_on(li3ps4):

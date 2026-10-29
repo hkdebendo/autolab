@@ -40,10 +40,11 @@ def _substitution_key(parent: str, sub: dict) -> str:
 class Agent:
     def __init__(self, brain, fallback=None, tools=None, events: EventLog | None = None,
                  budget: RelaxBudget | None = None, get_structure=None, domain: Domain | str | None = None,
-                 novelty_client=None):
+                 novelty_client=None, analyst=None):
         self.domain = domain if isinstance(domain, Domain) else get_domain(domain or config.AGENT_DOMAIN)
         self.brain, self.fallback = brain, fallback
         self.novelty_client = novelty_client  # web search of the novelty stage, with its own cost cap
+        self.analyst = analyst  # parallel candidate analyses (Muse Spark Open), with its own cost cap
         self.tools = tools or self.domain.make_tools()
         self.events = events or EventLog()
         self.budget = budget or RelaxBudget(config.MAX_RELAXATIONS_PER_RUN)
@@ -102,6 +103,7 @@ class Agent:
         result = {"domain": d.name, "goal": goal, "parents": parent_info, "settings": {
             "n_iterations": n_iterations, "max_candidates": max_candidates, "max_relaxations": self.budget.max_new,
             "brain": getattr(self.brain, "provider", None), "fallback": getattr(self.fallback, "provider", None),
+            "analyst": getattr(self.analyst, "provider", None),
             "thresholds": {name: getattr(config, name) for name in d.thresholds}},
             "prior": prior, "iterations": [], "stages": {}, "stop_reason": "iterations done"}
         self.events.emit("loop", "start", {"goal": goal, "domain": d.name, "parents": parent_info,
@@ -183,6 +185,7 @@ class Agent:
         result["usage"] = {
             "llm": {c.provider: c.tracker.summary() for c in (self.brain, self.fallback) if c is not None},
             "novelty": self.novelty_client.tracker.summary() if self.novelty_client is not None else None,
+            "analyst": self.analyst.tracker.summary() if self.analyst is not None else None,
             "relaxations": {"new": self.budget.used, "limit": self.budget.max_new},
             "md": result["stages"].get("molecular_dynamics", {}).get("plan"),
             "events": len(self.events.events),

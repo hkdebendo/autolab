@@ -13,3 +13,5 @@ Next: step 2, validation benchmark (4 good, 8 bad known compounds, blind).
 Failures: Li6PS5Cl at the hull (0.080 eV/atom, ordered cell; MP 0.083), LGPS non-passivating (Li15Ge4, its known real weakness). Caveat: 6 of the 8 bad ones are stopped by the gap alone.
 Cost: 40 new relaxations on Modal T4 (~0.3 $); no LLM call. Totals: Modal ~7.8 $ / 15 $, Meta ~0.4 $ / 20 $.
 Next: step 3, reference run (2-3 iterations, 5 candidates).
+
+Step 3 reference run launched 07:55: 2 iterations x 5 candidates, prior 13. Estimate: Modal ~1.2 $ relaxations + up to ~2.7 $ MD (stage cap 5 $) = may exceed 3 $ in one run (announced here); Meta ~0.4 $.

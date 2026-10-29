@@ -15,8 +15,10 @@ SUBSTITUTION = {"remove": str, "add": str, "count": (int, str)}
 
 ANALYSIS = {"ranking": list, "lessons": list, "next_direction": str, "stop": bool}
 MD_SELECTION = {"selected": list, "rationale": str}
+CANDIDATE_ANALYSIS = {"strengths": list, "risks": list, "md_priority": str, "summary": str}
 
-SCHEMAS = {"proposal": PROPOSAL, "analysis": ANALYSIS, "md_selection": MD_SELECTION}
+SCHEMAS = {"proposal": PROPOSAL, "analysis": ANALYSIS, "md_selection": MD_SELECTION,
+           "candidate_analysis": CANDIDATE_ANALYSIS}
 
 TEMPLATES = {
     "proposal": {
@@ -28,6 +30,8 @@ TEMPLATES = {
     "analysis": {"ranking": ["candidate_id"], "lessons": ["short sentence"],
                  "next_direction": "short sentence", "stop": False},
     "md_selection": {"selected": ["candidate_id"], "rationale": "short sentence"},
+    "candidate_analysis": {"strengths": ["short sentence"], "risks": ["short sentence"], "md_priority": "high",
+                           "summary": "one sentence"},
 }
 
 _FENCE = re.compile(r"^\s*```(?:json)?\s*(.*?)\s*```\s*$", re.S)

@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import contextlib
 import logging
+import threading
 import time
 from dataclasses import asdict, dataclass, field
 from typing import Callable
@@ -109,6 +110,7 @@ class UsageTracker:
 
 
 TRACKER = UsageTracker()  # default tracker of the current run
+_TRACKER_LOCK = threading.Lock()
 
 
 def _estimate_tokens(text: str) -> int:
@@ -161,8 +163,9 @@ class LLMClient:
         return self._finish(messages, text, reasoning, usage, t0)
 
     def _start(self) -> float:
-        self.tracker.check()
-        self.tracker.count_call(self.provider)
+        with _TRACKER_LOCK:  # calls may run in parallel threads (candidate analyses)
+            self.tracker.check()
+            self.tracker.count_call(self.provider)
         return time.perf_counter()
 
     @contextlib.contextmanager
@@ -189,7 +192,8 @@ class LLMClient:
         reply = Reply(self.provider, self.model, text, reasoning, n_in, n_out, n_reason,
                       cost_usd(self.provider, n_in, n_out, searches), round(time.perf_counter() - t0, 2), estimated,
                       **extra)
-        self.tracker.add(reply)
+        with _TRACKER_LOCK:
+            self.tracker.add(reply)
         log.info("llm %s: in %d, out %d (reasoning %s)%s, $%.5f, %.1f s%s", self.provider, n_in, n_out, n_reason,
                  f", {searches} web searches" if searches else "", reply.cost_usd, reply.seconds,
                  " (usage estimated)" if estimated else "")

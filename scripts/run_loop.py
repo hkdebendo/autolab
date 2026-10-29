@@ -34,6 +34,15 @@ def client(provider: str, cap: float) -> LLMClient | None:
     return LLMClient(provider, tracker=UsageTracker(max_cost_usd=cap))
 
 
+def analyst_client(provider: str) -> LLMClient | None:
+    """Client of the parallel candidate analyses, with room for one call per analysed candidate."""
+    if provider == "none" or not config.has_key(config.LLM_PROVIDERS[provider]["key"]):
+        return None
+    tracker = UsageTracker(max_calls=config.CANDIDATE_ANALYSIS_MAX * config.JSON_MAX_RETRIES,
+                           max_cost_usd=config.LLM_COST_CAPS_USD[provider])
+    return LLMClient(provider, tracker=tracker)
+
+
 def show(event: dict) -> None:
     data = {k: v for k, v in event["data"].items() if k not in ("energies_per_atom", "decomposition")}
     print(f"[{event['type']}:{event['step']}] {event['candidate_id'] or ''} {json.dumps(data, default=str)[:300]}",
@@ -41,10 +50,25 @@ def show(event: dict) -> None:
 
 
 def load_prior(path: Path, tag: str) -> list[dict]:
-    """Candidates of an earlier run (candidates.json or result.json), ids prefixed with `tag` to stay unique."""
+    """Candidates of an earlier run (candidates.json, or result.json with its own earlier candidates), ids prefixed
+    with `tag` to stay unique (ids already prefixed by an earlier run are kept)."""
     data = json.loads(path.read_text(encoding="utf-8"))
-    cands = data["candidates"] if "candidates" in data else [c for r in data["iterations"] for c in r["candidates"]]
-    return [{**c, "id": f"{tag}:{c['id']}"} for c in cands]
+    if "candidates" in data:
+        cands = data["candidates"]
+    else:
+        cands = data.get("prior", []) + [c for r in data["iterations"] for c in r["candidates"]]
+    out = []
+    for c in cands:  # funnel results only: the stages of this run decide again (from the caches)
+        c = {k: v for k, v in c.items() if k not in STAGE_FIELDS}
+        out.append(c if ":" in c["id"] else {**c, "id": f"{tag}:{c['id']}"})
+    return out
+
+
+STAGE_FIELDS = {"window", "passivation", "passivation_reaction_energy", "passivation_products", "metallic_products",
+                "interfaces", "interface_reaction_energy", "interface_polysulfides", "electrodes_polysulfides",
+                "electrodes_reduced_confidence", "excluded_at", "exclusion_reason", "md_cached", "md_selected",
+                "D_cm2_per_s", "D_sem_cm2_per_s", "D_ratio_to_parent", "D_ratio_err", "md_verdict", "conduction",
+                "md_framework_intact", "novelty"}
 
 
 def plan(args, brain_cap: float) -> None:
@@ -59,6 +83,9 @@ def plan(args, brain_cap: float) -> None:
     print(f"molecular dynamics on Modal {config.MODAL_MD_GPU}: at most {config.MD_SELECT_MAX} candidates x "
           f"{config.MD_SCREEN_SEEDS} seeds of {config.MD_SCREEN_PS} ps at {config.MD_SCREEN_TEMPERATURE_K} K "
           f"(cached runs are free); not launched above {config.MD_MAX_USD_PER_RUN} $ estimated")
+    print(f"candidate analyses ({args.analyst}): one call per eligible candidate (at most "
+          f"{config.CANDIDATE_ANALYSIS_MAX}), {config.CANDIDATE_ANALYSIS_WORKERS} in parallel, cap "
+          f"{config.LLM_COST_CAPS_USD.get(args.analyst, 0)} $")
     print(f"novelty: {'control + at most ' + str(config.FINALISTS_MAX) + ' finalists, cap ' + str(config.NOVELTY_COST_CAP_USD) + ' $' if args.novelty else 'disabled (--novelty to enable)'}")
 
 
@@ -73,6 +100,8 @@ def main() -> None:
     ap.add_argument("--prior", type=Path, help="candidates.json or result.json of an earlier run")
     ap.add_argument("--prior-tag", default="prev")
     ap.add_argument("--novelty", action="store_true", help="run the novelty web search (paid, Meta)")
+    ap.add_argument("--analyst", default=config.CANDIDATE_ANALYSIS_PROVIDER,
+                    help="provider of the parallel candidate analyses ('none' to disable)")
     ap.add_argument("--no-stages", action="store_true", help="iterations only")
     ap.add_argument("--plan", action="store_true", help="print the limits of the run and stop")
     ap.add_argument("--brain", default=config.LLM_PROVIDER)
@@ -99,11 +128,12 @@ def main() -> None:
     if brain is None and fallback is None:
         raise SystemExit("no language model available: fill the keys in .env")
     novelty = client(config.NOVELTY_PROVIDER, config.NOVELTY_COST_CAP_USD) if args.novelty else None
+    analyst = analyst_client(args.analyst)
 
     prior = load_prior(args.prior, args.prior_tag) if args.prior else []
     agent = Agent(brain or fallback, fallback if brain else None, domain=get_domain(args.domain),
                   events=EventLog(args.out / "events.jsonl", sink=show), budget=RelaxBudget(args.max_relaxations),
-                  novelty_client=novelty)
+                  novelty_client=novelty, analyst=analyst)
     result = agent.run(args.goal, args.parents, args.iterations, args.candidates, prior=prior,
                        stages=not args.no_stages)
 
