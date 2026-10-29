@@ -66,7 +66,7 @@ Fields:
 - e_hull (eV/atom) and e_hull_per_substitution (eV per modified site, the stability ranking criterion, lower is better); reduced_confidence: the E_hull goes through a polysulfide, where UMA is least reliable.
 - window: electrochemical stability window in V (v_low, v_high; stable=false means zero width at the calculation precision, not a rejection; parents are narrow too).
 - passivation: reaction with Li metal: "stable", "passivating" or "quasi_stable" (non-passivating candidates were already excluded); passivation_reaction_energy in eV/atom.
-- interface_reaction_energy: most negative reaction energy with the cathode(s) {", ".join(config.AGENT_CATHODES)} (eV/atom, closer to 0 is better); electrodes_reduced_confidence: these reactions form a polysulfide (e.g. FeS2), so their energies are less reliable.
+- interface_reaction_energy: most negative reaction energy with the cathode(s) {", ".join(config.AGENT_CATHODES)} (eV/atom, closer to 0 is better); electrodes_reduced_confidence: the decomposition of the electrolyte (window limits, Li metal) goes through a polysulfide, so the window is less reliable (a polysulfide formed with the cathode, e.g. FeS2, is information only).
 - md_cached: the molecular dynamics of this candidate is already computed (it costs nothing to select it).
 - comparisons: statements computed by the code. Base every comparison only on them and quote their numbers; never compare values yourself.
 

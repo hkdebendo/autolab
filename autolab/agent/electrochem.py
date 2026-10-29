@@ -64,8 +64,12 @@ def window_and_passivation(c: dict, entries_fn: Callable = _default_entries, get
     entries, skipped = entries_fn(_elements(target.composition), budget)
     pas = passivation(target, entries, get_gaps)
     pas["polysulfide_products"] = polysulfides_among({d["formula"] for d in pas["products"]}, entries)
-    return {"id": c["id"], "formula": target.composition.reduced_formula,
-            "window": electrochemical_window(target, entries), "passivation": pas, "skipped_references": skipped}
+    win = electrochemical_window(target, entries)
+    # Decomposition of the electrolyte (natural, beyond each limit of the window): polysulfides lower the confidence
+    win["polysulfide_products"] = polysulfides_among(
+        set(win["natural_products"]) | set(win["reduction_products"]) | set(win["oxidation_products"]), entries)
+    return {"id": c["id"], "formula": target.composition.reduced_formula, "window": win, "passivation": pas,
+            "skipped_references": skipped}
 
 
 def reference_window(material_id: str, elements: list[str], entries_fn: Callable = _default_entries,

@@ -152,8 +152,11 @@ def electrodes(camp: Campaign) -> dict:
             out["not_computed"][c["id"]] = f"window and passivation: {e}"
             continue
         w, p = wp["window"], wp["passivation"]
-        polys = set(p.get("polysulfide_products") or [])
-        c.update(window={k: w.get(k) for k in ("v_low", "v_high", "stable")}, passivation=p["verdict"],
+        # reduced confidence: polysulfides in the decomposition of the electrolyte only (window, Li metal);
+        # those of the cathode reaction (FeS2 for almost every sulfide) are information
+        polys = set(w.get("polysulfide_products") or []) | set(p.get("polysulfide_products") or [])
+        c.update(window={k: w.get(k) for k in ("v_low", "v_high", "stable", "reduction_products",
+                                               "oxidation_products")}, passivation=p["verdict"],
                  passivation_reaction_energy=p["reaction_energy"], passivation_products=p["products"],
                  metallic_products=p["metallic_products"])
         if p["verdict"] in config.ELECTRODE_EXCLUDED_PASSIVATION:  # excluded: no interface computed
@@ -174,9 +177,10 @@ def electrodes(camp: Campaign) -> dict:
                 continue
             interfaces[cathode] = {k: r.get(k) for k in ("min_reaction_energy", "mixing_ratio", "reaction",
                                                          "polysulfide_products")}
-            polys |= set(r.get("polysulfide_products") or [])
         energies = [r["min_reaction_energy"] for r in interfaces.values() if r]
         c.update(interfaces=interfaces, interface_reaction_energy=min(energies) if energies else None,
+                 interface_polysulfides=sorted({x for r in interfaces.values() if r
+                                                for x in r.get("polysulfide_products") or []}),
                  electrodes_polysulfides=sorted(polys), electrodes_reduced_confidence=bool(polys))
         out["candidates"].append(c["id"])
         camp.emit("electrodes", "done", c["id"], window=c["window"], passivation=p["verdict"],
@@ -310,7 +314,10 @@ def render_electrodes(out: dict, result: dict) -> list[str]:
             c = by_id[cid]
             w = c["window"]
             window = f"{_v(w['v_low'])}–{_v(w['v_high'])}" if w["stable"] else "zero width (not a rejection)"
-            conf = f"reduced (polysulfides: {', '.join(c['electrodes_polysulfides'])})" if c["electrodes_reduced_confidence"] else "normal"
+            conf = (f"reduced (electrolyte decomposes via {', '.join(c['electrodes_polysulfides'])})"
+                    if c["electrodes_reduced_confidence"] else "normal")
+            if c.get("interface_polysulfides"):
+                conf += f"; cathode reaction forms {', '.join(c['interface_polysulfides'])} (information)"
             if c.get("interfaces") and all(v is None for v in c["interfaces"].values()) and not c.get("excluded_at"):
                 conf += "; interface not computed"
             decision = f"excluded: {c['exclusion_reason']}" if c.get("excluded_at") == "electrodes" else "kept"
@@ -320,8 +327,9 @@ def render_electrodes(out: dict, result: dict) -> list[str]:
         lines.append(f"- {cid}: not computed ({why})")
     if out.get("stopped"):
         lines += ["", f"**Stopped:** {out['stopped']}"]
-    lines += ["", "Interfaces are informative (no threshold). A polysulfide among the products (e.g. FeS2, formed by "
-                  "almost every sulfide against LiFePO4) lowers the confidence of these energies; it does not exclude."]
+    lines += ["", "Reduced confidence: the decomposition of the electrolyte (window limits, Li metal) goes through a "
+                  "polysulfide, where UMA is least reliable. Interfaces are informative (no threshold); a polysulfide "
+                  "formed with the cathode (FeS2 for almost every sulfide against LiFePO4) is shown as information only."]
     return lines + [""]
 
 
@@ -373,7 +381,7 @@ def render_ranking(out: dict, result: dict) -> list[str]:
         ratio = f" (D/D(parent) {c['D_ratio_to_parent']:.2f} ± {c['D_ratio_err']:.2f})" if c.get("D_ratio_to_parent") else ""
         flags = [f"reduced confidence (E_hull via {', '.join(c['decomposition_polysulfides'])})"] if c.get("reduced_confidence") else []
         if c.get("electrodes_reduced_confidence"):
-            flags.append("reduced confidence of the electrode results")
+            flags.append(f"reduced confidence of the window (decomposes via {', '.join(c['electrodes_polysulfides'])})")
         tail = f" — EXCLUDED at {c['excluded_at']}: {c['exclusion_reason']}" if c.get("excluded_at") else ""
         star = " **finalist**" if cid in out["finalists"] else ""
         lines.append(f"{i}. {cid} {c['formula']}{star}: E_hull per substitution {c['e_hull_per_substitution']:.3f} eV, "

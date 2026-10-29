@@ -115,6 +115,19 @@ def md_screen(jobs: list[dict], temperature_K: float = config.MD_SCREEN_TEMPERAT
     return out
 
 
+def _moved_reason(framework: dict) -> str:
+    """The element that moved most, as in the calibration criterion (non-Li D > MD_FRAMEWORK_D_RATIO_MAX of Li's)."""
+    worst = None
+    for k, check in enumerate(framework.get("per_seed") or [framework]):
+        for el, v in check.get("elements", {}).items():
+            if v.get("D_ratio_to_Li") is not None and (worst is None or v["D_ratio_to_Li"] > worst[1]):
+                worst = (el, v["D_ratio_to_Li"], k, v["msd_final_A2"])
+    if worst is None:
+        return "framework moved"
+    return (f"framework moved: {worst[0]} diffuses at {worst[1]:.0%} of Li (limit {config.MD_FRAMEWORK_D_RATIO_MAX:.0%}), "
+            f"seed {worst[2]}, final MSD {worst[3]:.1f} A2")
+
+
 def md_verdicts(rows: list[dict], n_sigma: float = config.MD_TIE_SIGMA,
                 excluded=config.MD_EXCLUDED_VERDICTS,
                 exclude_moved: bool = config.MD_EXCLUDE_IF_FRAMEWORK_MOVED) -> list[dict]:
@@ -139,7 +152,7 @@ def md_verdicts(rows: list[dict], n_sigma: float = config.MD_TIE_SIGMA,
             moved = exclude_moved and r.get("framework") is not None and not r["framework"]["intact"]
             no_hop = r["D_cm2_per_s"] <= 0
             r["conduction"] = "excluded" if verdict in excluded or moved or no_hop else "passes"
-            r["conduction_reason"] = ("framework moved" if moved else "no Li diffusion seen" if no_hop else
+            r["conduction_reason"] = (_moved_reason(r["framework"]) if moved else "no Li diffusion seen" if no_hop else
                                       f"slower than its parent by more than {n_sigma:g} combined errors"
                                       if verdict in excluded else verdict)
         out.append(r)
