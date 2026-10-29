@@ -16,9 +16,12 @@ SUBSTITUTION = {"remove": str, "add": str, "count": (int, str)}
 ANALYSIS = {"ranking": list, "lessons": list, "next_direction": str, "stop": bool}
 MD_SELECTION = {"selected": list, "rationale": str}
 CANDIDATE_ANALYSIS = {"strengths": list, "risks": list, "md_priority": str, "summary": str}
+SCOPE = {"intent": str, "status": str, "domain": str, "title": str, "constraints": list, "reply": str}
+REPORT = {"executive_summary": str, "champion_reasons": list, "tradeoffs": list, "uncertainties": list,
+          "validation": list, "synthesis": list, "limitations": list}
 
 SCHEMAS = {"proposal": PROPOSAL, "analysis": ANALYSIS, "md_selection": MD_SELECTION,
-           "candidate_analysis": CANDIDATE_ANALYSIS}
+           "candidate_analysis": CANDIDATE_ANALYSIS, "scope": SCOPE, "report": REPORT}
 
 TEMPLATES = {
     "proposal": {
@@ -32,6 +35,12 @@ TEMPLATES = {
     "md_selection": {"selected": ["candidate_id"], "rationale": "short sentence"},
     "candidate_analysis": {"strengths": ["short sentence"], "risks": ["short sentence"], "md_priority": "high",
                            "summary": "one sentence"},
+    "scope": {"intent": "new_discovery", "status": "supported", "domain": "electrolyte",
+              "title": "Short descriptive title", "constraints": ["short phrase"], "reply": "two or three sentences"},
+    "report": {"executive_summary": "paragraph", "champion_reasons": ["sentence"], "tradeoffs": ["sentence"],
+               "uncertainties": ["sentence"],
+               "validation": [{"text": "sentence", "basis": "documented"}],
+               "synthesis": [{"text": "sentence", "basis": "hypothesis"}], "limitations": ["sentence"]},
 }
 
 _FENCE = re.compile(r"^\s*```(?:json)?\s*(.*?)\s*```\s*$", re.S)

@@ -102,8 +102,11 @@ def md_screen(jobs: list[dict], temperature_K: float = config.MD_SCREEN_TEMPERAT
         from autolab.sim.backend import run_md, run_md_runs
 
         # one Kaggle session, or all runs in parallel on Modal
+        from autolab.agent import cancel
+
         run_md_runs([{"atoms": job["atoms"], "temperature_K": temperature_K, "n_steps": n_steps, "seed": s}
                      for job in jobs for s in range(seeds)], backend=backend)
+        cancel.check()  # stopped: the missing runs must not be computed one by one below
         run = partial(run_md, backend=backend)
     out = []
     for job in jobs:

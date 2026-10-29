@@ -470,6 +470,165 @@ def render_ranking(out: dict, result: dict) -> list[str]:
     return lines + [""]
 
 
+# --- final report (interface.md 12): numbers from the code, narrative from the model, methods named ---------------
+
+METHODS = [
+    ("Candidate proposals and decisions", "Meta Muse Spark (reasoning model), with comparisons computed by the code"),
+    ("Structure relaxation and energies", "Meta FAIR UMA (uma-s-1p2, OMat head), MP2020 corrections; references from "
+                                         "Materials Project, all relaxed with UMA (no mixing of energy sources)"),
+    ("Thermodynamic stability", "energy above the convex hull of the chemical system; kept if <= 0.05 eV/atom"),
+    ("Electronic band gap", "ALIGNN graph neural network (optB88vdW scale for the filter, mBJ shown); kept if >= 2 eV"),
+    ("Electrochemical window and electrodes", "grand-potential phase diagrams (window, reaction with Li metal), "
+                                              "interface reactivity with LiFePO4 (calibrated against MP)"),
+    ("Independent reviews", "Meta Muse Spark Open, one review per candidate, in parallel"),
+    ("Lithium diffusion", "Langevin molecular dynamics with UMA at 600 K, 2 x 40 ps per structure, diffusion "
+                          "coefficient by blocks, compared with the parent crystal (calibrated: Li7P3S11 2.0x faster "
+                          "than beta-Li3PS4)"),
+    ("Literature check", "Meta Muse Spark with web search; a known electrolyte (LGPS) checked first as a control"),
+    ("Plain-language summaries", "Meta Muse Glimmer"),
+]
+
+REPORT_SYSTEM = """You write the final report of a computational materials-discovery research, for scientists and for readers who are not specialists. The code gives you the comparison table of the three finalists (the first one is the champion: the best compromise by the criteria of the research), the excluded candidates with their reasons, the literature check and what was not computed.
+Rules:
+- Use only the numbers of the table, quoted exactly with their units; never invent or estimate a value. A missing value was not computed: say so.
+- champion_reasons: why the champion is preferred to the two others, each reason tied to numbers of the table.
+- tradeoffs: its compromises and weaknesses. uncertainties: what limits the confidence (methods, temperature of the diffusion, reduced-confidence flags, statistics).
+- validation: experiments or calculations to confirm it (e.g. XRD, impedance spectroscopy, DFT checks, cycling against Li metal), each with "basis": "documented" (standard practice) or "hypothesis".
+- synthesis: possible routes, each with "basis": "documented" only for well-established routes for this family of sulfide electrolytes (e.g. ball milling then annealing under inert atmosphere), else "hypothesis"; never present a route as guaranteed.
+- limitations: properties not studied and validations still needed. The candidates are computational predictions, not proven materials.
+- Do not name AI models or providers. Plain English, short sentences.
+Reply with JSON only, exactly this shape: {template}"""
+
+
+def _structure_info(c: dict) -> dict:
+    """Space group and cell of the relaxed structure (pymatgen), or {} when it cannot be read."""
+    try:
+        from pymatgen.io.ase import AseAtomsAdaptor
+        from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+
+        from autolab.sim.serialize import atoms_from_dict
+
+        s = AseAtomsAdaptor.get_structure(atoms_from_dict(c["relaxed_atoms"]))
+        lat = s.lattice
+        try:
+            sg = SpacegroupAnalyzer(s, symprec=0.1).get_space_group_symbol()
+        except Exception:
+            sg = None
+        return {"space_group": sg, "a_A": round(lat.a, 3), "b_A": round(lat.b, 3), "c_A": round(lat.c, 3),
+                "alpha": round(lat.alpha, 1), "beta": round(lat.beta, 1), "gamma": round(lat.gamma, 1),
+                "volume_A3": round(lat.volume, 1), "atoms_in_cell": len(s)}
+    except Exception:
+        return {}
+
+
+def _finalist_row(c: dict, novelty_by_id: dict) -> dict:
+    nv = novelty_by_id.get(c["id"], {})
+    return {"id": c["id"], "formula": c["formula"], "parent": c.get("parent_formula") or c.get("parent"),
+            "substitution": c.get("substitution"), **_structure_info(c),
+            "e_hull_eV_per_atom": c.get("e_hull"), "e_hull_per_substitution_eV": c.get("e_hull_per_substitution"),
+            "decomposition": c.get("decomposition"), "gap_optb88_eV": c.get("gap_optb88"), "gap_mbj_eV": c.get("gap_mbj"),
+            "window_V": c.get("window"), "against_li_metal": c.get("passivation"),
+            "reaction_with_LiFePO4_eV_per_atom": c.get("interface_reaction_energy"),
+            "D_600K_cm2_per_s": c.get("D_cm2_per_s"), "D_error_cm2_per_s": c.get("D_sem_cm2_per_s"),
+            "D_ratio_to_parent": c.get("D_ratio_to_parent"), "D_ratio_error": c.get("D_ratio_err"),
+            "diffusion_verdict": c.get("md_verdict") or "not simulated",
+            "ionic_conductivity": "not computed",
+            "confidence_flags": [f for f, on in (("stability via a polysulfide", c.get("reduced_confidence")),
+                                                 ("window via a polysulfide", c.get("electrodes_reduced_confidence")),
+                                                 ("S-S bonds", c.get("ss_bonds"))) if on],
+            "novelty": nv.get("label"), "novelty_summary": nv.get("summary"),
+            "novelty_sources": [s.get("url") for s in nv.get("sources", [])][:3],
+            "review": c.get("analysis")}
+
+
+def report(camp: Campaign) -> dict:
+    from autolab.agent.loop import LoopStopped
+    from autolab.llm.schemas import template
+
+    rk = camp.outputs.get("ranking", {})
+    finalists = rk.get("finalists") or []
+    if not finalists:
+        return {"skipped": "no finalist", "summary": {"skipped": "no finalist"}}
+    by_id = camp.by_id
+    novelty_by_id = {r["id"]: r for r in (camp.outputs.get("novelty", {}).get("candidates") or [])}
+    rows = [_finalist_row(by_id[i], novelty_by_id) for i in finalists]
+    needed = ("electrodes", "molecular_dynamics", "ranking", "novelty")
+    missing = [n for n in needed if (camp.outputs.get(n) or {}).get("skipped") or n not in camp.outputs
+               or (camp.outputs.get(n) or {}).get("error")]
+    status = "complete" if not missing and len(rows) == config.FINALISTS_MAX else "partial"
+    out = {"completeness": status, "missing_steps": missing, "champion": rows[0]["id"], "finalists": rows,
+           "excluded": rk.get("excluded", {}), "methods": [{"step": a, "method": b} for a, b in METHODS],
+           "not_computed": config.CAPABILITIES["not_computed"], "narrative": None}
+    facts = {"goal": camp.goal, "status": status, "finalists": rows, "excluded": out["excluded"],
+             "not_computed": out["not_computed"]}
+    try:
+        info = camp.ask([{"role": "system", "content": REPORT_SYSTEM.replace("{template}", template("report"))},
+                         {"role": "user", "content": json.dumps(facts, default=str)}], "report", "report")
+        n = info["reply"]
+        for key in ("validation", "synthesis"):  # each item: documented practice or hypothesis, never unlabelled
+            n[key] = [{"text": str(x.get("text", x)) if isinstance(x, dict) else str(x),
+                       "basis": x.get("basis") if isinstance(x, dict) and x.get("basis") in ("documented", "hypothesis")
+                       else "hypothesis"} for x in n.get(key, [])]
+        out["narrative"] = n
+    except LoopStopped as e:
+        out["narrative_error"] = f"the narrative could not be written ({e}); the numbers above are complete"
+    out["summary"] = {"champion": out["champion"], "completeness": status, "narrative": out["narrative"] is not None}
+    return out
+
+
+def _fmt(x, f=".3f", unit=""):
+    return "not computed" if x is None else (f"{x:{f}}{unit}" if isinstance(x, (int, float)) else str(x))
+
+
+def render_report(out: dict, result: dict) -> list[str]:
+    if out.get("skipped"):
+        return ["## Final scientific report", "", f"Not written: {out['skipped']}.", ""]
+    n = out.get("narrative") or {}
+    rows = out["finalists"]
+    champ = rows[0]
+    lines = ["## Final scientific report", "",
+             f"*Ranking {out['completeness']}*" + (f" (steps missing: {', '.join(out['missing_steps'])})"
+                                              if out["missing_steps"] else "") + ".", ""]
+    if n.get("executive_summary"):
+        lines += ["### Executive summary", "", n["executive_summary"], ""]
+    lines += ["### Comparison of the three finalists", "",
+              "| | " + " | ".join(r["formula"] for r in rows) + " |", "|---|" + "---|" * len(rows)]
+    fields = [("Parent crystal", "parent", None), ("Space group", "space_group", None),
+              ("Cell a / b / c (Å)", None, lambda r: " / ".join(_fmt(r.get(k), ".2f") for k in ("a_A", "b_A", "c_A"))),
+              ("E_hull (eV/atom)", "e_hull_eV_per_atom", ".3f"),
+              ("E_hull per substitution (eV)", "e_hull_per_substitution_eV", ".3f"),
+              ("Band gap optB88 / mBJ (eV)", None, lambda r: f"{_fmt(r['gap_optb88_eV'], '.2f')} / {_fmt(r['gap_mbj_eV'], '.2f')}"),
+              ("Window (V)", None, lambda r: (f"{r['window_V']['v_low']:.2f}–{r['window_V']['v_high']:.2f}"
+                                              if r.get("window_V") and r["window_V"].get("stable") else
+                                              "zero width" if r.get("window_V") else "not computed")),
+              ("Against Li metal", "against_li_metal", None),
+              ("Reaction with LiFePO4 (eV/atom)", "reaction_with_LiFePO4_eV_per_atom", ".3f"),
+              ("D at 600 K (cm²/s)", "D_600K_cm2_per_s", ".2e"),
+              ("D / D(parent)", None, lambda r: (f"{r['D_ratio_to_parent']:.2f} ± {r['D_ratio_error']:.2f}"
+                                                 if r.get("D_ratio_to_parent") is not None else "not simulated")),
+              ("Diffusion verdict", "diffusion_verdict", None), ("Ionic conductivity", "ionic_conductivity", None),
+              ("Literature", "novelty", None),
+              ("Confidence flags", None, lambda r: ", ".join(r["confidence_flags"]) or "none")]
+    for label, key, f in fields:
+        cells = [f(r) if callable(f) else _fmt(r.get(key), f) if f else (r.get(key) or "not computed") for r in rows]
+        lines.append(f"| {label} | " + " | ".join(str(c) for c in cells) + " |")
+    lines += ["", f"### Champion: {champ['formula']}", ""]
+    for title, key in (("Why it is preferred", "champion_reasons"), ("Trade-offs", "tradeoffs"),
+                       ("Uncertainties", "uncertainties")):
+        if n.get(key):
+            lines += [f"**{title}.**", *[f"- {x}" for x in n[key]], ""]
+    for title, key in (("Validation", "validation"), ("Synthesis routes to consider", "synthesis")):
+        if n.get(key):
+            lines += [f"**{title}.**", *[f"- {x['text']} *({x['basis']})*" for x in n[key]], ""]
+    if out.get("narrative_error"):
+        lines += [f"*{out['narrative_error']}*", ""]
+    lines += ["### Methods", "", *[f"- **{m['step']}**: {m['method']}" for m in out["methods"]], "",
+              "### Limitations", "", *[f"- {x}" for x in n.get("limitations", [])],
+              f"- Not computed: {out['not_computed']}.",
+              "- The candidates are computational predictions, not proven materials.", ""]
+    return lines
+
+
 def render_novelty(out: dict, result: dict) -> list[str]:
     if out.get("skipped"):
         return ["## Novelty check", "", f"Not run: {out['skipped']}.", ""]
@@ -501,7 +660,8 @@ def make_domain() -> Domain:
                 Stage("md_selection", md_selection, render_md_selection),
                 Stage("molecular_dynamics", molecular_dynamics, render_md),
                 Stage("ranking", ranking, render_ranking),
-                Stage("novelty", novelty, render_novelty)),
+                Stage("novelty", novelty, render_novelty),
+                Stage("report", report, render_report)),
         thresholds=THRESHOLDS, render_candidates=candidate_table)
 
 

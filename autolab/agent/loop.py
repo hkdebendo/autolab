@@ -16,12 +16,16 @@ import time
 from pymatgen.core import Structure
 
 from autolab import config
+from autolab.agent import cancel
 from autolab.agent.events import EventLog
 from autolab.domains import Campaign, Domain, get_domain
 from autolab.llm.client import BudgetExceeded as LLMBudgetExceeded
 from autolab.llm.client import LLMError
 from autolab.sim.backend import BudgetExceeded as SimBudgetExceeded
 from autolab.sim.backend import RelaxBudget
+
+
+INTERRUPTED = "interrupted by the user"
 
 
 class LoopStopped(RuntimeError):
@@ -40,12 +44,13 @@ def _substitution_key(parent: str, sub: dict) -> str:
 class Agent:
     def __init__(self, brain, fallback=None, tools=None, events: EventLog | None = None,
                  budget: RelaxBudget | None = None, get_structure=None, domain: Domain | str | None = None,
-                 novelty_client=None, analyst=None, summarizer=None):
+                 novelty_client=None, analyst=None, summarizer=None, should_stop=None):
         self.domain = domain if isinstance(domain, Domain) else get_domain(domain or config.AGENT_DOMAIN)
         self.brain, self.fallback = brain, fallback
         self.novelty_client = novelty_client  # web search of the novelty stage, with its own cost cap
         self.analyst = analyst  # parallel candidate analyses (Muse Spark Open), with its own cost cap
         self.summarizer = summarizer  # plain-language summaries (Muse Glimmer), in the background
+        self.should_stop = should_stop  # () -> bool: the user asked to stop (checked between steps)
         self.tools = tools or self.domain.make_tools()
         self.events = events or EventLog()
         self.budget = budget or RelaxBudget(config.MAX_RELAXATIONS_PER_RUN)
@@ -85,10 +90,18 @@ class Agent:
             return {"reply": obj, **info}
         raise LoopStopped("; ".join(errors) or "no language model configured")
 
-    def run(self, goal: str | None = None, parents: list[str] | None = None,
-            n_iterations: int = config.MAX_ITERATIONS,
-            max_candidates: int = config.MAX_CANDIDATES_PER_ITERATION, prior: list[dict] | None = None,
-            stages: bool = True) -> dict:
+    def run(self, *args, **kwargs) -> dict:
+        """Iterations, then the domain's stages (see _run); a stop request is watched during the whole run."""
+        cancel.watch(self.should_stop)
+        try:
+            return self._run(*args, **kwargs)
+        finally:
+            cancel.watch(None)
+
+    def _run(self, goal: str | None = None, parents: list[str] | None = None,
+             n_iterations: int = config.MAX_ITERATIONS,
+             max_candidates: int = config.MAX_CANDIDATES_PER_ITERATION, prior: list[dict] | None = None,
+             stages: bool = True) -> dict:
         """Iterations, then the domain's stages. `prior`: candidates evaluated in earlier runs (ids unique): never
         proposed again, shown to the model, and part of the pool of the stages (their computations are cached)."""
         if not 1 <= n_iterations <= config.MAX_ITERATIONS:
@@ -118,6 +131,9 @@ class Agent:
                             "results": [{k: c.get(k) for k in d.for_model if k in c} for c in prior]})
 
         for it in range(1, n_iterations + 1):
+            if cancel.requested():
+                result["stop_reason"] = INTERRUPTED
+                break
             record = {"iteration": it, "proposal": None, "candidates": [], "comparisons": [], "analysis": None}
             result["iterations"].append(record)
             self.events.emit("loop", "iteration", {"iteration": it})
@@ -129,10 +145,15 @@ class Agent:
                 break
             proposal = record["proposal"]["reply"]
             sim_stop = None
+            user_stop = False
             for k, p in enumerate(proposal["proposals"][:max_candidates], 1):
                 cid = f"it{it}-c{k}"
                 key = _substitution_key(p["parent"], p["substitution"])
-                if sim_stop:
+                user_stop = user_stop or cancel.requested()
+                if user_stop:  # not evaluated: said so, nothing new started
+                    res = {"id": cid, "parent": p["parent"], "substitution": p["substitution"],
+                           "status": "interrupted", "reason": INTERRUPTED}
+                elif sim_stop:
                     res = {"id": cid, "parent": p["parent"], "substitution": p["substitution"], "status": "budget",
                            "reason": sim_stop}
                 elif p["parent"] not in structures:
@@ -157,6 +178,9 @@ class Agent:
                 res["rationale"] = p.get("rationale")
                 record["candidates"].append(res)
 
+            if user_stop:
+                result["stop_reason"] = INTERRUPTED
+                break
             for_model = [{k: c.get(k) for k in d.for_model if k in c} for c in record["candidates"]]
             # Comparisons over every candidate so far, so that the model never compares tables itself.
             record["comparisons"] = d.comparisons(prior + [c for r in result["iterations"] for c in r["candidates"]])
@@ -190,7 +214,9 @@ class Agent:
         if stages:
             self.run_stages(Campaign(self, goal, prior + candidates), result)
         result["final_ranking"] = result["stages"].get("ranking", {}).get("ranking", result["funnel_ranking"])
-        if self.summarizer is not None:
+        if self.summarizer is not None and result["stop_reason"] == INTERRUPTED:
+            result["summaries"] = self.summarizer.close(timeout=0)  # nothing new is asked after a stop
+        elif self.summarizer is not None:
             pool = {c["id"]: c for c in prior + candidates}
             rk = result["stages"].get("ranking", {})
             self._summarize("whole run", "run", {
@@ -222,10 +248,18 @@ class Agent:
         """The domain's stages in order. A stage that fails or is stopped by a budget does not stop the next
         ones: each reads what the previous ones left on the candidates."""
         for stage in self.domain.stages:
+            if cancel.requested() or result["stop_reason"] == INTERRUPTED:
+                result["stop_reason"] = INTERRUPTED
+                result["stages"][stage.name] = {"status": "interrupted"}
+                self.events.emit("stage", stage.name, {"status": "interrupted"})
+                continue
             self.events.emit("stage", stage.name, {"status": "start"})
             try:
                 out = stage.run(campaign)
                 status = "stopped" if out.get("stopped") else "done"
+            except cancel.Cancelled:
+                out, status = {"interrupted": True}, "interrupted"
+                result["stop_reason"] = INTERRUPTED
             except Exception as e:  # reported, never retried
                 out, status = {"error": f"{type(e).__name__}: {e}"}, "error"
             campaign.outputs[stage.name] = out

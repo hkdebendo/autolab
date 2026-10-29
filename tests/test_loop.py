@@ -24,6 +24,13 @@ I_SUB = {"remove": "S", "add": "I", "count": 1, "li_vacancies": 1}
 O_SUB = {"remove": "S", "add": "O", "count": 1}
 
 
+def report_reply():
+    return {"executive_summary": "One candidate passed.", "champion_reasons": ["tied with its parent"],
+            "tradeoffs": ["t"], "uncertainties": ["u"], "validation": [{"text": "XRD", "basis": "documented"}],
+            "synthesis": [{"text": "ball milling", "basis": "documented"}, {"text": "new route", "basis": "maybe"}],
+            "limitations": ["l"]}
+
+
 def md_selection(*ids, rationale="softer anions"):
     return {"selected": list(ids), "rationale": rationale}
 
@@ -127,7 +134,7 @@ def test_complete_loop_passes_data_from_step_to_step(li3ps4):
                        window_polysulfides={"Li11P4S15Br": ["LiS4"]},
                        verdicts={"Li11P4S15I": "lower", "Li11P4S15Br": "tied"})
     brain = FakeLLM("meta", [proposal((PARENT, SUB_CL), (PARENT, I_SUB), (PARENT, BR)), analysis(["it1-c1"]),
-                             md_selection("it1-c1", "it1-c2", "it1-c3", "mp-999")])
+                             md_selection("it1-c1", "it1-c2", "it1-c3", "mp-999"), report_reply()])
     client, fake = meta(novelty_replies(1))
     analyst = FakeLLM("baseten", [review(), review("low")])
     result, events = run_agent(li3ps4, brain, tools, novelty_client=client, analyst=analyst)
@@ -135,7 +142,7 @@ def test_complete_loop_passes_data_from_step_to_step(li3ps4):
     st = result["stages"]
     assert [c["status"] for c in result["iterations"][0]["candidates"]] == ["passed"] * 3
     assert {k: v["status"] for k, v in st.items()} == {
-        "electrodes": "done", "candidate_analyses": "done", "md_selection": "done", "molecular_dynamics": "done", "ranking": "done",
+        "electrodes": "done", "candidate_analyses": "done", "md_selection": "done", "report": "done", "molecular_dynamics": "done", "ranking": "done",
         "novelty": "done"}
     # electrodes: the non-passivating candidate is excluded, the FeS2 reaction lowers the confidence
     assert st["electrodes"]["excluded"] == ["it1-c1"]
@@ -188,7 +195,15 @@ def test_complete_loop_passes_data_from_step_to_step(li3ps4):
                  "reduced confidence of the window (decomposes via LiS4)",
                  "cathode reaction forms FeS2 (information)", "## Novelty check", "novelty web search: 2 calls"):
         assert text in report
-    assert result["usage"]["llm"]["meta"]["calls"] == 3 and result["usage"]["analyst"]["calls"] == 2
+    assert result["usage"]["llm"]["meta"]["calls"] == 4 and result["usage"]["analyst"]["calls"] == 2
+    # final report: numbers from the code, narrative from the model, every item labelled documented or hypothesis
+    rep = st["report"]
+    assert rep["champion"] == "it1-c3" and rep["finalists"][0]["formula"] == "Li11P4S15Br"
+    assert rep["finalists"][0]["ionic_conductivity"] == "not computed" and rep["finalists"][0]["space_group"]
+    assert rep["completeness"] == "partial"  # one finalist only
+    assert [x["basis"] for x in rep["narrative"]["synthesis"]] == ["documented", "hypothesis"]
+    assert "Meta FAIR UMA" in str(rep["methods"]) and brain.requests[3]["schema"] == "report"
+    assert "### Comparison of the three finalists" in report and "### Champion: Li11P4S15Br" in report
     assert "## Candidate analyses (Muse Spark Open, in parallel)" in report and "candidate analyses (baseten)" in report
 
 
