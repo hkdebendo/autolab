@@ -2,6 +2,8 @@
 
 Lis **SPEC.md** avant toute modification. Il contient l'architecture, le contrat de chaque module et les paramètres déjà validés par des tests.
 
+**Suis la feuille de route `docs/ROADMAP.md`** (étapes, budgets approuvés d'avance, cas où s'arrêter). Note chaque décision prise seul dans `docs/DECISIONS.md` et le bilan de chaque étape (5 lignes max) dans `docs/PROGRESS.md`.
+
 ## Règles absolues
 1. **Aucune clé API dans le code, les notebooks, les tests ou les logs.** Tout passe par `.env` (ignoré par Git) et `autolab/config.py`. Le dépôt est public.
    - **Ne jamais demander la valeur d'une clé, ni l'afficher, ni l'écrire dans un fichier autre que `.env`.** Le propriétaire remplit lui-même `.env` à partir de `.env.example`.
