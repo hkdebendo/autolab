@@ -16,7 +16,7 @@ from typing import Callable
 from autolab import config
 
 SYSTEM = """You write for the jury of a scientific hackathon, in plain English. AutoLab is an AI agent that searches for new solid electrolytes for lithium-metal batteries: Muse Spark proposes chemical substitutions in known crystals, UMA simulates them, filters keep the stable, insulating ones, and molecular dynamics compares their lithium diffusion with their parent crystal.
-Summarize the data you are given in at most 3 short sentences (iteration) or 5 short sentences (whole run): what was tried, what passed or failed and why, what the agent concluded. Use only the numbers given, with their units; never invent a value, never claim a material is proven or new to science (the results are computational predictions). No lists, no headings, plain text only."""
+Summarize the data you are given in at most 3 short sentences (iteration) or 5 short sentences (whole run): what was tried, what passed or failed and why, what the agent concluded. Readers are not specialists: name compounds by their chemical formula, never by a database id (such as mp-985583: Li3PS4, mp-641703: Li7P3S11); give at most two or three key numbers, rounded (energies to 2 decimals in eV/atom, gaps to 1 decimal in eV), with their units. Use only the numbers given; never invent a value, never claim a material is proven or new to science (the results are computational predictions). No lists, no headings, plain text only."""
 
 
 def summary_messages(kind: str, data: dict) -> list[dict]:
@@ -44,7 +44,8 @@ class Summarizer:
         waited = 0.0
         while True:
             try:
-                return self.client.chat(messages, max_output_tokens=config.GLIMMER_MAX_OUTPUT_TOKENS)
+                return self.client.chat(messages, max_output_tokens=config.GLIMMER_MAX_OUTPUT_TOKENS,
+                                        reasoning_effort=config.GLIMMER_REASONING_EFFORT)
             except LLMError as e:
                 if "HTTP 503" not in str(e) or waited >= self.wait_s:  # only a waking deployment is waited for
                     raise
@@ -60,8 +61,10 @@ class Summarizer:
         except LLMError as e:
             out = {"kind": kind, "label": label, "text": None, "error": str(e)[:300]}
         else:
-            out = {"kind": kind, "label": label, "text": reply.text.strip(), "provider": reply.provider,
+            out = {"kind": kind, "label": label, "text": reply.text.strip() or None, "provider": reply.provider,
                    "cached": reply.cached, "output_tokens": reply.output_tokens}
+            if not out["text"]:
+                out["error"] = "empty answer (the reasoning used every output token)"
         out["seconds"] = round(time.perf_counter() - t0, 1)
         self.events.emit("llm", "summary", out)
         return out

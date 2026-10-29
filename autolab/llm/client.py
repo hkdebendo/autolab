@@ -182,7 +182,7 @@ class LLMClient:
         with self._errors():
             text, reasoning, usage = call(messages, stream, on_text, on_reasoning, reasoning_effort, max_output_tokens)
         reply = self._finish(messages, text, reasoning, usage, t0)
-        if key is not None:
+        if key is not None and reply.text.strip():  # an empty answer is never kept
             self.cache.set(key, asdict(reply))
         return reply
 

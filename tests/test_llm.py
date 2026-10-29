@@ -152,3 +152,13 @@ def test_reply_cache_answers_a_known_question_for_free(tmp_path):
     assert tracker.calls == 0 and tracker.cost_usd == 0  # no call, no cost
     with pytest.raises(IndexError):  # another question is not in the cache: a real call (none prepared here)
         again.complete_json([{"role": "user", "content": "something else"}], "proposal")
+
+
+def test_an_empty_answer_is_not_cached(tmp_path):
+    from autolab.store.cache import JsonCache
+
+    cache = JsonCache(tmp_path)
+    fake = FakeOpenAI([chat_reply(""), chat_reply("ok")])
+    c = llm.LLMClient("baseten", tracker=llm.UsageTracker(), client=fake, cache=cache)
+    assert c.chat([{"role": "user", "content": "x"}]).text == ""
+    assert c.chat([{"role": "user", "content": "x"}]).text == "ok" and len(fake.requests) == 2
