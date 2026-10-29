@@ -20,3 +20,7 @@ Reference run (first pass) done 08:20: 10 proposals, 9 passed the funnel, 1 not 
 **Step 3 done (2026-10-29)** — reference run results/2026-10-29_reference_run (replay: events.jsonl, result.json, report.md, replay/ with 21 structures and 22 MD runs for the 3D views): 2 iterations, 10 new proposals by Muse Spark, 9 passed the funnel (1 not evaluated: relaxation cap), 5 Na/Mg candidates excluded at Li metal; 16 reviews by Muse Spark Open; MD on 3 new candidates (all tied with their parent); finalists Li6P2SeS7, Li12P4SeS15 (new), Li7P3SeS10, all "close family already studied"; LGPS control "published".
 Cost: Meta 0.31 $, Baseten 0.37 $ (26 calls for 16 reviews: malformed JSON retried), Modal ~3.2 $ (155 relaxations T4, 6 MD runs A10G). Totals: Modal ~10.4 $ / 15 $, Meta ~0.7 $ / 20 $, Baseten ~0.4 $ / 10 $.
 Next: production backend on Modal (live agents, cache-first), then docs/MUSE_CODE_TASKS.md for the web.
+
+**Production backend (2026-10-29)** — modal_app/agent_app.py (whole loop on Modal CPU, live API with jury access code, one run at a time, LIVE_MAX_RUNS = 6), model reply cache (known request = free replay), whole .cache uploaded to the Modal volume autolab-data (36 MD runs, 623 relaxations). Not deployed yet: waits for the owner's Modal secret `autolab-keys`.
+**docs/MUSE_CODE_TASKS.md is ready**: the owner can launch Muse Code on web/ (replay, live mode through Modal, 3D Li diffusion, MSD curves). Claude does not touch web/ meanwhile.
+Next: deploy and test the agent app once the secret exists; step 5 (README) meanwhile.
