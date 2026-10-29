@@ -4,14 +4,16 @@
 
 The candidates and the outputs of the earlier stages come from result.json; the stages from --from on run again
 (computations come from the caches; the model stages use --brain, with --fallback, as the loop does). The
-first pass is kept as result_first_pass.json, events_first_pass.jsonl and report_first_pass.md; the new events.jsonl is the first pass
-up to the rerun stage followed by the new events, so that the replay stays one clean timeline.
+first pass is kept once as result_first_pass.json, events_first_pass.jsonl and report_first_pass.md; each rerun starts
+from the latest result.json, and the new events.jsonl is the latest one up to the rerun stage followed by the new events,
+so that the history shows one clean timeline.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import shutil
 import sys
 from pathlib import Path
 
@@ -39,11 +41,12 @@ def main() -> None:
 
     first_result, first_events = args.run / "result_first_pass.json", args.run / "events_first_pass.jsonl"
     if not first_result.exists():  # keep the first pass once, never overwrite it
-        (args.run / "result.json").rename(first_result)
-        (args.run / "events.jsonl").rename(first_events)
+        shutil.copy(args.run / "result.json", first_result)
+        shutil.copy(args.run / "events.jsonl", first_events)
         if (args.run / "report.md").exists():
-            (args.run / "report.md").rename(args.run / "report_first_pass.md")
-    result = json.loads(first_result.read_text(encoding="utf-8"))
+            shutil.copy(args.run / "report.md", args.run / "report_first_pass.md")
+    # the latest version is the base: a run already rerun keeps what its earlier reruns added
+    result = json.loads((args.run / "result.json").read_text(encoding="utf-8"))
     domain = get_domain(result["domain"])
     names = [s.name for s in domain.stages]
     if args.start not in names:
@@ -63,9 +66,12 @@ def main() -> None:
         if "candidate_analyses" in rerun:
             c.pop("analysis", None)
 
-    lines = first_events.read_text(encoding="utf-8").splitlines()
-    cut = next(i for i, line in enumerate(lines)
-               if (e := json.loads(line))["type"] == "stage" and e["step"] == args.start)
+    lines = (args.run / "events.jsonl").read_text(encoding="utf-8").splitlines()
+    parsed = [json.loads(line) for line in lines]
+    stops = [i for i, e in enumerate(parsed) if e["type"] == "loop" and e["step"] == "stop"]
+    # where the rerun stage started; a stage the recorded run did not have goes just before the end of the run
+    cut = next((i for i, e in enumerate(parsed) if e["type"] == "stage" and e["step"] == args.start),
+               stops[-1] if stops else len(lines))
     out_events = args.run / "events.jsonl"
     out_events.write_text("\n".join(lines[:cut]) + "\n", encoding="utf-8")
     events = EventLog(out_events, sink=show)
