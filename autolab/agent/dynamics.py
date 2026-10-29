@@ -29,10 +29,54 @@ def candidate_job(c: dict) -> dict:
             "atoms": c["relaxed_atoms"]}
 
 
+def md_runs_to_compute(jobs: list[dict], temperature_K: float = config.MD_SCREEN_TEMPERATURE_K,
+                       ps: float = config.MD_SCREEN_PS, seeds: int = config.MD_SCREEN_SEEDS,
+                       all_runs: bool = False) -> list[dict]:
+    """The runs (job x seed) of a screening missing from the MD cache ({"id", "atoms", "temperature_K", "n_steps",
+    "seed", "cached"}); with all_runs, cached ones too. Same keys as sim.backend.run_md."""
+    from autolab.sim.backend import _as_atoms_dict
+    from autolab.sim.serialize import atoms_key
+    from autolab.store.cache import JsonCache
+
+    cache = JsonCache(config.CACHE_DIR / "md")
+    n_steps = round(ps * 1000 / config.MD_TIMESTEP_FS)
+    out = []
+    for job in jobs:
+        d = _as_atoms_dict(job["atoms"])
+        for s in range(seeds):
+            key = atoms_key(d, model=config.UMA_MODEL, precision=config.UMA_PRECISION_MD, T=temperature_K,
+                            n_steps=n_steps, seed=s)
+            cached = cache.get(key) is not None
+            if all_runs or not cached:
+                out.append({"id": job["id"], "atoms": job["atoms"], "temperature_K": temperature_K,
+                            "n_steps": n_steps, "seed": s, "cached": cached})
+    return out
+
+
+def modal_md_plan(runs: list[dict], gpu: str = config.MODAL_MD_GPU) -> dict:
+    """Per-run seconds on a Modal GPU (measured speed), the Modal time limit of each run, the wall time with
+    every run in parallel and the cost (GPU price; container start and model compilation included)."""
+    import math
+
+    from autolab.sim.md import supercell_reps
+    from autolab.sim.serialize import atoms_from_dict
+
+    ms = config.MODAL_MD_MS_PER_ATOM_STEP[gpu]
+    secs = []
+    for r in runs:
+        atoms = atoms_from_dict(r["atoms"])
+        n = len(atoms) * math.prod(supercell_reps(atoms))
+        secs.append(n * r["n_steps"] * ms / 1000 + config.MODAL_STARTUP_S)
+    limit = int(min(config.MODAL_TIMEOUT_FACTOR * max(secs, default=0), config.MODAL_MAX_TIMEOUT_S))
+    return {"gpu": gpu, "runs": len(runs), "seconds": secs, "timeout_s": limit, "wall_s": max(secs, default=0),
+            "usd": sum(secs) * config.MODAL_GPU_USD_PER_H[gpu] / 3600,
+            "usd_max": len(secs) * limit * config.MODAL_GPU_USD_PER_H[gpu] / 3600}
+
+
 def md_screen(jobs: list[dict], temperature_K: float = config.MD_SCREEN_TEMPERATURE_K,
               ps: float = config.MD_SCREEN_PS, run: Callable | None = None,
               on_done: Callable[[dict], None] | None = None, seeds: int = config.MD_SCREEN_SEEDS,
-              max_runs: int = config.MD_SCREEN_MAX_RUNS) -> list[dict]:
+              max_runs: int = config.MD_SCREEN_MAX_RUNS, backend=None) -> list[dict]:
     """Run each job with `seeds` seeds (cached), pool the blocks of its seeds into one D with its error
     (calibration v2, SPEC 5.10), check the framework of every run, call on_done after each job."""
     from autolab.analysis.diffusion import diffusion_coefficient, framework_check, pool
@@ -41,11 +85,14 @@ def md_screen(jobs: list[dict], temperature_K: float = config.MD_SCREEN_TEMPERAT
         raise ValueError(f"{len(jobs)} MD jobs x {seeds} seeds requested, limit is {max_runs} (MD_SCREEN_MAX_RUNS)")
     n_steps = round(ps * 1000 / config.MD_TIMESTEP_FS)
     if run is None:
-        from autolab.sim.backend import run_md as run, run_md_runs
+        from functools import partial
+
+        from autolab.sim.backend import run_md, run_md_runs
 
         # one Kaggle session, or all runs in parallel on Modal
         run_md_runs([{"atoms": job["atoms"], "temperature_K": temperature_K, "n_steps": n_steps, "seed": s}
-                     for job in jobs for s in range(seeds)])
+                     for job in jobs for s in range(seeds)], backend=backend)
+        run = partial(run_md, backend=backend)
     out = []
     for job in jobs:
         t0 = time.perf_counter()
@@ -65,6 +112,37 @@ def md_screen(jobs: list[dict], temperature_K: float = config.MD_SCREEN_TEMPERAT
         out.append(row)
         if on_done:
             on_done(row)
+    return out
+
+
+def md_verdicts(rows: list[dict], n_sigma: float = config.MD_TIE_SIGMA,
+                excluded=config.MD_EXCLUDED_VERDICTS,
+                exclude_moved: bool = config.MD_EXCLUDE_IF_FRAMEWORK_MOVED) -> list[dict]:
+    """Each candidate row against its parent's row (same screening): D / D(parent) with its error, verdict
+    ("tied", "higher", "lower"), and conduction "passes" or "excluded" (config.MD_EXCLUDED_VERDICTS). A candidate
+    whose framework moved is excluded too (config.MD_EXCLUDE_IF_FRAMEWORK_MOVED). Rows are returned with these
+    fields added (nothing is removed)."""
+    from autolab.analysis.diffusion import compare
+
+    parents = {r["id"]: r for r in rows if r.get("kind") == "parent"}
+    out = []
+    for r in rows:
+        r = dict(r)
+        p = parents.get(r.get("parent"))
+        if r.get("kind") == "candidate" and p is not None:
+            if r.get("D_sem_cm2_per_s") and p.get("D_sem_cm2_per_s") and r["D_cm2_per_s"] > 0 and p["D_cm2_per_s"] > 0:
+                r["vs_parent"] = compare(r["D_cm2_per_s"], r["D_sem_cm2_per_s"], p["D_cm2_per_s"],
+                                         p["D_sem_cm2_per_s"], n_sigma)
+                verdict = r["vs_parent"]["verdict"]
+            else:  # no uncertainty (or no Li hop): cannot be told apart from its parent
+                r["vs_parent"], verdict = None, "undetermined"
+            moved = exclude_moved and r.get("framework") is not None and not r["framework"]["intact"]
+            no_hop = r["D_cm2_per_s"] <= 0
+            r["conduction"] = "excluded" if verdict in excluded or moved or no_hop else "passes"
+            r["conduction_reason"] = ("framework moved" if moved else "no Li diffusion seen" if no_hop else
+                                      f"slower than its parent by more than {n_sigma:g} combined errors"
+                                      if verdict in excluded else verdict)
+        out.append(r)
     return out
 
 

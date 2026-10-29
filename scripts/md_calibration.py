@@ -18,7 +18,8 @@ import json
 from pathlib import Path
 
 from autolab import config
-from autolab.agent.dynamics import calibration_runs, md_calibration, md_calibration_v2, parent_job
+from autolab.agent.dynamics import (calibration_runs, md_calibration, md_calibration_v2, modal_md_plan as modal_plan,
+                                    parent_job)
 from autolab.analysis.diffusion import diffusion_coefficient, framework_check
 from autolab.sim.backend import ModalBackend, _as_atoms_dict, get_backend, run_md_runs
 from autolab.sim.serialize import atoms_key
@@ -38,26 +39,6 @@ def analyse(run: dict, res: dict) -> dict:
     if res.get("framework_msd"):
         row["framework"] = framework_check(res["framework_msd"], res["dt_record_fs"], d["D_A2_per_ps"])
     return row
-
-
-def modal_plan(runs: list[dict], gpu: str) -> dict:
-    """Per-run seconds on a Modal GPU (measured speed), the Modal time limit of each run, the wall time with
-    every run in parallel and the cost (GPU price; container start and model compilation included)."""
-    import math
-
-    from autolab.sim.md import supercell_reps
-    from autolab.sim.serialize import atoms_from_dict
-
-    ms = config.MODAL_MD_MS_PER_ATOM_STEP[gpu]
-    secs = []
-    for r in runs:
-        atoms = atoms_from_dict(r["atoms"])
-        n = len(atoms) * math.prod(supercell_reps(atoms))
-        secs.append(n * r["n_steps"] * ms / 1000 + config.MODAL_STARTUP_S)
-    limit = int(min(config.MODAL_TIMEOUT_FACTOR * max(secs), config.MODAL_MAX_TIMEOUT_S))
-    return {"gpu": gpu, "seconds": secs, "timeout_s": limit, "wall_s": max(secs),
-            "usd": sum(secs) * config.MODAL_GPU_USD_PER_H[gpu] / 3600,
-            "usd_max": len(secs) * limit * config.MODAL_GPU_USD_PER_H[gpu] / 3600}
 
 
 def _e(x, digits=2):

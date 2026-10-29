@@ -120,6 +120,8 @@ MD_SCREEN_MAX_RUNS = 14  # simulations per screening (structures x seeds: 5 cand
 MD_D_BLOCKS = 4  # ✅ D = mean of D fitted in 4 blocks (MSD over many time origins); standard error across blocks
 MD_TIE_SIGMA = 2.0  # a candidate is "tied" with its parent when |D/D(parent) - 1| <= 2 x its propagated error
 MD_FRAMEWORK_D_RATIO_MAX = 0.05  # framework intact if every non-Li element diffuses < 5 % of Li
+MD_EXCLUDED_VERDICTS = ("lower",)  # significantly slower than its parent (> MD_TIE_SIGMA): excluded for conduction, still listed with its numbers; "tied" and "higher" pass
+MD_EXCLUDE_IF_FRAMEWORK_MOVED = True  # a candidate whose host framework moves (non-Li element > MD_FRAMEWORK_D_RATIO_MAX of Li) is excluded: its D is that of a disordering lattice
 # MD calibration (plan A, truth test of the block D): the two parents, below and above the beta -> alpha
 # transition of Li3PS4 (~746 K). Li7P3S11 must diffuse faster than beta-Li3PS4 at 600 and 700 K.
 MD_CALIBRATION_PARENTS = {"fast": "mp-641703", "slow": "mp-985583"}  # Li7P3S11, beta-Li3PS4 (Pnma)
