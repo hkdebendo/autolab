@@ -197,3 +197,12 @@ figcaption { font-size: 0.82em; color: var(--muted); text-align: center; }
   aside { position: static; max-height: none; }
   .md-viewers { grid-template-columns: 1fr; }
 }
+
+#done-banner {
+  background: #ecfdf5;
+  border: 1px solid #10b981;
+  border-radius: 6px;
+  padding: 0.6em 0.9em;
+  font-weight: 600;
+}
+#md-time { font-size: 0.9em; margin: 0.3em 0; }
