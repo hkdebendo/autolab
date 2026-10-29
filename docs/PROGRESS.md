@@ -15,3 +15,8 @@ Cost: 40 new relaxations on Modal T4 (~0.3 $); no LLM call. Totals: Modal ~7.8 $
 Next: step 3, reference run (2-3 iterations, 5 candidates).
 
 Step 3 reference run launched 07:55: 2 iterations x 5 candidates, prior 13. Estimate: Modal ~1.2 $ relaxations + up to ~2.7 $ MD (stage cap 5 $) = may exceed 3 $ in one run (announced here); Meta ~0.4 $.
+Reference run (first pass) done 08:20: 10 proposals, 9 passed the funnel, 1 not evaluated (relaxation cap 160 reached), 5 Na/Mg candidates excluded (non-passivating); MD choice flaw fixed; stages rerun from the electrodes 08:24, estimate <= 3 $ Modal (3 new candidates x 2 seeds), ~0.2 $ Baseten, ~0.3 $ Meta.
+
+**Step 3 done (2026-10-29)** — reference run results/2026-10-29_reference_run (replay: events.jsonl, result.json, report.md, replay/ with 21 structures and 22 MD runs for the 3D views): 2 iterations, 10 new proposals by Muse Spark, 9 passed the funnel (1 not evaluated: relaxation cap), 5 Na/Mg candidates excluded at Li metal; 16 reviews by Muse Spark Open; MD on 3 new candidates (all tied with their parent); finalists Li6P2SeS7, Li12P4SeS15 (new), Li7P3SeS10, all "close family already studied"; LGPS control "published".
+Cost: Meta 0.31 $, Baseten 0.37 $ (26 calls for 16 reviews: malformed JSON retried), Modal ~3.2 $ (155 relaxations T4, 6 MD runs A10G). Totals: Modal ~10.4 $ / 15 $, Meta ~0.7 $ / 20 $, Baseten ~0.4 $ / 10 $.
+Next: production backend on Modal (live agents, cache-first), then docs/MUSE_CODE_TASKS.md for the web.

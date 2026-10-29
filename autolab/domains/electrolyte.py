@@ -242,19 +242,24 @@ def candidate_analyses(camp: Campaign) -> dict:
 
 
 def md_selection(camp: Campaign) -> dict:
+    """The model chooses among the eligible candidates not simulated yet: those already in the MD cache get their
+    verdict anyway (molecular_dynamics stage), so choosing them would waste the choice."""
     from autolab.agent.loop import LoopStopped
 
     eligible = sorted((c for c in camp.passed() if not c.get("excluded_at")), key=rank_key)
     n = config.MD_SELECT_MAX
-    out = {"eligible": [c["id"] for c in eligible], "selected": [], "ignored": [], "chosen_by": None,
+    out = {"eligible": [c["id"] for c in eligible], "choices": [], "selected": [], "ignored": [], "chosen_by": None,
            "rationale": None, "llm": None}
-    if not eligible:
-        out["summary"] = {"selected": [], "reason": "no eligible candidate"}
-        return out
     for c in eligible:
         c["md_cached"] = bool(camp.tools.md_cached(c))
-    view = [{k: c.get(k) for k in FOR_SELECTION if k in c} for c in eligible]
-    ids = [c["id"] for c in eligible]
+    choices = [c for c in eligible if not c["md_cached"]]
+    out["choices"] = [c["id"] for c in choices]
+    if not choices:
+        reason = "no eligible candidate" if not eligible else "every eligible candidate is already simulated"
+        out["summary"] = {"selected": [], "reason": reason}
+        return out
+    view = [{k: c.get(k) for k in FOR_SELECTION if k in c and k != "md_cached"} for c in choices]
+    ids = [c["id"] for c in choices]
     try:
         info = camp.ask(prompts.md_selection_messages(camp.goal, view, comparisons(eligible), n),
                         "md_selection", "md_selection")
@@ -404,8 +409,8 @@ def render_md_selection(out: dict, result: dict) -> list[str]:
     lines = ["## Choice of the candidates for molecular dynamics", ""]
     if not out["eligible"]:
         return lines + ["No eligible candidate.", ""]
-    lines += [f"Eligible: {', '.join(out['eligible'])}. Selected by {out['chosen_by']}: "
-              f"{', '.join(out['selected']) or 'none'}.", "", f"Rationale: {out['rationale'] or '—'}"]
+    lines += [f"Not simulated yet (the choice): {', '.join(out.get('choices') or []) or 'none'}. Selected by "
+              f"{out['chosen_by']}: {', '.join(out['selected']) or 'none'}.", "", f"Rationale: {out['rationale'] or '—'}"]
     if out["ignored"]:
         lines += ["", f"Ids proposed by the model but not eligible (ignored): {', '.join(out['ignored'])}"]
     return lines + [""]

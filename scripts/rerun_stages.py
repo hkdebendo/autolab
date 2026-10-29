@@ -3,7 +3,7 @@
     SIM_BACKEND=modal python scripts/rerun_stages.py results/<run> --from molecular_dynamics [--novelty]
 
 The candidates and the outputs of the earlier stages come from result.json; the stages from --from on run again
-(computations come from the caches; the MD choice uses no model and falls back to its rule if it is rerun). The
+(computations come from the caches; the model stages use --brain, with --fallback, as the loop does). The
 first pass is kept as result_first_pass.json, events_first_pass.jsonl and report_first_pass.md; the new events.jsonl is the first pass
 up to the rerun stage followed by the new events, so that the replay stays one clean timeline.
 """
@@ -31,6 +31,8 @@ def main() -> None:
     ap.add_argument("--from", dest="start", required=True)
     ap.add_argument("--novelty", action="store_true", help="run the novelty web search (paid, Meta)")
     ap.add_argument("--analyst", default=config.CANDIDATE_ANALYSIS_PROVIDER, help="'none' to disable")
+    ap.add_argument("--brain", default=config.LLM_PROVIDER)
+    ap.add_argument("--fallback", default=config.LLM_FALLBACK_PROVIDER)
     ap.add_argument("--max-relaxations", type=int, default=config.MAX_RELAXATIONS_PER_RUN)
     args = ap.parse_args()
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -69,7 +71,9 @@ def main() -> None:
     events = EventLog(out_events, sink=show)
 
     novelty = client(config.NOVELTY_PROVIDER, config.NOVELTY_COST_CAP_USD) if args.novelty else None
-    agent = Agent(None, domain=domain, events=events, budget=RelaxBudget(args.max_relaxations),
+    brain = client(args.brain, config.LLM_COST_CAPS_USD[args.brain])
+    fallback = client(args.fallback, config.LLM_COST_CAPS_USD[args.fallback]) if args.fallback != args.brain else None
+    agent = Agent(brain or fallback, fallback if brain else None, domain=domain, events=events, budget=RelaxBudget(args.max_relaxations),
                   novelty_client=novelty, analyst=analyst_client(args.analyst), get_structure=lambda pid: None)
     campaign = Campaign(agent, result["goal"], candidates,
                         {k: v for k, v in result["stages"].items() if k not in rerun})
@@ -83,6 +87,9 @@ def main() -> None:
     result["final_ranking"] = result["stages"].get("ranking", {}).get("ranking", result.get("final_ranking"))
     result["usage"]["novelty"] = novelty.tracker.summary() if novelty is not None else result["usage"].get("novelty")
     result["usage"]["md"] = result["stages"].get("molecular_dynamics", {}).get("plan")
+    for c in (agent.brain, agent.fallback):  # model calls of the rerun, added to those of the first pass
+        if c is not None and c.tracker.calls:
+            result["usage"]["llm"][f"{c.provider} (rerun)"] = c.tracker.summary()
     if agent.analyst is not None:
         result["usage"]["analyst"] = agent.analyst.tracker.summary()
     result["rerun"] = {"from": args.start, "new_relaxations": agent.budget.used}
