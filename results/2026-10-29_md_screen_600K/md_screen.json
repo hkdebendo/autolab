@@ -1,0 +1,563 @@
+[
+ {
+  "id": "mp-985583",
+  "formula": "Li3PS4",
+  "kind": "parent",
+  "temperature_K": 600,
+  "ps": 40,
+  "seeds": 2,
+  "n_atoms": 128,
+  "n_li": 48,
+  "ms_per_step": 22.32,
+  "cached": true,
+  "wall_s": 1.5,
+  "gpu": "NVIDIA A10",
+  "D_A2_per_ps": 0.059408792657943035,
+  "D_cm2_per_s": 5.940879265794304e-06,
+  "D_sem_cm2_per_s": 1.2202706666573665e-06,
+  "D_blocks_cm2_per_s": [
+   4.821215950397253e-06,
+   7.957995133849233e-06,
+   7.992054813007512e-06,
+   1.0780303160334225e-05,
+   1.10912286195666e-06,
+   8.924595615400665e-06,
+   2.4477400681994097e-06,
+   3.4940065232094704e-06
+  ],
+  "D_method": "blocks_pooled",
+  "D_per_seed_cm2_per_s": [
+   7.887892264397056e-06,
+   3.993866267191551e-06
+  ],
+  "D_one_origin_cm2_per_s": 5.967430789515489e-06,
+  "msd_final_A2": 12.041831447916667,
+  "duration_ps": 40.0,
+  "framework": {
+   "intact": true,
+   "per_seed": [
+    {
+     "intact": true,
+     "ratio_max": 0.05,
+     "elements": {
+      "P": {
+       "msd_final_A2": 0.1067,
+       "D_ratio_to_Li": 0.002188228176681863
+      },
+      "S": {
+       "msd_final_A2": 0.1672,
+       "D_ratio_to_Li": 0.0044172363964353305
+      }
+     }
+    },
+    {
+     "intact": true,
+     "ratio_max": 0.05,
+     "elements": {
+      "P": {
+       "msd_final_A2": 0.0648,
+       "D_ratio_to_Li": 0.004941514547409783
+      },
+      "S": {
+       "msd_final_A2": 0.1143,
+       "D_ratio_to_Li": 0.008746272479702139
+      }
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "mp-641703",
+  "formula": "Li7P3S11",
+  "kind": "parent",
+  "temperature_K": 600,
+  "ps": 40,
+  "seeds": 2,
+  "n_atoms": 84,
+  "n_li": 28,
+  "ms_per_step": 24.43,
+  "cached": true,
+  "wall_s": 1.0,
+  "gpu": "NVIDIA A10G",
+  "D_A2_per_ps": 0.12976931164747735,
+  "D_cm2_per_s": 1.2976931164747736e-05,
+  "D_sem_cm2_per_s": 2.2385216746640724e-06,
+  "D_blocks_cm2_per_s": [
+   1.0682714365428542e-05,
+   7.539415460173982e-06,
+   1.8405446260023984e-05,
+   1.457390940506134e-05,
+   2.427744674408018e-05,
+   5.134567708416802e-06,
+   1.482393042167389e-05,
+   8.37801895312317e-06
+  ],
+  "D_method": "blocks_pooled",
+  "D_per_seed_cm2_per_s": [
+   1.2800371372671963e-05,
+   1.3153490956823511e-05
+  ],
+  "D_one_origin_cm2_per_s": 1.06640883891042e-05,
+  "msd_final_A2": 26.140322642857143,
+  "duration_ps": 40.0,
+  "framework": {
+   "intact": true,
+   "per_seed": [
+    {
+     "intact": true,
+     "ratio_max": 0.05,
+     "elements": {
+      "P": {
+       "msd_final_A2": 0.1034,
+       "D_ratio_to_Li": -0.0010123371195224341
+      },
+      "S": {
+       "msd_final_A2": 0.2174,
+       "D_ratio_to_Li": -0.003520496527930141
+      }
+     }
+    },
+    {
+     "intact": true,
+     "ratio_max": 0.05,
+     "elements": {
+      "P": {
+       "msd_final_A2": 0.0668,
+       "D_ratio_to_Li": -0.00017840005054427428
+      },
+      "S": {
+       "msd_final_A2": 0.1722,
+       "D_ratio_to_Li": -0.001669470849056221
+      }
+     }
+    }
+   ]
+  }
+ },
+ {
+  "id": "it1-c4",
+  "formula": "Li7P3SeS10",
+  "kind": "candidate",
+  "parent": "mp-641703",
+  "temperature_K": 600,
+  "ps": 40,
+  "seeds": 2,
+  "n_atoms": 84,
+  "n_li": 28,
+  "ms_per_step": 18.39,
+  "cached": true,
+  "wall_s": 1.0,
+  "gpu": "NVIDIA A10",
+  "D_A2_per_ps": 0.1386815250349618,
+  "D_cm2_per_s": 1.3868152503496182e-05,
+  "D_sem_cm2_per_s": 1.79147940904195e-06,
+  "D_blocks_cm2_per_s": [
+   1.2502089862346849e-05,
+   2.398279206633855e-05,
+   1.0704111924050477e-05,
+   1.539106401136763e-05,
+   1.6595731266500342e-05,
+   1.1488425992564426e-05,
+   6.799072546495224e-06,
+   1.3481932358305951e-05
+  ],
+  "D_method": "blocks_pooled",
+  "D_per_seed_cm2_per_s": [
+   1.5645014466025874e-05,
+   1.2091290540966486e-05
+  ],
+  "D_one_origin_cm2_per_s": 6.922770044135247e-06,
+  "msd_final_A2": 28.97388285714286,
+  "duration_ps": 40.0,
+  "framework": {
+   "intact": true,
+   "per_seed": [
+    {
+     "intact": true,
+     "ratio_max": 0.05,
+     "elements": {
+      "P": {
+       "msd_final_A2": 0.1325,
+       "D_ratio_to_Li": -0.0007717885958672895
+      },
+      "S": {
+       "msd_final_A2": 0.2763,
+       "D_ratio_to_Li": -0.0032389265248051456
+      },
+      "Se": {
+       "msd_final_A2": 0.1595,
+       "D_ratio_to_Li": -0.0010766902205841958
+      }
+     }
+    },
+    {
+     "intact": true,
+     "ratio_max": 0.05,
+     "elements": {
+      "P": {
+       "msd_final_A2": 0.119,
+       "D_ratio_to_Li": -0.00101544314415951
+      },
+      "S": {
+       "msd_final_A2": 0.2033,
+       "D_ratio_to_Li": -0.0023901890370349966
+      },
+      "Se": {
+       "msd_final_A2": 0.1457,
+       "D_ratio_to_Li": -0.0008222175076615406
+      }
+     }
+    }
+   ]
+  },
+  "vs_parent": {
+   "ratio": 1.0686773573377253,
+   "ratio_err": 0.2303082553218065,
+   "verdict": "tied",
+   "n_sigma": 2.0
+  },
+  "conduction": "passes",
+  "conduction_reason": "tied"
+ },
+ {
+  "id": "it2-c5",
+  "formula": "Li11P4S15I",
+  "kind": "candidate",
+  "parent": "mp-985583",
+  "temperature_K": 600,
+  "ps": 40,
+  "seeds": 2,
+  "n_atoms": 124,
+  "n_li": 44,
+  "ms_per_step": 21.81,
+  "cached": true,
+  "wall_s": 1.6,
+  "gpu": "NVIDIA A10",
+  "D_A2_per_ps": 0.053423485791548764,
+  "D_cm2_per_s": 5.342348579154876e-06,
+  "D_sem_cm2_per_s": 1.690926151804769e-06,
+  "D_blocks_cm2_per_s": [
+   8.252658532285192e-06,
+   2.0781186998794936e-06,
+   3.954280845083619e-06,
+   9.933294688083405e-07,
+   1.5779586413088104e-05,
+   5.57169393261304e-06,
+   3.6439106049293394e-06,
+   2.4652101365518823e-06
+  ],
+  "D_method": "blocks_pooled",
+  "D_per_seed_cm2_per_s": [
+   3.819596886514161e-06,
+   6.865100271795592e-06
+  ],
+  "D_one_origin_cm2_per_s": 3.943768935006062e-06,
+  "msd_final_A2": 10.56035805681818,
+  "duration_ps": 40.0,
+  "framework": {
+   "intact": true,
+   "per_seed": [
+    {
+     "intact": true,
+     "ratio_max": 0.05,
+     "elements": {
+      "I": {
+       "msd_final_A2": 0.2143,
+       "D_ratio_to_Li": 0.0030804928125501684
+      },
+      "P": {
+       "msd_final_A2": 0.0733,
+       "D_ratio_to_Li": -0.0027707483434119182
+      },
+      "S": {
+       "msd_final_A2": 0.1578,
+       "D_ratio_to_Li": -0.005062011226201856
+      }
+     }
+    },
+    {
+     "intact": true,
+     "ratio_max": 0.05,
+     "elements": {
+      "I": {
+       "msd_final_A2": 0.2115,
+       "D_ratio_to_Li": -0.0075313863261524585
+      },
+      "P": {
+       "msd_final_A2": 0.0954,
+       "D_ratio_to_Li": -0.0003651461013638589
+      },
+      "S": {
+       "msd_final_A2": 0.16,
+       "D_ratio_to_Li": -0.0021238685927628697
+      }
+     }
+    }
+   ]
+  },
+  "vs_parent": {
+   "ratio": 0.8992521712929638,
+   "ratio_err": 0.33930657928335095,
+   "verdict": "tied",
+   "n_sigma": 2.0
+  },
+  "conduction": "passes",
+  "conduction_reason": "tied"
+ },
+ {
+  "id": "it1-c2",
+  "formula": "Li6P2S7O",
+  "kind": "candidate",
+  "parent": "mp-985583",
+  "temperature_K": 600,
+  "ps": 40,
+  "seeds": 2,
+  "n_atoms": 128,
+  "n_li": 48,
+  "ms_per_step": 23.29,
+  "cached": true,
+  "wall_s": 1.9,
+  "gpu": "NVIDIA A10",
+  "D_A2_per_ps": 0.07860109100949436,
+  "D_cm2_per_s": 7.860109100949437e-06,
+  "D_sem_cm2_per_s": 8.081119831188388e-07,
+  "D_blocks_cm2_per_s": [
+   5.699504252262127e-06,
+   7.870429746056345e-06,
+   1.2866588893021817e-05,
+   5.392760785729132e-06,
+   8.03455533789334e-06,
+   7.464390428392095e-06,
+   8.300003771338607e-06,
+   7.2526395929020345e-06
+  ],
+  "D_method": "blocks_pooled",
+  "D_per_seed_cm2_per_s": [
+   7.957320919267355e-06,
+   7.762897282631518e-06
+  ],
+  "D_one_origin_cm2_per_s": 7.0833392529034116e-06,
+  "msd_final_A2": 19.27380775,
+  "duration_ps": 40.0,
+  "framework": {
+   "intact": true,
+   "per_seed": [
+    {
+     "intact": true,
+     "ratio_max": 0.05,
+     "elements": {
+      "O": {
+       "msd_final_A2": 0.2879,
+       "D_ratio_to_Li": 0.00665903256948171
+      },
+      "P": {
+       "msd_final_A2": 0.0922,
+       "D_ratio_to_Li": -0.006043458543948412
+      },
+      "S": {
+       "msd_final_A2": 0.2183,
+       "D_ratio_to_Li": -0.013036206942322853
+      }
+     }
+    },
+    {
+     "intact": true,
+     "ratio_max": 0.05,
+     "elements": {
+      "O": {
+       "msd_final_A2": 0.2595,
+       "D_ratio_to_Li": 0.00965537633722853
+      },
+      "P": {
+       "msd_final_A2": 0.1053,
+       "D_ratio_to_Li": 0.005431241697108247
+      },
+      "S": {
+       "msd_final_A2": 0.1707,
+       "D_ratio_to_Li": 0.002687295060928762
+      }
+     }
+    }
+   ]
+  },
+  "vs_parent": {
+   "ratio": 1.3230548458046352,
+   "ratio_err": 0.3039008288929466,
+   "verdict": "tied",
+   "n_sigma": 2.0
+  },
+  "conduction": "passes",
+  "conduction_reason": "tied"
+ },
+ {
+  "id": "it1-c1",
+  "formula": "Li11P4S15Cl",
+  "kind": "candidate",
+  "parent": "mp-985583",
+  "temperature_K": 600,
+  "ps": 40,
+  "seeds": 2,
+  "n_atoms": 124,
+  "n_li": 44,
+  "ms_per_step": 21.66,
+  "cached": true,
+  "wall_s": 1.7,
+  "gpu": "NVIDIA A10",
+  "D_A2_per_ps": 0.05525448584033523,
+  "D_cm2_per_s": 5.5254485840335236e-06,
+  "D_sem_cm2_per_s": 1.227595569243339e-06,
+  "D_blocks_cm2_per_s": [
+   5.543174090729139e-06,
+   4.86056172041803e-06,
+   6.879093094718316e-06,
+   7.894964841704591e-06,
+   1.545798334042493e-06,
+   1.031849600164837e-06,
+   4.6249806153329655e-06,
+   1.1823166375157817e-05
+  ],
+  "D_method": "blocks_pooled",
+  "D_per_seed_cm2_per_s": [
+   6.29444843689252e-06,
+   4.756448731174528e-06
+  ],
+  "D_one_origin_cm2_per_s": 6.004800952896431e-06,
+  "msd_final_A2": 13.913060579545455,
+  "duration_ps": 40.0,
+  "framework": {
+   "intact": true,
+   "per_seed": [
+    {
+     "intact": true,
+     "ratio_max": 0.05,
+     "elements": {
+      "Cl": {
+       "msd_final_A2": 0.2665,
+       "D_ratio_to_Li": -0.0054228202092851925
+      },
+      "P": {
+       "msd_final_A2": 0.1014,
+       "D_ratio_to_Li": 6.22741747059651e-05
+      },
+      "S": {
+       "msd_final_A2": 0.2369,
+       "D_ratio_to_Li": 0.0018511777206036255
+      }
+     }
+    },
+    {
+     "intact": true,
+     "ratio_max": 0.05,
+     "elements": {
+      "Cl": {
+       "msd_final_A2": 0.1219,
+       "D_ratio_to_Li": -0.00020654010338500887
+      },
+      "P": {
+       "msd_final_A2": 0.0837,
+       "D_ratio_to_Li": 0.0015657197310074518
+      },
+      "S": {
+       "msd_final_A2": 0.134,
+       "D_ratio_to_Li": 0.002348248517136924
+      }
+     }
+    }
+   ]
+  },
+  "vs_parent": {
+   "ratio": 0.930072525770268,
+   "ratio_err": 0.28141446015537025,
+   "verdict": "tied",
+   "n_sigma": 2.0
+  },
+  "conduction": "passes",
+  "conduction_reason": "tied"
+ },
+ {
+  "id": "it2-c1",
+  "formula": "Li13P6S21Cl",
+  "kind": "candidate",
+  "parent": "mp-641703",
+  "temperature_K": 600,
+  "ps": 40,
+  "seeds": 2,
+  "n_atoms": 82,
+  "n_li": 26,
+  "ms_per_step": 26.43,
+  "cached": true,
+  "wall_s": 1.1,
+  "gpu": "NVIDIA A10G",
+  "D_A2_per_ps": 0.12506899586332396,
+  "D_cm2_per_s": 1.2506899586332396e-05,
+  "D_sem_cm2_per_s": 1.3896941135118929e-06,
+  "D_blocks_cm2_per_s": [
+   7.329108755066682e-06,
+   7.99586648398228e-06,
+   1.1069240749713412e-05,
+   1.5679798276429094e-05,
+   1.6601391465196348e-05,
+   1.779028193190986e-05,
+   1.0537057353280732e-05,
+   1.3052451675080765e-05
+  ],
+  "D_method": "blocks_pooled",
+  "D_per_seed_cm2_per_s": [
+   1.0518503566297866e-05,
+   1.4495295606366927e-05
+  ],
+  "D_one_origin_cm2_per_s": 3.705307177302951e-06,
+  "msd_final_A2": 24.10409973076923,
+  "duration_ps": 40.0,
+  "framework": {
+   "intact": false,
+   "per_seed": [
+    {
+     "intact": false,
+     "ratio_max": 0.05,
+     "elements": {
+      "Cl": {
+       "msd_final_A2": 5.3594,
+       "D_ratio_to_Li": 0.39764744160230314
+      },
+      "P": {
+       "msd_final_A2": 0.6985,
+       "D_ratio_to_Li": 0.037007169399289955
+      },
+      "S": {
+       "msd_final_A2": 2.1,
+       "D_ratio_to_Li": 0.11086772528741276
+      }
+     }
+    },
+    {
+     "intact": false,
+     "ratio_max": 0.05,
+     "elements": {
+      "Cl": {
+       "msd_final_A2": 0.487,
+       "D_ratio_to_Li": 0.006268401041770186
+      },
+      "P": {
+       "msd_final_A2": 0.223,
+       "D_ratio_to_Li": 0.006789111874089895
+      },
+      "S": {
+       "msd_final_A2": 1.2445,
+       "D_ratio_to_Li": 0.05440394333812251
+      }
+     }
+    }
+   ]
+  },
+  "vs_parent": {
+   "ratio": 0.9637794504380052,
+   "ratio_err": 0.19775721665698576,
+   "verdict": "tied",
+   "n_sigma": 2.0
+  },
+  "conduction": "excluded",
+  "conduction_reason": "framework moved"
+ }
+]
