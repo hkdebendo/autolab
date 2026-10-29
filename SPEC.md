@@ -280,7 +280,7 @@ Un module n'est terminé que si son test de vérité passe. Les tests UMA ne tou
 | Passivation LLZO | quasi stable |
 | Détecteur S–S sur Li₂S / LiS₄ | faux / vrai |
 | Client LLM : réponse JSON valide | clés présentes après ≤ 3 essais |
-| Calibration de la dynamique moléculaire (plan A, D par blocs) : Li₇P₃S₁₁ contre β-Li₃PS₄ à 600 et 700 K ⏳ | charpente P/S intacte ; D(Li₇P₃S₁₁) > D(Li₃PS₄) de plus de 2 erreurs combinées |
+| Calibration de la dynamique moléculaire (plan A, D par blocs) : Li₇P₃S₁₁ contre β-Li₃PS₄ à 600 et 700 K ❌ (2026-10-29, Modal A10G : charpente intacte, bon sens aux deux températures mais 1,9 σ à 600 K et 0,4 σ à 700 K ; barrières 0,19 ± 0,07 et 0,33 ± 0,09 eV) | charpente P/S intacte ; D(Li₇P₃S₁₁) > D(Li₃PS₄) de plus de 2 erreurs combinées |
 
 ---
 
