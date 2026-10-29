@@ -410,6 +410,22 @@ function mdViewer(which) {
 function mdDraw() {
   drawMD(mdViewer("c"), S.md.cand, "c");
   drawMD(mdViewer("p"), S.md.parent, "p");
+  const c = S.md.cand;
+  if (!c) return;
+  const f = S.md.frame % c.frames.length;
+  const t = (f * c.frame_fs) / 1000;
+  const hopped = (d) => (d ? d.filter((x) => x > 3).length : 0);
+  const dc = (c.displacement_A || [])[f], dp = S.md.parent && (S.md.parent.displacement_A || [])[f];
+  $("md-time").innerHTML = `<b>t = ${t.toFixed(1)} ps</b> · Li ions that hopped (more than 3 Å from their start): ` +
+    `${esc(c.formula)} <b>${hopped(dc)} / ${c.frames[0].length}</b>` +
+    (dp ? ` · parent ${esc(S.md.parent.formula)} <b>${hopped(dp)} / ${S.md.parent.frames[0].length}</b>` : "");
+  const cur = document.getElementById("msd-cursor");
+  if (cur && S.md.svg) {
+    const tmax = c.curve.t_ps[c.curve.t_ps.length - 1] || 1;
+    const x = S.md.svg.L + (t / tmax) * (S.md.svg.W - S.md.svg.L - 10);
+    cur.setAttribute("x1", x.toFixed(1));
+    cur.setAttribute("x2", x.toFixed(1));
+  }
 }
 
 function drawMD(v, data, which) {
@@ -419,9 +435,15 @@ function drawMD(v, data, which) {
   v.removeAllShapes();
   const atoms = data.framework.symbols.map((el, i) =>
     ({ el, x: data.framework.positions[i][0], y: data.framework.positions[i][1], z: data.framework.positions[i][2] }));
+  const nF = atoms.length;
   for (const p of data.frames[f]) atoms.push({ el: "Li", x: p[0], y: p[1], z: p[2] });
   v.addModel(xyz(atoms), "xyz");
-  v.setStyle({ elem: "Li" }, { sphere: { scale: 0.6 } });
+  const disp = (data.displacement_A || [])[f] || [];
+  const liColor = (atom) => {  // distance from the starting point: vibrating, moving, hopped
+    const d = disp[atom.index - nF] || 0;
+    return d < 1.5 ? "0x3b82f6" : d < 3 ? "0xf59e0b" : "0xdc2626";
+  };
+  v.setStyle({ elem: "Li" }, { sphere: { scale: 0.6, colorfunc: liColor } });
   for (const el of [...new Set(data.framework.symbols)])
     v.addStyle({ elem: el }, { stick: { radius: 0.14 }, sphere: { scale: 0.3 } });
   if ($("md-trails").checked) {
@@ -447,6 +469,7 @@ function msdSVG(cand, parent) {
     series.push({ label: el, y, color: "#999999", dash: "" });
   if (parent) series.push({ label: `Li (${parent.id})`, y: parent.curve.msd_li_A2, color: "#1f77b4", dash: "4,3" });
   const ymax = Math.max(0.1, ...series.flatMap((s) => s.y));
+  S.md.svg = { L, W };
   const X = (i) => L + (i / (t.length - 1)) * (W - L - 10);
   const Y = (v) => H - B - (v / ymax) * (H - B - T);
   let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="MSD curve">`;
@@ -463,6 +486,7 @@ function msdSVG(cand, parent) {
       ` points="${g.y.map((v, i) => `${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(" ")}"/>`;
   s += series.map((g, i) =>
     `<text x="${L + 8 + i * 118}" y="${T + 12}" font-size="10" fill="${g.color}">— ${esc(g.label)}</text>`).join("");
+  s += `<line id="msd-cursor" x1="${L}" y1="${T}" x2="${L}" y2="${H - B}" stroke="#dc2626" stroke-width="1"/>`;
   return s + "</svg>";
 }
 
@@ -470,6 +494,7 @@ function msdSVG(cand, parent) {
 
 async function showEnd() {
   if (!$("end").hidden) return;
+  renderFunnel(FUNNEL.length);  // every step done
   if (!S.result) {
     try {
       S.result = S.mode === "replay"
@@ -517,6 +542,8 @@ async function showEnd() {
     } catch { $("report-box").hidden = true; }
   } else $("report-box").hidden = true;
   $("end").hidden = false;
+  $("done-banner").hidden = false;
+  $("done-banner").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 /* ---------- replay ---------- */
@@ -535,6 +562,7 @@ function resetRun() {
   S.md.frame = 0;
   S.md.zoom = {};
   $("timeline").innerHTML = "";
+  $("done-banner").hidden = true;
   $("candidates").querySelector("tbody").innerHTML = "";
   $("end").hidden = true;
   $("md-box").hidden = true;

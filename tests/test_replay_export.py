@@ -20,6 +20,7 @@ def test_li_frames_are_wrapped_subsampled_and_the_framework_kept():
     assert v["frames"][-1][0][0] == pytest.approx(20.0 % 12, abs=0.01)
     assert len(v["framework"]["symbols"]) == 27 and set(v["framework"]["symbols"]) == {"S"}
     assert v["curve"]["msd_li_A2"][-1] == pytest.approx(400.0, rel=1e-3)  # computed on unwrapped positions
+    assert v["displacement_A"][-1][0] == pytest.approx(20.0) and v["displacement_A"][0][0] == 0
     assert v["curve"]["msd_framework_A2"]["S"][0] == 0.1
 
 

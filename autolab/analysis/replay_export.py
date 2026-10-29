@@ -48,6 +48,8 @@ def md_view(atoms: dict, md: dict, n_frames: int = config.REPLAY_MD_FRAMES, n_cu
                           "positions": np.round(sc.get_positions()[symbols != species], 2).tolist()},
             "frame_fs": float(keep[1] - keep[0]) * md["dt_record_fs"] if len(keep) > 1 else md["dt_record_fs"],
             "frames": np.round(wrapped, 2).tolist(),
+            # distance of each Li from its starting point (unwrapped, A): ~1 A = vibrating on its site, >2 A = hopped
+            "displacement_A": np.round(np.linalg.norm(pos[keep] - pos[0], axis=2), 1).tolist(),
             "curve": {"t_ps": np.round(t_ps[pick], 3).tolist(), "msd_li_A2": np.round(msd[pick], 3).tolist(),
                       "msd_framework_A2": framework},
             "temperature_K": md["temperature_K"], "n_atoms": md["n_atoms"], "gpu": md.get("gpu")}

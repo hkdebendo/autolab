@@ -47,24 +47,7 @@
       <p id="live-status" class="muted"></p>
     </section>
 
-    <section id="md-box" hidden>
-      <h2>Lithium diffusion <span class="muted" id="md-sub"></span></h2>
-      <div class="md-controls">
-        <label>Candidate <select id="md-pick"></select></label>
-        <label>Seed <select id="md-seed"></select></label>
-        <button id="md-play" type="button">Pause</button>
-        <label class="slider">Frame <input id="md-frame" type="range" min="0" max="399" value="0"></label>
-        <label><input id="md-trails" type="checkbox" checked> trails</label>
-      </div>
-      <div class="md-viewers">
-        <figure><div id="md-cand" class="viewer"></div><figcaption id="md-cand-cap"></figcaption></figure>
-        <figure><div id="md-parent" class="viewer"></div><figcaption id="md-parent-cap"></figcaption></figure>
-      </div>
-      <div id="md-msd"></div>
-      <p id="md-stats"></p>
-    </section>
-
-    <section id="timeline" aria-live="polite"></section>
+    <p id="done-banner" hidden>Run finished: final ranking, novelty check and costs below.</p>
 
     <section id="end" hidden>
       <h2>Final ranking</h2>
@@ -78,6 +61,32 @@
       <p class="disclaimer">Candidates are computational predictions, not proven materials.</p>
       <details id="report-box"><summary>Full report</summary><div id="report"></div></details>
     </section>
+
+    <section id="md-box" hidden>
+      <h2>Lithium diffusion <span class="muted" id="md-sub"></span></h2>
+      <div class="md-controls">
+        <label>Candidate <select id="md-pick"></select></label>
+        <label>Seed <select id="md-seed"></select></label>
+        <button id="md-play" type="button">Pause</button>
+        <label class="slider">Frame <input id="md-frame" type="range" min="0" max="399" value="0"></label>
+        <label><input id="md-trails" type="checkbox" checked> trails</label>
+      </div>
+      <div class="md-viewers">
+        <figure><div id="md-cand" class="viewer"></div><figcaption id="md-cand-cap"></figcaption></figure>
+        <figure><div id="md-parent" class="viewer"></div><figcaption id="md-parent-cap"></figcaption></figure>
+      </div>
+      <p class="muted" id="md-legend">Li ions coloured by the distance from their starting point:
+        <span style="color:#3b82f6">● under 1.5 Å, vibrating on their site</span> ·
+        <span style="color:#f59e0b">● 1.5–3 Å</span> ·
+        <span style="color:#dc2626">● over 3 Å, hopped to another site</span>. P, S and the other framework atoms are
+        drawn at their starting positions (only their mean displacement is recorded, curves below).</p>
+      <p id="md-time"></p>
+      <div id="md-msd"></div>
+      <p id="md-stats"></p>
+    </section>
+
+    <section id="timeline" aria-live="polite"></section>
+
   </main>
 
   <aside>
