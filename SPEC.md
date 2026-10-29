@@ -281,6 +281,7 @@ Un module n'est terminé que si son test de vérité passe. Les tests UMA ne tou
 | Détecteur S–S sur Li₂S / LiS₄ | faux / vrai |
 | Client LLM : réponse JSON valide | clés présentes après ≤ 3 essais |
 | Calibration de la dynamique moléculaire (plan A, D par blocs) : Li₇P₃S₁₁ contre β-Li₃PS₄ à 600 et 700 K ❌ (2026-10-29, Modal A10G : charpente intacte, bon sens aux deux températures mais 1,9 σ à 600 K et 0,4 σ à 700 K ; barrières 0,19 ± 0,07 et 0,33 ± 0,09 eV) | charpente P/S intacte ; D(Li₇P₃S₁₁) > D(Li₃PS₄) de plus de 2 erreurs combinées |
+| Calibration v2 de la dynamique moléculaire (fixée le 2026-10-29, avant les calculs) : 600 K seulement, 3 graines de 40 ps combinées (graines 0, 1, 2 ; la graine 0 est le run du plan A). D combiné = moyenne des 12 blocs (4 par graine), erreur = écart type des blocs / √12. Justification : 700 K est trop proche de la transition β→α de Li₃PS₄ (746 K), connue avant les calculs. Si réussi : D par blocs ✅ et tri à 600 K, 2 graines, 40 ps ; si échoué : la dynamique moléculaire UMA reste une information secondaire, sans pouvoir éliminer un candidat ⏳ | charpente P/S intacte ; D(Li₇P₃S₁₁) > D(Li₃PS₄) avec un écart supérieur à 2 erreurs combinées |
 
 ---
 
