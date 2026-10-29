@@ -75,12 +75,22 @@ def electrochemical_window(
         if {_key(e) for e, f in products.items() if f > FRACTION_EPS} == natural:
             stable_v.append(float(v))
 
+    def outside(v):  # decomposition products just beyond a limit of the window
+        if v < v_min - 1e-9 or v > v_max + 1e-9:
+            return []
+        products, _ = _open_decomposition(target, entries, mu_metal - v)
+        return sorted({e.composition.reduced_formula for e, f in products.items() if f > FRACTION_EPS})
+
+    decomp = PhaseDiagram(entries).get_decomposition(target.composition)
     return {
         "formula": target.composition.reduced_formula,
         "stable": bool(stable_v),
         "v_low": stable_v[0] if stable_v else None,
         "v_high": stable_v[-1] if stable_v else None,
         "contiguous": bool(stable_v) and len(stable_v) == round((stable_v[-1] - stable_v[0]) / step) + 1,
+        "natural_products": sorted({e.composition.reduced_formula for e, f in decomp.items() if f > FRACTION_EPS}),
+        "reduction_products": outside(stable_v[0] - step) if stable_v else [],
+        "oxidation_products": outside(stable_v[-1] + step) if stable_v else [],
     }
 
 

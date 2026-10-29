@@ -76,7 +76,9 @@ class Agent:
                 "cost_usd": round(sum(r.cost_usd for r in replies), 5),
                 "seconds": round(sum(r.seconds for r in replies), 1),
             }
-            self.events.emit("llm", step, {k: v for k, v in info.items() if k != "reasoning"})
+            # the reply and a reasoning summary go into the event, so that events.jsonl alone replays the run
+            self.events.emit("llm", step, {**{k: v for k, v in info.items() if k != "reasoning"}, "reply": obj,
+                                           "reasoning_summary": info["reasoning"][:config.EVENT_REASONING_CHARS]})
             return {"reply": obj, **info}
         raise LoopStopped("; ".join(errors) or "no language model configured")
 
@@ -102,7 +104,7 @@ class Agent:
             "brain": getattr(self.brain, "provider", None), "fallback": getattr(self.fallback, "provider", None),
             "thresholds": {name: getattr(config, name) for name in d.thresholds}},
             "prior": prior, "iterations": [], "stages": {}, "stop_reason": "iterations done"}
-        self.events.emit("loop", "start", {"goal": goal, "domain": d.name, "parents": parents, "prior": len(prior),
+        self.events.emit("loop", "start", {"goal": goal, "domain": d.name, "parents": parent_info, "prior": [c["id"] for c in prior],
                                            **{k: v for k, v in result["settings"].items() if k != "thresholds"}})
         seen: set[str] = {_substitution_key(c["parent"], c["substitution"]) for c in prior if c.get("substitution")}
         history: list[dict] = []

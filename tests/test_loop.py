@@ -36,13 +36,16 @@ class Calls:
 
 
 def fake_tools(calls: Calls, passivation=None, polysulfides=None, verdicts=None, md_usd=1.2, cal_ok=True,
-               interface_budget=None):
-    """Electrolyte tools with fakes for every expensive step. passivation / polysulfides / verdicts: by formula."""
+               interface_budget=None, window_polysulfides=None):
+    """Electrolyte tools with fakes for every expensive step. passivation / polysulfides (cathode reaction) /
+    window_polysulfides (decomposition of the electrolyte) / verdicts: by formula."""
     passivation, polysulfides, verdicts = passivation or {}, polysulfides or {}, verdicts or {}
+    window_polysulfides = window_polysulfides or {}
 
     def window_passivation(c, budget):
         v = passivation.get(c["formula"], "passivating")
-        return {"window": {"v_low": 1.7, "v_high": 2.3, "stable": True},
+        return {"window": {"v_low": 1.7, "v_high": 2.3, "stable": True, "reduction_products": ["Li2S", "Li3P"],
+                           "oxidation_products": ["S"], "polysulfide_products": window_polysulfides.get(c["formula"], [])},
                 "passivation": {"verdict": v, "reaction_energy": 0.3 if v == "non_passivating" else 0.0,
                                 "products": [{"formula": "Li2S", "fraction": 1.0}],
                                 "metallic_products": ["Li3P"] if v == "non_passivating" else [],
@@ -114,9 +117,10 @@ def novelty_replies(n):
 
 def test_complete_loop_passes_data_from_step_to_step(li3ps4):
     calls = Calls()
-    # Li11P4S15Cl (S->Cl) non-passivating; Li11P4S15I (S->I) slower than its parent; Li11P4S15Br tied, with a
-    # polysulfide in its cathode reaction; Li3PS4 with O passes the funnel too
-    tools = fake_tools(calls, passivation={"Li11P4S15Cl": "non_passivating"}, polysulfides={"Li11P4S15Br": ["FeS2"]},
+    # Li11P4S15Cl (S->Cl) non-passivating; Li11P4S15I (S->I) slower than its parent and FeS2 with the cathode
+    # (information only); Li11P4S15Br tied, decomposing via the polysulfide LiS4 at its window (reduced confidence)
+    tools = fake_tools(calls, passivation={"Li11P4S15Cl": "non_passivating"}, polysulfides={"Li11P4S15I": ["FeS2"]},
+                       window_polysulfides={"Li11P4S15Br": ["LiS4"]},
                        verdicts={"Li11P4S15I": "lower", "Li11P4S15Br": "tied"})
     brain = FakeLLM("meta", [proposal((PARENT, SUB_CL), (PARENT, I_SUB), (PARENT, BR)), analysis(["it1-c1"]),
                              md_selection("it1-c1", "it1-c2", "it1-c3", "mp-999")])
@@ -132,7 +136,8 @@ def test_complete_loop_passes_data_from_step_to_step(li3ps4):
     assert st["electrodes"]["excluded"] == ["it1-c1"]
     by_id = {c["id"]: c for c in result["iterations"][0]["candidates"]}
     assert by_id["it1-c1"]["excluded_at"] == "electrodes" and "non_passivating" in by_id["it1-c1"]["exclusion_reason"]
-    assert by_id["it1-c3"]["electrodes_reduced_confidence"] and by_id["it1-c3"]["electrodes_polysulfides"] == ["FeS2"]
+    assert by_id["it1-c3"]["electrodes_reduced_confidence"] and by_id["it1-c3"]["electrodes_polysulfides"] == ["LiS4"]
+    assert not by_id["it1-c2"]["electrodes_reduced_confidence"] and by_id["it1-c2"]["interface_polysulfides"] == ["FeS2"]
     assert len(calls.interfaces) == 2  # not for the excluded candidate
     # MD choice: the model only sees eligible candidates, with electrode results and code comparisons
     request = json.loads(brain.requests[2]["messages"][1]["content"])
@@ -170,7 +175,8 @@ def test_complete_loop_passes_data_from_step_to_step(li3ps4):
     report = render(json.loads(json.dumps(result)))
     for text in ("## Electrodes", "## Choice of the candidates for molecular dynamics", "## Li diffusion",
                  "## Final ranking", "EXCLUDED at electrodes", "EXCLUDED at molecular_dynamics", "**finalist**",
-                 "reduced confidence of the electrode results", "## Novelty check", "novelty web search: 2 calls"):
+                 "reduced confidence of the window (decomposes via LiS4)",
+                 "cathode reaction forms FeS2 (information)", "## Novelty check", "novelty web search: 2 calls"):
         assert text in report
     assert result["usage"]["llm"]["meta"]["calls"] == 3
 
@@ -269,12 +275,16 @@ def test_md_verdict_rule():
                         {"id": "a", "kind": "candidate", "parent": "mp-1", "D_cm2_per_s": 0.5e-5, "D_sem_cm2_per_s": 1e-6},
                         {"id": "b", "kind": "candidate", "parent": "mp-1", "D_cm2_per_s": 1.1e-5, "D_sem_cm2_per_s": 1e-6},
                         {"id": "c", "kind": "candidate", "parent": "mp-1", "D_cm2_per_s": 2e-5, "D_sem_cm2_per_s": 1e-6,
-                         "framework": {"intact": False}}])
+                         "framework": {"intact": False, "per_seed": [
+                             {"elements": {"S": {"msd_final_A2": 0.2, "D_ratio_to_Li": 0.01}}},
+                             {"elements": {"Cl": {"msd_final_A2": 5.4, "D_ratio_to_Li": 0.40},
+                                           "S": {"msd_final_A2": 2.1, "D_ratio_to_Li": 0.11}}}]}}])
     by = {r["id"]: r for r in rows}
     assert (by["a"]["vs_parent"]["verdict"], by["a"]["conduction"]) == ("lower", "excluded")
     assert (by["b"]["vs_parent"]["verdict"], by["b"]["conduction"]) == ("tied", "passes")
-    assert (by["c"]["vs_parent"]["verdict"], by["c"]["conduction"], by["c"]["conduction_reason"]) == \
-        ("higher", "excluded", "framework moved")
+    assert (by["c"]["vs_parent"]["verdict"], by["c"]["conduction"]) == ("higher", "excluded")
+    assert by["c"]["conduction_reason"] == ("framework moved: Cl diffuses at 40% of Li (limit 5%), seed 1, "
+                                            "final MSD 5.4 A2")
     assert "conduction" not in by["mp-1"] and config.MD_EXCLUDED_VERDICTS == ("lower",)
 
 
