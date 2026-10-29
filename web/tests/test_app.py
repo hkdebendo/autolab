@@ -134,3 +134,14 @@ def test_every_replay_url_of_the_page_is_served():
     client = TestClient(app)
     for url in urls:
         assert client.get(url).status_code == 200, url
+
+
+def test_the_report_renders_its_tables():
+    from fastapi.testclient import TestClient
+
+    from web.app import app
+
+    client = TestClient(app)
+    assert "<table>" in client.get("/api/replay/report.html").text
+    page = client.get("/api/replay/report.page")
+    assert page.status_code == 200 and "<title>AutoLab report</title>" in page.text and "<table>" in page.text

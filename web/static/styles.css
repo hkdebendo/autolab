@@ -206,3 +206,7 @@ figcaption { font-size: 0.82em; color: var(--muted); text-align: center; }
   font-weight: 600;
 }
 #md-time { font-size: 0.9em; margin: 0.3em 0; }
+
+#report table, .report-page table { border-collapse: collapse; font-size: 0.85em; margin: 0.6em 0; }
+#report th, #report td, .report-page th, .report-page td { border: 1px solid #ddd; padding: 0.25em 0.45em; }
+.report-page { max-width: 1100px; margin: 1.5em auto; padding: 0 1em; font-family: system-ui, sans-serif; }

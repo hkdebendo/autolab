@@ -52,8 +52,20 @@ def replay(name: str) -> Response:
     if name == "report.html":
         import markdown
 
-        html = markdown.markdown((REF_DIR / "report.md").read_text(encoding="utf-8"))
+        html = markdown.markdown((REF_DIR / "report.md").read_text(encoding="utf-8"),
+                                 extensions=["tables", "fenced_code", "md_in_html"])
         return Response(html, media_type="text/html; charset=utf-8")
+
+    if name == "report.page":  # the whole report as a page of its own (opened in a new tab)
+        import markdown
+
+        body = markdown.markdown((REF_DIR / "report.md").read_text(encoding="utf-8"),
+                                 extensions=["tables", "fenced_code", "md_in_html"])
+        page = ("<!DOCTYPE html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' "
+                "content='width=device-width, initial-scale=1'><title>AutoLab report</title>"
+                "<link rel='stylesheet' href='/static/styles.css'></head><body class='report-page'>"
+                f"{body}</body></html>")
+        return Response(page, media_type="text/html; charset=utf-8")
     path = _replay_path(name)
     if path is None:
         return JSONResponse({"detail": "unknown replay file"}, status_code=404)
