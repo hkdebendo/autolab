@@ -256,6 +256,15 @@ Chaque étape émet un **événement** (`events.py`) : `{"type", "candidate_id",
 
 Version minimale (J3) : boucle séquentielle, `LLM_PROVIDER=meta` (Baseten en secours), UMA sur Modal, 2-3 itérations de 5-10 candidats, sans électrodes ni MD. Les étapes 6 et 7 s'ajoutent ensuite.
 
+**Boucle complète (2026-10-29)** : après les itérations, les étapes du domaine tournent dans l'ordre sur tous les candidats (ceux de l'exécution et, avec `--prior`, ceux des exécutions précédentes, jamais reproposés). Chaque étape lit les caches avant de calculer, émet ses événements (`stage` et `candidate`, étape `nom:sous-étape`) et décide selon `config.py` ; une étape arrêtée par un budget n'empêche pas les suivantes.
+1. **Électrodes** (`ELECTRODES_TOP` premiers par E_hull par substitution) : fenêtre, passivation, puis interface avec `AGENT_CATHODES` (LiFePO₄) si la calibration Li₃PS₄/cathode est dans la tolérance. « Non passivant » → écarté (`ELECTRODE_EXCLUDED_PASSIVATION`, SPEC 5.9), sans calcul d'interface. Un polysulfure parmi les produits → confiance réduite des résultats d'électrode (information seulement : presque tous les sulfures donnent FeS₂ face à LiFePO₄). Un calcul qui dépasserait le budget de relaxations est sauté et signalé.
+2. **Choix pour la dynamique moléculaire** : Muse Spark choisit au plus `MD_SELECT_MAX` candidats non écartés, à partir des comparaisons calculées par le code ; les identifiants hors liste sont ignorés ; sans réponse du modèle (budget), règle : meilleurs E_hull par substitution.
+3. **Dynamique moléculaire** aux paramètres de tri ✅ (600 K, 2 graines de 40 ps, Modal A10G), parents compris ; pas lancée si le coût estimé dépasse `MD_MAX_USD_PER_RUN`. Plus lent que le parent de plus de `MD_TIE_SIGMA` erreurs combinées (`MD_EXCLUDED_VERDICTS`) ou charpente déplacée → écarté pour la conduction, mais listé avec ses chiffres.
+4. **Classement final** : verdict de dynamique moléculaire (`FINAL_RANK_MD_ORDER` : plus rapide, à égalité, non calculé), puis E_hull par substitution ; les écartés en fin de liste avec leur motif ; `FINALISTS_MAX` finalistes.
+5. **Nouveauté** (seulement avec `--novelty`) : témoin LGPS d'abord ; s'il n'est pas trouvé publié, la recherche n'est pas jugée fiable et les finalistes ne sont pas interrogés (`NOVELTY_STOP_IF_CONTROL_FAILS`) ; plafond `NOVELTY_COST_CAP_USD` ; réponses en cache.
+
+**Domaines** (`autolab/domains/`) : la boucle est générique. Un domaine fournit l'entonnoir d'un candidat, les prompts, les champs vus par le modèle, les comparaisons, les étapes après les itérations et les seuils de `config.py` qu'il utilise (`AGENT_DOMAIN`). Seul `electrolyte` existe ; un domaine « cathodes sans cobalt » serait un nouveau module de ce dossier, sans modifier la boucle.
+
 ### 6.3 Ce que les résultats ne sont pas
 Les candidats sont des **prédictions par calcul**, jamais des découvertes prouvées. Pas de calcul DFT dans le pipeline. La confiance repose sur la calibration sur des cas connus (section 7).
 

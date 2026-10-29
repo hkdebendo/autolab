@@ -214,6 +214,20 @@ NOVELTY_SEARCH_CONTEXT = "medium"  # low | medium | high
 NOVELTY_REASONING_EFFORT = "low"
 NOVELTY_MAX_OUTPUT_TOKENS = 3000
 NOVELTY_CONTROL = {"id": "control-LGPS", "formula": "Li10GeP2S12", "parent": None, "substitution": None}
+NOVELTY_STOP_IF_CONTROL_FAILS = True  # control not found as published: the search is not trusted, finalists not checked
+
+# Domain of the loop (autolab/domains): its funnel, its stages after the iterations, its prompts and thresholds.
+AGENT_DOMAIN = "electrolyte"
+
+# Stages after the iterations, electrolyte domain (SPEC 6.1, steps 6-7); decisions taken by the code from these rules.
+ELECTRODES_TOP = 20  # passed candidates (lowest E_hull per substitution first) that get window, passivation, interfaces
+AGENT_CATHODES = ("LiFePO4",)  # cathode interfaces in the loop (cobalt-free, calibrated against MP); informative, no threshold
+ELECTRODE_EXCLUDED_PASSIVATION = ("non_passivating",)  # SPEC 5.9: metallic products and reaction >= 0.1 eV/atom with Li metal
+MD_SELECT_MAX = 3  # candidates the model may send to MD; with their parents and MD_SCREEN_SEEDS within MD_SCREEN_MAX_RUNS
+MD_MAX_USD_PER_RUN = 5.0  # estimated Modal cost of the MD stage above which it is not launched
+FINAL_RANK_MD_ORDER = ("higher", "tied", "not_run")  # MD verdicts, best first; then lowest E_hull per substitution;
+# excluded candidates (passivation, MD "lower", framework moved) come last and stay listed with their reason
+FINALISTS_MAX = 3  # best kept candidates sent to the novelty check
 
 # --- Budget limits (CLAUDE.md) -----------------------------------------------
 

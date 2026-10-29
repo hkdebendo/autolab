@@ -149,4 +149,5 @@ def cathode_interface(electrolyte: Composition | str, cathode: Composition | str
         "min_reaction_energy": round(float(worst[2]), 6),
         "mixing_ratio": round(float(worst[1]), 6),
         "reaction": str(worst[3]),
+        "products": sorted({c.reduced_formula for c in worst[3].products}),
     }

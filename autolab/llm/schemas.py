@@ -14,8 +14,9 @@ PROPOSAL_ITEM = {"parent": str, "substitution": dict, "rationale": str}
 SUBSTITUTION = {"remove": str, "add": str, "count": (int, str)}
 
 ANALYSIS = {"ranking": list, "lessons": list, "next_direction": str, "stop": bool}
+MD_SELECTION = {"selected": list, "rationale": str}
 
-SCHEMAS = {"proposal": PROPOSAL, "analysis": ANALYSIS}
+SCHEMAS = {"proposal": PROPOSAL, "analysis": ANALYSIS, "md_selection": MD_SELECTION}
 
 TEMPLATES = {
     "proposal": {
@@ -26,6 +27,7 @@ TEMPLATES = {
     },
     "analysis": {"ranking": ["candidate_id"], "lessons": ["short sentence"],
                  "next_direction": "short sentence", "stop": False},
+    "md_selection": {"selected": ["candidate_id"], "rationale": "short sentence"},
 }
 
 _FENCE = re.compile(r"^\s*```(?:json)?\s*(.*?)\s*```\s*$", re.S)

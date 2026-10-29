@@ -94,26 +94,48 @@ def check(c: dict, client, today: str | None = None) -> dict:
             "notes": notes}
 
 
-def novelty_check(candidates: list[dict], client, control: dict | None = config.NOVELTY_CONTROL) -> dict:
+def _cache_key(c: dict) -> str:
+    import hashlib
+    import json
+
+    payload = {"model": config.LLM_PROVIDERS[config.NOVELTY_PROVIDER]["model"], "messages": messages_for(c)}
+    return hashlib.sha1(json.dumps(payload, sort_keys=True).encode()).hexdigest()
+
+
+def novelty_check(candidates: list[dict], client, control: dict | None = config.NOVELTY_CONTROL, cache=None,
+                  stop_if_control_fails: bool = config.NOVELTY_STOP_IF_CONTROL_FAILS) -> dict:
     """Control first (a known electrolyte, expected 'published'), then each final candidate.
 
-    Stops cleanly when the client's budget is reached; what was checked is kept.
+    Stops cleanly when the client's budget is reached; what was checked is kept. With a cache (store.JsonCache),
+    an answer already obtained for the same question is reused (marked "cached") and costs nothing. When the
+    control is not found as published, the search is not trusted and the candidates are not checked.
     """
     from autolab.llm.client import BudgetExceeded, LLMError
 
     out = {"control": None, "candidates": [], "stopped": None}
     for c in ([control] if control else []) + list(candidates):
-        try:
-            res = check(c, client)
-        except BudgetExceeded as e:
-            out["stopped"] = f"budget: {e}"
-            break
-        except LLMError as e:
-            out["stopped"] = f"language model: {e}"
-            break
+        key = _cache_key(c)
+        hit = cache.get(key) if cache is not None else None
+        if hit is not None:
+            res = {**hit, "id": c["id"], "cached": True}
+        else:
+            try:
+                res = check(c, client)
+            except BudgetExceeded as e:
+                out["stopped"] = f"budget: {e}"
+                break
+            except LLMError as e:
+                out["stopped"] = f"language model: {e}"
+                break
+            if cache is not None:
+                cache.set(key, res)
         if control and c is control:
             res["control_ok"] = res["level"] == "published"
             out["control"] = res
+            if stop_if_control_fails and not res["control_ok"]:
+                out["stopped"] = (f"control {c['formula']} not found as published ({res['level']}): "
+                                  "search not trusted, candidates not checked")
+                break
         else:
             out["candidates"].append(res)
     out["usage"] = client.tracker.summary()
