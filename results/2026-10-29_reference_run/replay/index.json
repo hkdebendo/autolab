@@ -1,0 +1,287 @@
+{
+ "structures": [
+  {
+   "id": "s9:it1-c1",
+   "formula": "Li11P4S15Cl",
+   "file": "structures/s9_it1-c1.json"
+  },
+  {
+   "id": "s9:it1-c2",
+   "formula": "Li6P2S7O",
+   "file": "structures/s9_it1-c2.json"
+  },
+  {
+   "id": "s9:it1-c4",
+   "formula": "Li7P3SeS10",
+   "file": "structures/s9_it1-c4.json"
+  },
+  {
+   "id": "s9:it1-c5",
+   "formula": "NaLi6P3S11",
+   "file": "structures/s9_it1-c5.json"
+  },
+  {
+   "id": "s9:it2-c1",
+   "formula": "Li13P6S21Cl",
+   "file": "structures/s9_it2-c1.json"
+  },
+  {
+   "id": "s9:it2-c2",
+   "formula": "Li7AsP2S11",
+   "file": "structures/s9_it2-c2.json"
+  },
+  {
+   "id": "s9:it2-c3",
+   "formula": "Li14SbP5S22",
+   "file": "structures/s9_it2-c3.json"
+  },
+  {
+   "id": "s9:it2-c4",
+   "formula": "NaLi11(PS4)4",
+   "file": "structures/s9_it2-c4.json"
+  },
+  {
+   "id": "s9:it2-c5",
+   "formula": "Li11P4S15I",
+   "file": "structures/s9_it2-c5.json"
+  },
+  {
+   "id": "s1:it1-c1",
+   "formula": "Li11P4S15Br",
+   "file": "structures/s1_it1-c1.json"
+  },
+  {
+   "id": "s1:it1-c2",
+   "formula": "Li6P2SeS7",
+   "file": "structures/s1_it1-c2.json"
+  },
+  {
+   "id": "s1:it1-c3",
+   "formula": "Li7P3S10O",
+   "file": "structures/s1_it1-c3.json"
+  },
+  {
+   "id": "it1-c1",
+   "formula": "Li11P4S15F",
+   "file": "structures/it1-c1.json"
+  },
+  {
+   "id": "it1-c2",
+   "formula": "Li13P6S21I",
+   "file": "structures/it1-c2.json"
+  },
+  {
+   "id": "it1-c3",
+   "formula": "Li12AsP3S16",
+   "file": "structures/it1-c3.json"
+  },
+  {
+   "id": "it1-c4",
+   "formula": "Li10Mg(PS4)4",
+   "file": "structures/it1-c4.json"
+  },
+  {
+   "id": "it1-c5",
+   "formula": "NaLi5(PS4)2",
+   "file": "structures/it1-c5.json"
+  },
+  {
+   "id": "it2-c1",
+   "formula": "Li12SbP3S16",
+   "file": "structures/it2-c1.json"
+  },
+  {
+   "id": "it2-c2",
+   "formula": "Li12P4SeS15",
+   "file": "structures/it2-c2.json"
+  },
+  {
+   "id": "it2-c3",
+   "formula": "Li6AsPS8",
+   "file": "structures/it2-c3.json"
+  },
+  {
+   "id": "it2-c4",
+   "formula": "Li12Mg(P3S11)2",
+   "file": "structures/it2-c4.json"
+  }
+ ],
+ "md": [
+  {
+   "id": "mp-641703",
+   "formula": "Li7P3S11",
+   "kind": "parent",
+   "seed": 0,
+   "verdict": null,
+   "file": "md/mp-641703_seed0.json"
+  },
+  {
+   "id": "mp-641703",
+   "formula": "Li7P3S11",
+   "kind": "parent",
+   "seed": 1,
+   "verdict": null,
+   "file": "md/mp-641703_seed1.json"
+  },
+  {
+   "id": "mp-985583",
+   "formula": "Li3PS4",
+   "kind": "parent",
+   "seed": 0,
+   "verdict": null,
+   "file": "md/mp-985583_seed0.json"
+  },
+  {
+   "id": "mp-985583",
+   "formula": "Li3PS4",
+   "kind": "parent",
+   "seed": 1,
+   "verdict": null,
+   "file": "md/mp-985583_seed1.json"
+  },
+  {
+   "id": "it2-c2",
+   "formula": "Li12P4SeS15",
+   "kind": "candidate",
+   "seed": 0,
+   "verdict": "tied",
+   "file": "md/it2-c2_seed0.json"
+  },
+  {
+   "id": "it2-c2",
+   "formula": "Li12P4SeS15",
+   "kind": "candidate",
+   "seed": 1,
+   "verdict": "tied",
+   "file": "md/it2-c2_seed1.json"
+  },
+  {
+   "id": "s1:it1-c1",
+   "formula": "Li11P4S15Br",
+   "kind": "candidate",
+   "seed": 0,
+   "verdict": "tied",
+   "file": "md/s1_it1-c1_seed0.json"
+  },
+  {
+   "id": "s1:it1-c1",
+   "formula": "Li11P4S15Br",
+   "kind": "candidate",
+   "seed": 1,
+   "verdict": "tied",
+   "file": "md/s1_it1-c1_seed1.json"
+  },
+  {
+   "id": "it1-c2",
+   "formula": "Li13P6S21I",
+   "kind": "candidate",
+   "seed": 0,
+   "verdict": "tied",
+   "file": "md/it1-c2_seed0.json"
+  },
+  {
+   "id": "it1-c2",
+   "formula": "Li13P6S21I",
+   "kind": "candidate",
+   "seed": 1,
+   "verdict": "tied",
+   "file": "md/it1-c2_seed1.json"
+  },
+  {
+   "id": "s1:it1-c2",
+   "formula": "Li6P2SeS7",
+   "kind": "candidate",
+   "seed": 0,
+   "verdict": "tied",
+   "file": "md/s1_it1-c2_seed0.json"
+  },
+  {
+   "id": "s1:it1-c2",
+   "formula": "Li6P2SeS7",
+   "kind": "candidate",
+   "seed": 1,
+   "verdict": "tied",
+   "file": "md/s1_it1-c2_seed1.json"
+  },
+  {
+   "id": "s9:it1-c4",
+   "formula": "Li7P3SeS10",
+   "kind": "candidate",
+   "seed": 0,
+   "verdict": "tied",
+   "file": "md/s9_it1-c4_seed0.json"
+  },
+  {
+   "id": "s9:it1-c4",
+   "formula": "Li7P3SeS10",
+   "kind": "candidate",
+   "seed": 1,
+   "verdict": "tied",
+   "file": "md/s9_it1-c4_seed1.json"
+  },
+  {
+   "id": "s9:it2-c5",
+   "formula": "Li11P4S15I",
+   "kind": "candidate",
+   "seed": 0,
+   "verdict": "tied",
+   "file": "md/s9_it2-c5_seed0.json"
+  },
+  {
+   "id": "s9:it2-c5",
+   "formula": "Li11P4S15I",
+   "kind": "candidate",
+   "seed": 1,
+   "verdict": "tied",
+   "file": "md/s9_it2-c5_seed1.json"
+  },
+  {
+   "id": "s9:it1-c2",
+   "formula": "Li6P2S7O",
+   "kind": "candidate",
+   "seed": 0,
+   "verdict": "tied",
+   "file": "md/s9_it1-c2_seed0.json"
+  },
+  {
+   "id": "s9:it1-c2",
+   "formula": "Li6P2S7O",
+   "kind": "candidate",
+   "seed": 1,
+   "verdict": "tied",
+   "file": "md/s9_it1-c2_seed1.json"
+  },
+  {
+   "id": "s9:it1-c1",
+   "formula": "Li11P4S15Cl",
+   "kind": "candidate",
+   "seed": 0,
+   "verdict": "tied",
+   "file": "md/s9_it1-c1_seed0.json"
+  },
+  {
+   "id": "s9:it1-c1",
+   "formula": "Li11P4S15Cl",
+   "kind": "candidate",
+   "seed": 1,
+   "verdict": "tied",
+   "file": "md/s9_it1-c1_seed1.json"
+  },
+  {
+   "id": "s9:it2-c1",
+   "formula": "Li13P6S21Cl",
+   "kind": "candidate",
+   "seed": 0,
+   "verdict": "tied",
+   "file": "md/s9_it2-c1_seed0.json"
+  },
+  {
+   "id": "s9:it2-c1",
+   "formula": "Li13P6S21Cl",
+   "kind": "candidate",
+   "seed": 1,
+   "verdict": "tied",
+   "file": "md/s9_it2-c1_seed1.json"
+  }
+ ]
+}

@@ -213,6 +213,7 @@ AGENT_PARENTS = ["mp-985583", "mp-641703"]  # Li3PS4 (32 atoms), Li7P3S11 (42 at
 AGENT_REASONING_EFFORT = "medium"
 AGENT_MAX_OUTPUT_TOKENS = 8000  # proposals and analyses: reasoning + JSON
 EVENT_REASONING_CHARS = 2000  # reasoning summary kept in each LLM event (replay mode)
+REPLAY_MD_FRAMES = 400  # frames per MD run in the replay files (one every 100 fs over 40 ps)
 
 # Novelty check (last step, final candidates only): Meta web search, links only from API citations.
 NOVELTY_PROVIDER = "meta"

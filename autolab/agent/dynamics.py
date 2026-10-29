@@ -53,6 +53,18 @@ def md_runs_to_compute(jobs: list[dict], temperature_K: float = config.MD_SCREEN
     return out
 
 
+def md_cached_result(job: dict, seed: int, temperature_K: float = config.MD_SCREEN_TEMPERATURE_K,
+                     ps: float = config.MD_SCREEN_PS) -> dict | None:
+    """The cached MD run of a job (same key as sim.backend.run_md), or None; never computes."""
+    from autolab.sim.backend import _as_atoms_dict
+    from autolab.sim.serialize import atoms_key
+    from autolab.store.cache import JsonCache
+
+    key = atoms_key(_as_atoms_dict(job["atoms"]), model=config.UMA_MODEL, precision=config.UMA_PRECISION_MD,
+                    T=temperature_K, n_steps=round(ps * 1000 / config.MD_TIMESTEP_FS), seed=seed)
+    return JsonCache(config.CACHE_DIR / "md").get(key)
+
+
 def modal_md_plan(runs: list[dict], gpu: str = config.MODAL_MD_GPU) -> dict:
     """Per-run seconds on a Modal GPU (measured speed), the Modal time limit of each run, the wall time with
     every run in parallel and the cost (GPU price; container start and model compilation included)."""

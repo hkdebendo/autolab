@@ -195,9 +195,13 @@ def test_complete_loop_passes_data_from_step_to_step(li3ps4):
 def test_cached_md_applies_to_candidates_not_selected(li3ps4):
     calls = Calls()
     tools = fake_tools(calls, verdicts={"Li11P4S15Br": "lower"})
-    tools.md_cached = lambda c: c["formula"] == "Li11P4S15Br"  # simulated earlier, not chosen by the model now
-    brain = FakeLLM("meta", [proposal((PARENT, SUB_CL), (PARENT, BR)), analysis(), md_selection("it1-c1")])
+    tools.md_cached = lambda c: c["formula"] == "Li11P4S15Br"  # simulated earlier: not offered to the model
+    brain = FakeLLM("meta", [proposal((PARENT, SUB_CL), (PARENT, BR)), analysis(), md_selection("it1-c1", "it1-c2")])
     result, _ = run_agent(li3ps4, brain, tools)
+    sel = result["stages"]["md_selection"]
+    assert sel["choices"] == ["it1-c1"] and sel["selected"] == ["it1-c1"] and sel["ignored"] == ["it1-c2"]
+    offered = json.loads(brain.requests[2]["messages"][1]["content"])["candidates"]
+    assert [c["id"] for c in offered] == ["it1-c1"] and "md_cached" not in offered[0]
     md = result["stages"]["molecular_dynamics"]
     assert md["from_cache"] == ["it1-c2"] and calls.md_screen == [["it1-c1", "it1-c2"]]
     br = result["iterations"][0]["candidates"][1]

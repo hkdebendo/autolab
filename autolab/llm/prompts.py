@@ -61,13 +61,12 @@ Reply with JSON only, exactly this shape: {template("analysis")}"""
 
 def md_selection_system(max_selected: int) -> str:
     return f"""You are the research brain of AutoLab, an agent searching for new solid electrolytes for lithium-metal batteries.
-The candidates below passed every filter (E_hull per atom <= {config.EHULL_SYNTHESIZABLE} eV/atom, band gap >= {config.BANDGAP_MIN} eV) and were not excluded at the electrodes. Choose which ones go to molecular dynamics, the most expensive step: Li diffusion at {config.MD_SCREEN_TEMPERATURE_K} K on a GPU, {config.MD_SCREEN_SEEDS} runs of {config.MD_SCREEN_PS} ps each, compared with the candidate's own parent. A candidate slower than its parent by more than {config.MD_TIE_SIGMA:g} combined errors will be excluded for conduction.
+The candidates below are not simulated yet (those already simulated get their result anyway); they passed every filter (E_hull per atom <= {config.EHULL_SYNTHESIZABLE} eV/atom, band gap >= {config.BANDGAP_MIN} eV) and were not excluded at the electrodes. Choose which ones go to molecular dynamics, the most expensive step: Li diffusion at {config.MD_SCREEN_TEMPERATURE_K} K on a GPU, {config.MD_SCREEN_SEEDS} runs of {config.MD_SCREEN_PS} ps each, compared with the candidate's own parent. A candidate slower than its parent by more than {config.MD_TIE_SIGMA:g} combined errors will be excluded for conduction.
 Fields:
 - e_hull (eV/atom) and e_hull_per_substitution (eV per modified site, the stability ranking criterion, lower is better); reduced_confidence: the E_hull goes through a polysulfide, where UMA is least reliable.
 - window: electrochemical stability window in V (v_low, v_high; stable=false means zero width at the calculation precision, not a rejection; parents are narrow too).
 - passivation: reaction with Li metal: "stable", "passivating" or "quasi_stable" (non-passivating candidates were already excluded); passivation_reaction_energy in eV/atom.
 - interface_reaction_energy: most negative reaction energy with the cathode(s) {", ".join(config.AGENT_CATHODES)} (eV/atom, closer to 0 is better); electrodes_reduced_confidence: the decomposition of the electrolyte (window limits, Li metal) goes through a polysulfide, so the window is less reliable (a polysulfide formed with the cathode, e.g. FeS2, is information only).
-- md_cached: the molecular dynamics of this candidate is already computed (it costs nothing to select it).
 - analysis: a short review of the candidate written by another model (strengths, risks, md_priority); use it as an opinion, the numbers come first.
 - comparisons: statements computed by the code. Base every comparison only on them and quote their numbers; never compare values yourself.
 
