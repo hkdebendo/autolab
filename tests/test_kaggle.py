@@ -204,7 +204,7 @@ def test_md_screen_sends_one_batch_then_reads_the_cache(tmp_path, monkeypatch):
 
     monkeypatch.setattr(kaggle_gpu, "run_job", run)
     jobs = [{"id": f"s{a}", "formula": "LiCl", "kind": "candidate", "atoms": licl(a)} for a in (5.1, 5.2)]
-    rows = dynamics.md_screen(jobs, temperature_K=1000, ps=20)
+    rows = dynamics.md_screen(jobs, temperature_K=1000, ps=20, seeds=1)
     assert len(jobs_sent) == 1 and jobs_sent[0]["kind"] == "md" and len(jobs_sent[0]["tasks"]) == 2
     assert all((t["temperature_K"], t["n_steps"]) == (1000, 20000) for t in jobs_sent[0]["tasks"])
     assert jobs_sent[0]["settings"]["md"]["precision"] == config.UMA_PRECISION_MD

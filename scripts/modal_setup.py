@@ -63,7 +63,8 @@ def speed(gpus: list[str], ps: float, deadline_s: float = config.MODAL_SPEED_DEA
     for gpu in gpus:
         try:
             calls[gpu] = _fn("md_speed").with_options(gpu=gpu).spawn(
-                job["atoms"], precision=config.UMA_PRECISION_MD, temperature_K=config.MD_SCREEN_TEMPERATURE_K,
+                job["atoms"], precision=config.UMA_PRECISION_MD, temperature_K=1000,  # as measured on 2026-10-29
+               
                 n_steps=n_steps)
         except Exception as e:  # quota, payment: reported, never retried
             rows[gpu] = {"requested": gpu, "error": f"{type(e).__name__}: {e}"[:300]}

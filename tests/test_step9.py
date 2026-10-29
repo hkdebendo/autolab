@@ -81,8 +81,8 @@ def test_uma_interface_rejects_mixed_sources():
 
 
 def fake_run(d_true=0.5, n_li=20):
-    def run(atoms, temperature_K, n_steps):
-        rng = np.random.default_rng(1)
+    def run(atoms, temperature_K, n_steps, seed=0):
+        rng = np.random.default_rng(1 + seed)
         frames = n_steps // config.MD_RECORD_EVERY
         dt = config.MD_TIMESTEP_FS * config.MD_RECORD_EVERY
         steps = rng.normal(0, np.sqrt(2 * d_true * dt / 1000.0), size=(frames, n_li, 3))
@@ -101,6 +101,16 @@ def test_md_screen_fits_d_and_reports_each_run(li2s_candidate):
     assert rows[0]["D_cm2_per_s"] == pytest.approx(rows[0]["D_A2_per_ps"] * 1e-4)
     with pytest.raises(ValueError, match="MD_SCREEN_MAX_RUNS"):
         dynamics.md_screen(jobs * 4, run=fake_run())
+
+
+def test_md_screen_pools_the_seeds_of_each_structure(li2s_candidate):
+    rows = dynamics.md_screen([dynamics.candidate_job(li2s_candidate)], temperature_K=600, ps=40, seeds=2,
+                              run=fake_run())
+    r = rows[0]
+    assert r["seeds"] == 2 and r["D_method"] == "blocks_pooled" and len(r["D_per_seed_cm2_per_s"]) == 2
+    assert len(r["D_blocks_cm2_per_s"]) == 2 * config.MD_D_BLOCKS
+    assert r["D_per_seed_cm2_per_s"][0] != r["D_per_seed_cm2_per_s"][1]  # two different seeds
+    assert r["D_A2_per_ps"] == pytest.approx(0.5, rel=0.25) and r["D_sem_cm2_per_s"] > 0
 
 
 def test_run_interfaces_stops_before_candidates_when_calibration_fails(tmp_path, monkeypatch, li2s_candidate):

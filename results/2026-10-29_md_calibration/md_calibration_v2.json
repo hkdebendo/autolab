@@ -1,0 +1,282 @@
+{
+ "runs": [
+  {
+   "role": "fast",
+   "id": "mp-641703",
+   "formula": "Li7P3S11",
+   "temperature_K": 600,
+   "ps": 40,
+   "n_steps": 40000,
+   "seed": 0,
+   "n_atoms": 84,
+   "n_li": 28,
+   "ms_per_step": 24.43,
+   "D_A2_per_ps": 0.12800371372671962,
+   "D_cm2_per_s": 1.2800371372671963e-05,
+   "D_sem_cm2_per_s": 2.3580435032516976e-06,
+   "D_blocks_cm2_per_s": [
+    1.0682714365428542e-05,
+    7.539415460173982e-06,
+    1.8405446260023984e-05,
+    1.457390940506134e-05
+   ],
+   "D_method": "blocks",
+   "D_one_origin_cm2_per_s": 1.589863424861183e-05,
+   "msd_final_A2": 30.41149821428571,
+   "duration_ps": 40.0,
+   "framework": {
+    "intact": true,
+    "ratio_max": 0.05,
+    "elements": {
+     "P": {
+      "msd_final_A2": 0.1034,
+      "D_ratio_to_Li": -0.0010123371195224341
+     },
+     "S": {
+      "msd_final_A2": 0.2174,
+      "D_ratio_to_Li": -0.003520496527930141
+     }
+    }
+   }
+  },
+  {
+   "role": "fast",
+   "id": "mp-641703",
+   "formula": "Li7P3S11",
+   "temperature_K": 600,
+   "ps": 40,
+   "n_steps": 40000,
+   "seed": 1,
+   "n_atoms": 84,
+   "n_li": 28,
+   "ms_per_step": 18.53,
+   "D_A2_per_ps": 0.1315349095682351,
+   "D_cm2_per_s": 1.3153490956823511e-05,
+   "D_sem_cm2_per_s": 4.219409746284961e-06,
+   "D_blocks_cm2_per_s": [
+    2.427744674408018e-05,
+    5.134567708416802e-06,
+    1.482393042167389e-05,
+    8.37801895312317e-06
+   ],
+   "D_method": "blocks",
+   "D_one_origin_cm2_per_s": 5.42954252959657e-06,
+   "msd_final_A2": 21.869147071428575,
+   "duration_ps": 40.0,
+   "framework": {
+    "intact": true,
+    "ratio_max": 0.05,
+    "elements": {
+     "P": {
+      "msd_final_A2": 0.0668,
+      "D_ratio_to_Li": -0.00017840005054427428
+     },
+     "S": {
+      "msd_final_A2": 0.1722,
+      "D_ratio_to_Li": -0.001669470849056221
+     }
+    }
+   }
+  },
+  {
+   "role": "fast",
+   "id": "mp-641703",
+   "formula": "Li7P3S11",
+   "temperature_K": 600,
+   "ps": 40,
+   "n_steps": 40000,
+   "seed": 2,
+   "n_atoms": 84,
+   "n_li": 28,
+   "ms_per_step": 18.59,
+   "D_A2_per_ps": 0.12400457975471849,
+   "D_cm2_per_s": 1.240045797547185e-05,
+   "D_sem_cm2_per_s": 1.5237243326594324e-06,
+   "D_blocks_cm2_per_s": [
+    1.4700567951299885e-05,
+    1.1690415424052224e-05,
+    1.483048291160636e-05,
+    8.380365614928933e-06
+   ],
+   "D_method": "blocks",
+   "D_one_origin_cm2_per_s": 7.672244862894826e-06,
+   "msd_final_A2": 25.388559964285715,
+   "duration_ps": 40.0,
+   "framework": {
+    "intact": true,
+    "ratio_max": 0.05,
+    "elements": {
+     "P": {
+      "msd_final_A2": 0.1249,
+      "D_ratio_to_Li": -0.0015197393651385873
+     },
+     "S": {
+      "msd_final_A2": 0.2427,
+      "D_ratio_to_Li": -0.0017409782249387467
+     }
+    }
+   }
+  },
+  {
+   "role": "slow",
+   "id": "mp-985583",
+   "formula": "Li3PS4",
+   "temperature_K": 600,
+   "ps": 40,
+   "n_steps": 40000,
+   "seed": 0,
+   "n_atoms": 128,
+   "n_li": 48,
+   "ms_per_step": 22.32,
+   "D_A2_per_ps": 0.07887892264397056,
+   "D_cm2_per_s": 7.887892264397056e-06,
+   "D_sem_cm2_per_s": 1.2174532384798854e-06,
+   "D_blocks_cm2_per_s": [
+    4.821215950397253e-06,
+    7.957995133849233e-06,
+    7.992054813007512e-06,
+    1.0780303160334225e-05
+   ],
+   "D_method": "blocks",
+   "D_one_origin_cm2_per_s": 7.127480901718378e-06,
+   "msd_final_A2": 14.421627208333334,
+   "duration_ps": 40.0,
+   "framework": {
+    "intact": true,
+    "ratio_max": 0.05,
+    "elements": {
+     "P": {
+      "msd_final_A2": 0.1067,
+      "D_ratio_to_Li": 0.002188228176681863
+     },
+     "S": {
+      "msd_final_A2": 0.1672,
+      "D_ratio_to_Li": 0.0044172363964353305
+     }
+    }
+   }
+  },
+  {
+   "role": "slow",
+   "id": "mp-985583",
+   "formula": "Li3PS4",
+   "temperature_K": 600,
+   "ps": 40,
+   "n_steps": 40000,
+   "seed": 1,
+   "n_atoms": 128,
+   "n_li": 48,
+   "ms_per_step": 22.26,
+   "D_A2_per_ps": 0.03993866267191551,
+   "D_cm2_per_s": 3.993866267191551e-06,
+   "D_sem_cm2_per_s": 1.7145019297695125e-06,
+   "D_blocks_cm2_per_s": [
+    1.10912286195666e-06,
+    8.924595615400665e-06,
+    2.4477400681994097e-06,
+    3.4940065232094704e-06
+   ],
+   "D_method": "blocks",
+   "D_one_origin_cm2_per_s": 4.8073806773126e-06,
+   "msd_final_A2": 9.662035687500001,
+   "duration_ps": 40.0,
+   "framework": {
+    "intact": true,
+    "ratio_max": 0.05,
+    "elements": {
+     "P": {
+      "msd_final_A2": 0.0648,
+      "D_ratio_to_Li": 0.004941514547409783
+     },
+     "S": {
+      "msd_final_A2": 0.1143,
+      "D_ratio_to_Li": 0.008746272479702139
+     }
+    }
+   }
+  },
+  {
+   "role": "slow",
+   "id": "mp-985583",
+   "formula": "Li3PS4",
+   "temperature_K": 600,
+   "ps": 40,
+   "n_steps": 40000,
+   "seed": 2,
+   "n_atoms": 128,
+   "n_li": 48,
+   "ms_per_step": 22.52,
+   "D_A2_per_ps": 0.06903359922821244,
+   "D_cm2_per_s": 6.903359922821244e-06,
+   "D_sem_cm2_per_s": 1.5109137040262425e-06,
+   "D_blocks_cm2_per_s": [
+    3.2277165500945472e-06,
+    8.007235734838105e-06,
+    6.026094095868995e-06,
+    1.035239331048333e-05
+   ],
+   "D_method": "blocks",
+   "D_one_origin_cm2_per_s": 9.267700001924977e-06,
+   "msd_final_A2": 14.9631120625,
+   "duration_ps": 40.0,
+   "framework": {
+    "intact": true,
+    "ratio_max": 0.05,
+    "elements": {
+     "P": {
+      "msd_final_A2": 0.0621,
+      "D_ratio_to_Li": -0.0016120655097566273
+     },
+     "S": {
+      "msd_final_A2": 0.1417,
+      "D_ratio_to_Li": -0.0016995241266337367
+     }
+    }
+   }
+  }
+ ],
+ "calibration": {
+  "passed": true,
+  "tests": {
+   "framework_intact": true,
+   "fast_faster_than_slow": true
+  },
+  "pooled": {
+   "fast": {
+    "formula": "Li7P3S11",
+    "seeds": [
+     0,
+     1,
+     2
+    ],
+    "D_per_seed": [
+     1.2800371372671963e-05,
+     1.3153490956823511e-05,
+     1.240045797547185e-05
+    ],
+    "n_blocks": 12,
+    "D_cm2_per_s": 1.2784773434989107e-05,
+    "D_sem_cm2_per_s": 1.5308985786292912e-06
+   },
+   "slow": {
+    "formula": "Li3PS4",
+    "seeds": [
+     0,
+     1,
+     2
+    ],
+    "D_per_seed": [
+     7.887892264397056e-06,
+     3.993866267191551e-06,
+     6.903359922821244e-06
+    ],
+    "n_blocks": 12,
+    "D_cm2_per_s": 6.2617061514699505e-06,
+    "D_sem_cm2_per_s": 9.262666512655129e-07
+   }
+  },
+  "ratio": 2.0417396035085185,
+  "diff_in_sigma": 3.6455825864401215,
+  "n_sigma": 2.0
+ }
+}
