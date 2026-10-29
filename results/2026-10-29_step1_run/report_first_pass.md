@@ -1,0 +1,164 @@
+# AutoLab loop report
+
+**Domain.** electrolyte. **Goal.** Find new sulfide solid electrolytes for lithium-metal batteries: thermodynamically stable or slightly metastable, electronically insulating, by substitutions in known Li-P-S crystals.
+
+**Parents.** Li3PS4 mp-985583 (Li12P4S16, 32 atoms); Li7P3S11 mp-641703 (Li14P6S22, 42 atoms)
+**Settings.** 1 iterations max, 3 candidates max, 80 new UMA relaxations max; brain meta, fallback None.
+**Stop reason.** iterations done
+
+## Iteration 1
+
+**Hypothesis.** Dilute anion mixing on S sites balances stability, band gap, and Li vacancies.
+
+_meta, 1 attempt(s), 3616 in / 5382 out tokens, ~$0.0274, 24.0 s_
+
+| Proposal | Parent | Substitution | Rationale |
+|---|---|---|---|
+| it1-c1 | mp-985583 | S->Br x1, -1 Li | Br bridges Cl and I size that both passed, creating Li vacancies like argyrodites for conductivity. |
+| it1-c2 | mp-985583 | S->Se x2 | Se isovalent expansion improved hull in Li7P3S11 and should soften lattice in Li3PS4. |
+| it1-c3 | mp-641703 | S->O x2 | O oxysulfide mixing passed in Li3PS4 and should stabilize Li7P3S11 against Li metal. |
+
+<details><summary>Reasoning summary (proposals)</summary>
+
+Evaluating substitution rules and filtering criteria for solid electrolyte proposals before simulation.
+
+Applying fixed oxidation-state constraints and charge-neutrality rules while filtering new compositions by E_hull and band gap thresholds.
+
+Proposing three novel aliovalent substitutions with charge-neutrality constraints while avoiding evaluated patterns.
+
+Evaluating aliovalent substitutions for charge neutrality and ruling out P→Si/Ge/Sn while considering Br and O doping.
+
+Prioritizing Br, Se, O, and F dopants for charge-neutral substitutions and excluding P→Si/Ge/Sn.
+
+Selecting Br, Se, and O dopants across the two parents to maximize chemical diversity and prior success.
+
+</details>
+
+| Candidate | Formula | Arrangements/converged | Spread (meV/at) | E_hull per atom (eV/atom) | E_hull per substitution (eV per modified site) | Gap optB88/mBJ (eV) | S-S | Known in MP | Result |
+|---|---|---|---|---|---|---|---|---|---|
+| it1-c1 | Li11P4S15Br | 7/7 | 17.0 | 0.024 | 0.367 | 2.66 / 3.27 | no | — | passed |
+| it1-c2 | Li6P2SeS7 | 6/6 | 2.1 | -0.007 | -0.115 | 2.48 / 3.10 | no | — | passed |
+| it1-c3 | Li7P3S10O | 8/8 | 13.3 | 0.024 | 0.510 | 2.56 / 3.02 | no | — | passed |
+- it1-c1 decomposes into: Li3PS4 0.86, P2S5 0.08, LiBr 0.06
+- it1-c2 decomposes into: Li3PS4 0.88, Li7PSe6 0.09, P2Se5 0.03
+- it1-c3 decomposes into: Li3PS4 0.79, P2S5 0.11, Li3PO4 0.10
+
+<details><summary>Comparisons computed by the code (given to the model)</summary>
+
+- **same substitution, different parents**, S->Cl x1, -1 Li on mp-985583 vs mp-641703: E_hull per atom: Li11P4S15Cl (s9:it1-c1) 0.026 < Li13P6S21Cl (s9:it2-c1) 0.030 eV/atom (better: s9:it1-c1); E_hull per substitution: Li11P4S15Cl (s9:it1-c1) 0.399 < Li13P6S21Cl (s9:it2-c1) 0.618 eV per modified site (better: s9:it1-c1); band gap optB88: Li11P4S15Cl (s9:it1-c1) 2.669 > Li13P6S21Cl (s9:it2-c1) 2.250 eV (better: s9:it1-c1)
+- **same substitution, different parents**, S->O x2 on mp-985583 vs mp-641703: E_hull per atom: Li6P2S7O (s9:it1-c2) 0.024 = Li7P3S10O (it1-c3) 0.024 eV/atom; E_hull per substitution: Li6P2S7O (s9:it1-c2) 0.384 < Li7P3S10O (it1-c3) 0.510 eV per modified site (better: s9:it1-c2); band gap optB88: Li6P2S7O (s9:it1-c2) 2.838 > Li7P3S10O (it1-c3) 2.560 eV (better: s9:it1-c2)
+- **same substitution, different parents**, S->Se x2 on mp-641703 vs mp-985583: E_hull per atom: Li6P2SeS7 (it1-c2) -0.007 < Li7P3SeS10 (s9:it1-c4) 0.015 eV/atom (better: it1-c2); E_hull per substitution: Li6P2SeS7 (it1-c2) -0.115 < Li7P3SeS10 (s9:it1-c4) 0.323 eV per modified site (better: it1-c2); band gap optB88: Li6P2SeS7 (it1-c2) 2.485 > Li7P3SeS10 (s9:it1-c4) 2.355 eV (better: it1-c2)
+- **same parent, different added element**, on mp-985583: S->Cl vs S->I (x1, 1 Li vacancies): E_hull per atom: Li11P4S15I (s9:it2-c5) 0.023 < Li11P4S15Cl (s9:it1-c1) 0.026 eV/atom (better: s9:it2-c5); E_hull per substitution: Li11P4S15I (s9:it2-c5) 0.362 < Li11P4S15Cl (s9:it1-c1) 0.399 eV per modified site (better: s9:it2-c5); band gap optB88: Li11P4S15Cl (s9:it1-c1) 2.669 > Li11P4S15I (s9:it2-c5) 2.522 eV (better: s9:it1-c1)
+- **same parent, different added element**, on mp-985583: S->Cl vs S->Br (x1, 1 Li vacancies): E_hull per atom: Li11P4S15Br (it1-c1) 0.024 < Li11P4S15Cl (s9:it1-c1) 0.026 eV/atom (better: it1-c1); E_hull per substitution: Li11P4S15Br (it1-c1) 0.367 < Li11P4S15Cl (s9:it1-c1) 0.399 eV per modified site (better: it1-c1); band gap optB88: Li11P4S15Cl (s9:it1-c1) 2.669 > Li11P4S15Br (it1-c1) 2.660 eV (better: s9:it1-c1)
+- **same parent, different added element**, on mp-985583: S->I vs S->Br (x1, 1 Li vacancies): E_hull per atom: Li11P4S15I (s9:it2-c5) 0.023 < Li11P4S15Br (it1-c1) 0.024 eV/atom (better: s9:it2-c5); E_hull per substitution: Li11P4S15I (s9:it2-c5) 0.362 < Li11P4S15Br (it1-c1) 0.367 eV per modified site (better: s9:it2-c5); band gap optB88: Li11P4S15Br (it1-c1) 2.660 > Li11P4S15I (s9:it2-c5) 2.522 eV (better: it1-c1)
+- **same parent, different added element**, on mp-985583: S->O vs S->Se (x2, 0 Li vacancies): E_hull per atom: Li6P2SeS7 (it1-c2) -0.007 < Li6P2S7O (s9:it1-c2) 0.024 eV/atom (better: it1-c2); E_hull per substitution: Li6P2SeS7 (it1-c2) -0.115 < Li6P2S7O (s9:it1-c2) 0.384 eV per modified site (better: it1-c2); band gap optB88: Li6P2S7O (s9:it1-c2) 2.838 > Li6P2SeS7 (it1-c2) 2.485 eV (better: s9:it1-c2)
+- **same parent, different added element**, on mp-641703: S->Se vs S->O (x2, 0 Li vacancies): E_hull per atom: Li7P3SeS10 (s9:it1-c4) 0.015 < Li7P3S10O (it1-c3) 0.024 eV/atom (better: s9:it1-c4); E_hull per substitution: Li7P3SeS10 (s9:it1-c4) 0.323 < Li7P3S10O (it1-c3) 0.510 eV per modified site (better: s9:it1-c4); band gap optB88: Li7P3S10O (it1-c3) 2.560 > Li7P3SeS10 (s9:it1-c4) 2.355 eV (better: it1-c3)
+- **ranking on one parent**, mp-985583: E_hull per atom (lowest first): it1-c2 -0.007, s9:it2-c4 0.003, s9:it2-c5 0.023, it1-c1 0.024, s9:it1-c2 0.024, s9:it1-c1 0.026; E_hull per substitution (lowest first): it1-c2 -0.115, s9:it2-c4 0.089, s9:it2-c5 0.362, it1-c1 0.367, s9:it1-c2 0.384, s9:it1-c1 0.399; band gap optB88 (highest first): s9:it1-c2 2.838, s9:it2-c4 2.705, s9:it1-c1 2.669, it1-c1 2.660, s9:it2-c5 2.522, it1-c2 2.485
+- **ranking on one parent**, mp-641703: E_hull per atom (lowest first): s9:it1-c4 0.015, s9:it1-c5 0.017, s9:it2-c2 0.024, it1-c3 0.024, s9:it2-c1 0.030, s9:it2-c3 0.033; E_hull per substitution (lowest first): s9:it1-c4 0.323, s9:it1-c5 0.347, s9:it2-c2 0.503, it1-c3 0.510, s9:it2-c1 0.618, s9:it2-c3 1.381; band gap optB88 (highest first): it1-c3 2.560, s9:it1-c5 2.397, s9:it1-c4 2.355, s9:it2-c1 2.250, s9:it2-c3 2.231, s9:it2-c2 2.200
+
+</details>
+
+**Analysis.** ranking ['it1-c2', 'it1-c1', 'it1-c3']; stop=False
+
+- S->Se x2 favors mp-985583 over mp-641703 (-0.115 vs 0.323 eV per modified site).
+- On mp-985583 S->Se x2 beats S->O x2 (-0.115 vs 0.384 eV per modified site).
+- On mp-985583 S->Br x1 beats S->Cl x1 (0.367 vs 0.399 eV per modified site) while S->I remains best (0.362 vs 0.367 eV per modified site).
+
+**Next direction.** Prioritize dilute Se and heavy-halide Br/I mixing on mp-985583.
+
+_meta, 1 attempt(s), 6638 in / 2292 out tokens, ~$0.0180, 10.0 s_
+
+<details><summary>Reasoning summary (analysis)</summary>
+
+Ranking only candidates with status 'passed' using e_hull_per_substitution while relying on provided comparison statements and clarifying iteration scope.
+
+Applying the e_hull_per_substitution ordering to this iteration's passed candidates while deferring to comparison statements.
+
+Deriving a current-iteration ranking from quoted e_hull per substitution values and drafting brief lessons and next direction.
+
+</details>
+
+**Earlier runs.** 10 candidates given to the model and to the stages: s9:it1-c1, s9:it1-c2, s9:it1-c3, s9:it1-c4, s9:it1-c5, s9:it2-c1, s9:it2-c2, s9:it2-c3, s9:it2-c4, s9:it2-c5.
+
+## Electrodes (UMA + MP2020 energies)
+
+- Calibration Li3PS4 / LiFePO4: UMA -0.144 vs MP -0.133 eV/atom (diff -0.011, tolerance 0.05) → trusted
+
+| Candidate | Formula | Window (V) | Against Li metal | Worst reaction with LiFePO4 (eV/atom) | Confidence | Decision |
+|---|---|---|---|---|---|---|
+| it1-c2 | Li6P2SeS7 | 1.80–2.24 | passivating (2.309) | -0.145 | reduced (electrolyte decomposes via SeS7); cathode reaction forms FeS2 (information) | kept |
+| s9:it2-c4 | NaLi11(PS4)4 | 1.94–2.26 | non_passivating (2.204) | — | reduced (electrolyte decomposes via Na2S5) | excluded: non_passivating against Li metal (metallic products Na, reaction 2.204 eV/atom) |
+| s9:it1-c4 | Li7P3SeS10 | 2.28–2.30 | passivating (2.529) | -0.143 | reduced (electrolyte decomposes via P2S7); cathode reaction forms FeS2 (information) | kept |
+| s9:it1-c5 | NaLi6P3S11 | 2.26–2.34 | non_passivating (2.365) | — | reduced (electrolyte decomposes via Na2S5, P2S7) | excluded: non_passivating against Li metal (metallic products Na, reaction 2.365 eV/atom) |
+| s9:it2-c5 | Li11P4S15I | 2.28–2.30 | passivating (2.368) | -0.139 | reduced (electrolyte decomposes via P2S7); cathode reaction forms FeS2 (information) | kept |
+| it1-c1 | Li11P4S15Br | 2.28–2.30 | passivating (2.368) | -0.138 | reduced (electrolyte decomposes via P2S7); cathode reaction forms FeS2 (information) | kept |
+| s9:it1-c2 | Li6P2S7O | 1.74–2.36 | passivating (2.197) | -0.138 | reduced (electrolyte decomposes via LiS4, P2S7); cathode reaction forms FeS2 (information) | kept |
+| s9:it1-c1 | Li11P4S15Cl | 2.28–2.30 | passivating (2.372) | -0.138 | reduced (electrolyte decomposes via P2S7); cathode reaction forms FeS2 (information) | kept |
+| s9:it2-c2 | Li7AsP2S11 | zero width (not a rejection) | passivating (2.598) | -0.149 | reduced (electrolyte decomposes via AsS2, LiS4); cathode reaction forms FeS2 (information) | kept |
+| it1-c3 | Li7P3S10O | 2.28–2.30 | passivating (2.442) | -0.136 | reduced (electrolyte decomposes via P2S7); cathode reaction forms FeS2 (information) | kept |
+| s9:it2-c1 | Li13P6S21Cl | 2.28–2.30 | passivating (2.574) | -0.135 | reduced (electrolyte decomposes via P2S7); cathode reaction forms FeS2 (information) | kept |
+| s9:it2-c3 | Li14SbP5S22 | zero width (not a rejection) | passivating (2.559) | -0.143 | reduced (electrolyte decomposes via LiS4); cathode reaction forms FeS2 (information) | kept |
+
+Reduced confidence: the decomposition of the electrolyte (window limits, Li metal) goes through a polysulfide, where UMA is least reliable. Interfaces are informative (no threshold); a polysulfide formed with the cathode (FeS2 for almost every sulfide against LiFePO4) is shown as information only.
+
+## Choice of the candidates for molecular dynamics
+
+Eligible: it1-c2, s9:it1-c4, s9:it2-c5, it1-c1, s9:it1-c2, s9:it1-c1, s9:it2-c2, it1-c3, s9:it2-c1, s9:it2-c3. Selected by meta: it1-c2, s9:it2-c5, s9:it1-c4.
+
+Rationale: Diverse soft-anion plus vacancy set pairing Se on both parents with I-vacancy, where rankings give it1-c2 -0.115, s9:it2-c5 0.362 < it1-c1 0.367, and s9:it1-c4 0.323 best on its parent, with two cached free.
+
+## Li diffusion (600 K, 2 seeds of 40 ps pooled, Modal A10G)
+
+Runs computed: 2 of 10 (others from the cache); estimate 0.99 $, about 27 min in parallel.
+
+| Structure | Kind | D ± s.e. (cm²/s) | D / D(parent) | Verdict | Conduction | Framework |
+|---|---|---|---|---|---|---|
+| Li7P3S11 (mp-641703) | parent | 1.30e-05 ± 2.2e-06 | — | — | — | intact |
+| Li3PS4 (mp-985583) | parent | 5.94e-06 ± 1.2e-06 | — | — | — | intact |
+| Li6P2SeS7 (it1-c2) | candidate | 3.90e-06 ± 9.6e-07 | 0.66 ± 0.21 | tied | passes | intact |
+| Li11P4S15I (s9:it2-c5) | candidate | 5.34e-06 ± 1.7e-06 | 0.90 ± 0.34 | tied | passes | intact |
+| Li7P3SeS10 (s9:it1-c4) | candidate | 1.39e-05 ± 1.8e-06 | 1.07 ± 0.23 | tied | passes | intact |
+
+## Final ranking
+
+Order: MD verdict (higher > tied > not_run), then lowest E_hull per substitution; excluded candidates last, with their reason. Candidates are computational predictions, not proven materials.
+
+1. it1-c2 Li6P2SeS7 **finalist**: E_hull per substitution -0.115 eV, E_hull -0.007 eV/atom, gap 2.48 eV, MD tied (D/D(parent) 0.66 ± 0.21); reduced confidence of the window (decomposes via SeS7)
+2. s9:it1-c4 Li7P3SeS10 **finalist**: E_hull per substitution 0.323 eV, E_hull 0.015 eV/atom, gap 2.35 eV, MD tied (D/D(parent) 1.07 ± 0.23); reduced confidence of the window (decomposes via P2S7)
+3. s9:it2-c5 Li11P4S15I **finalist**: E_hull per substitution 0.362 eV, E_hull 0.023 eV/atom, gap 2.52 eV, MD tied (D/D(parent) 0.90 ± 0.34); reduced confidence of the window (decomposes via P2S7)
+4. it1-c1 Li11P4S15Br: E_hull per substitution 0.367 eV, E_hull 0.024 eV/atom, gap 2.66 eV, MD not run; reduced confidence of the window (decomposes via P2S7)
+5. s9:it1-c2 Li6P2S7O: E_hull per substitution 0.384 eV, E_hull 0.024 eV/atom, gap 2.84 eV, MD not run; reduced confidence of the window (decomposes via LiS4, P2S7)
+6. s9:it1-c1 Li11P4S15Cl: E_hull per substitution 0.399 eV, E_hull 0.026 eV/atom, gap 2.67 eV, MD not run; reduced confidence of the window (decomposes via P2S7)
+7. s9:it2-c2 Li7AsP2S11: E_hull per substitution 0.503 eV, E_hull 0.024 eV/atom, gap 2.20 eV, MD not run; reduced confidence (E_hull via AsS2, LiS4); reduced confidence of the window (decomposes via AsS2, LiS4)
+8. it1-c3 Li7P3S10O: E_hull per substitution 0.510 eV, E_hull 0.024 eV/atom, gap 2.56 eV, MD not run; reduced confidence of the window (decomposes via P2S7)
+9. s9:it2-c1 Li13P6S21Cl: E_hull per substitution 0.618 eV, E_hull 0.030 eV/atom, gap 2.25 eV, MD not run; reduced confidence of the window (decomposes via P2S7)
+10. s9:it2-c3 Li14SbP5S22: E_hull per substitution 1.381 eV, E_hull 0.033 eV/atom, gap 2.23 eV, MD not run; reduced confidence (E_hull via LiS4); reduced confidence of the window (decomposes via LiS4)
+11. s9:it2-c4 NaLi11(PS4)4: E_hull per substitution 0.089 eV, E_hull 0.003 eV/atom, gap 2.71 eV, MD not run; reduced confidence of the window (decomposes via Na2S5) — EXCLUDED at electrodes: non_passivating against Li metal (metallic products Na, reaction 2.204 eV/atom)
+12. s9:it1-c5 NaLi6P3S11: E_hull per substitution 0.347 eV, E_hull 0.017 eV/atom, gap 2.40 eV, MD not run; reduced confidence of the window (decomposes via Na2S5, P2S7) — EXCLUDED at electrodes: non_passivating against Li metal (metallic products Na, reaction 2.365 eV/atom)
+
+## Novelty check (literature, web search)
+
+Search date: 2026-10-29. Links come only from the citations returned by the API. "No publication found in this search" does not mean the material was never reported.
+
+### control-LGPS Li10GeP2S12 (control, expected: already published): no publication found in this search
+
+I'll search the literature and materials databases for Li10GeP2S12 and related doped phases.LEVEL: published
+Li10GeP2S12 is reported as a lithium superionic conductor with a new three-dimensional framework structure in Nature Materials 10, 682–686 (2011). Tetragonal Li10GeP2S12 (LGPS) is described as the best solid Li ion conductor known to date, with structure determined by diffraction and Rietveld refinement. Commercial Li10GeP2S12 powder is sold as a solid-state electrolyte with very high Li+ ionic conductivity for lithium-ion battery research.
+
+Notes: the model gave no level: check manually
+
+_1 web searches, 11 sources considered, ~$0.0106, 2026-10-29_
+
+**Stopped:** control Li10GeP2S12 not found as published (none_found): search not trusted, candidates not checked
+Total: 1 calls, ~$0.0106.
+
+
+Model ranking (last analysis): ['it1-c2', 'it1-c1', 'it1-c3']
+
+## Usage
+
+- meta: 3 calls, 16195 in / 10048 out tokens, ~$0.0630
+- novelty web search: 1 calls, ~$0.0106
+- molecular dynamics: 2 new runs of 10 on Modal A10G, estimate 0.99 $
+- UMA relaxations: 55 new / 80 allowed
+- events: 53; duration 33.0 min

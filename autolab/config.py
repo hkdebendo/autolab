@@ -116,7 +116,7 @@ MD_MIN_LENGTH = 10.0  # Angstrom, minimum supercell side
 MD_SCREEN_TEMPERATURE_K = 600  # ✅ calibration v2 (2026-10-29): parents separate at 600 K, not at 1000 K
 MD_SCREEN_PS = 40  # ✅ ps per run (calibration v2)
 MD_SCREEN_SEEDS = 2  # ✅ runs per structure, blocks pooled (calibration v2)
-MD_SCREEN_MAX_RUNS = 14  # simulations per screening (structures x seeds: 5 candidates + 2 parents, 2 seeds)
+MD_SCREEN_MAX_RUNS = 14  # simulations to compute per screening (structures x seeds not in the cache)
 MD_D_BLOCKS = 4  # ✅ D = mean of D fitted in 4 blocks (MSD over many time origins); standard error across blocks
 MD_TIE_SIGMA = 2.0  # a candidate is "tied" with its parent when |D/D(parent) - 1| <= 2 x its propagated error
 MD_FRAMEWORK_D_RATIO_MAX = 0.05  # framework intact if every non-Li element diffuses < 5 % of Li
@@ -233,6 +233,25 @@ FINALISTS_MAX = 3  # best kept candidates sent to the novelty check
 # --- Budget limits (CLAUDE.md) -----------------------------------------------
 
 MAX_RELAXATIONS_PER_RUN = 80  # UMA relaxations not already in cache
+
+# Validation benchmark (roadmap step 2): known compounds judged blind by the funnel (their own composition is
+# removed from the hull references; the language model never sees them). Lowest-energy MP polymorph of each.
+BENCHMARK_GOOD = {  # known solid electrolytes, expected to pass
+    "mp-985592": "Li6PS5Cl (argyrodite; ordered MP cell 0.083 eV/atom above the MP hull)",
+    "mp-696138": "Li10GeP2S12 (LGPS; known to react with Li metal)",
+    "mp-641703": "Li7P3S11",
+    "mp-985583": "beta-Li3PS4",
+}
+BENCHMARK_BAD = {  # expected to be rejected: electronic conductors or unstable
+    "mp-736": "Li3P (semiconductor, MP PBE gap 0.70 eV)",
+    "mp-7955": "Li3Sb (semiconductor, MP PBE gap 0.48 eV)",
+    "mp-9588": "LiP (semiconductor, MP PBE gap 0.81 eV)",
+    "mp-9918": "LiGe (metal)",
+    "mp-795": "LiSi (metal)",
+    "mp-569849": "Li15Si4 (metal)",
+    "mp-38200": "Li2PS3 (unstable, 0.121 eV/atom above the MP hull)",
+    "mp-1222635": "Li2PS3 (unstable, 0.126 eV/atom above the MP hull, metallic)",
+}
 
 MAX_ITERATIONS = 2
 MAX_CANDIDATES_PER_ITERATION = 5

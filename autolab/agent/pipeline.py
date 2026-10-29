@@ -84,8 +84,6 @@ def evaluate_candidate(
 
     sim.backend.BudgetExceeded propagates: the caller stops the run cleanly.
     """
-    from autolab.analysis.stability import e_hull, uma_entry
-    from autolab.chem.checks import has_ss_bonds
     from autolab.chem.generator import generate_candidates
 
     tools = tools or Tools()
@@ -133,6 +131,17 @@ def evaluate_candidate(
         out["known_in_mp"] = [k["material_id"] for k in known]
         return finish(step="known", reason=f"composition already in Materials Project: {', '.join(out['known_in_mp'])}")
     structures = [Structure.from_dict(c["structure"]) for c in gen["candidates"]]
+    return evaluate_structures(out, structures, tools, emit, finish, budget)
+
+
+def evaluate_structures(out: dict, structures: list[Structure], tools: Tools, emit: Callable, finish: Callable,
+                        budget=None, hidden_formulas: frozenset[str] = frozenset()) -> dict:
+    """Steps 3-6 of the funnel on ready structures (arrangements of one composition): relaxation, E_hull,
+    band gap, S-S flag. `hidden_formulas`: reduced formulas removed from the hull references (blind benchmark of
+    a known compound, judged as if it were new)."""
+    from autolab.analysis.stability import e_hull, uma_entry
+    from autolab.chem.checks import has_ss_bonds
+
     out["arrangements"] = len(structures)
 
     # 3. UMA relaxation of every arrangement; keep the lowest converged one.
@@ -155,8 +164,10 @@ def evaluate_candidate(
     #    of each modification, so that a single dopant in a large cell is not favoured for changing little.
     elements = sorted(el.symbol for el in structure.composition.elements)
     entries, skipped = tools.hull_entries(elements, budget)
+    if hidden_formulas:
+        entries = [e for e in entries if e.composition.reduced_formula not in hidden_formulas]
     out["skipped_references"] = skipped
-    target = uma_entry(Composition(structure.composition), best["energy"], candidate_id, structure=structure)
+    target = uma_entry(Composition(structure.composition), best["energy"], out["id"], structure=structure)
     hull = e_hull(target, entries)
     out["n_atoms"] = len(structure)
     # Reduced confidence when the decomposition goes through a polysulfide (S-S bonds), where UMA is least reliable.

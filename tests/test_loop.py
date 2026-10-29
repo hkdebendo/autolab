@@ -181,6 +181,18 @@ def test_complete_loop_passes_data_from_step_to_step(li3ps4):
     assert result["usage"]["llm"]["meta"]["calls"] == 3
 
 
+def test_cached_md_applies_to_candidates_not_selected(li3ps4):
+    calls = Calls()
+    tools = fake_tools(calls, verdicts={"Li11P4S15Br": "lower"})
+    tools.md_cached = lambda c: c["formula"] == "Li11P4S15Br"  # simulated earlier, not chosen by the model now
+    brain = FakeLLM("meta", [proposal((PARENT, SUB_CL), (PARENT, BR)), analysis(), md_selection("it1-c1")])
+    result, _ = run_agent(li3ps4, brain, tools)
+    md = result["stages"]["molecular_dynamics"]
+    assert md["from_cache"] == ["it1-c2"] and calls.md_screen == [["it1-c1", "it1-c2"]]
+    br = result["iterations"][0]["candidates"][1]
+    assert br["excluded_at"] == "molecular_dynamics" and "already simulated" in render(result)
+
+
 def test_md_cost_above_cap_is_not_launched_and_ranking_goes_on(li3ps4):
     calls = Calls()
     tools = fake_tools(calls, md_usd=config.MD_MAX_USD_PER_RUN + 0.01)

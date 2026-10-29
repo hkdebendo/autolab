@@ -14,6 +14,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import sys
 import time
 from pathlib import Path
 
@@ -80,6 +81,7 @@ def main() -> None:
     ap.add_argument("--fallback-budget", type=float, help="USD cap for the fallback")
     ap.add_argument("--out", type=Path, default=config.CACHE_DIR / "runs" / time.strftime("%Y%m%d-%H%M%S"))
     args = ap.parse_args()
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")  # the Windows console is cp1252
 
     brain_cap = args.brain_budget or config.LLM_COST_CAPS_USD[args.brain]
     if args.plan:
