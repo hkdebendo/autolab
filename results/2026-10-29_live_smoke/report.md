@@ -393,6 +393,84 @@ _7 web searches, 67 sources considered, ~$0.0602, 2026-10-29_
 
 Total: 0 calls, ~$0.0000.
 
+## Final scientific report
+
+*Ranking complete*.
+
+### Executive summary
+
+The goal was Br and I for S in Li7P3S11 with Li vacancies, compared with Li3PS4 analogues. No Br or I candidate with vacancies survived, and the three finalists are all Se for S substitutions with no vacancies. The champion Li6P2SeS7 is a Li3PS4 analogue with energy above the hull of -0.007 eV/atom, band gap of 2.485 eV, stable window from 1.8 V to 2.24 V, passivating behavior against Li metal, reaction energy with LiFePO4 of -0.145 eV/atom, and diffusion coefficient at 600 K of 3.9e-06 cm²/s. Ionic conductivity was not computed. It is the best compromise on stability and window width, but it is off-goal chemistry and remains a computational prediction.
+
+### Comparison of the three finalists
+
+| | Li6P2SeS7 | Li12P4SeS15 | Li7P3SeS10 |
+|---|---|---|---|
+| Parent crystal | Li3PS4 | Li3PS4 | Li7P3S11 |
+| Space group | Pmc2_1 | Pm | P1 |
+| Cell a / b / c (Å) | 6.26 / 8.15 / 13.15 | 6.24 / 8.11 / 13.12 | 6.20 / 12.67 / 12.67 |
+| E_hull (eV/atom) | -0.007 | -0.004 | 0.015 |
+| E_hull per substitution (eV) | -0.115 | -0.113 | 0.323 |
+| Band gap optB88 / mBJ (eV) | 2.48 / 3.10 | 2.59 / 3.15 | 2.35 / 2.89 |
+| Window (V) | 1.80–2.24 | 1.80–2.24 | 2.28–2.30 |
+| Against Li metal | passivating | passivating | passivating |
+| Reaction with LiFePO4 (eV/atom) | -0.145 | -0.145 | -0.143 |
+| D at 600 K (cm²/s) | 3.90e-06 | 4.87e-06 | 1.39e-05 |
+| D / D(parent) | 0.66 ± 0.21 | 0.82 ± 0.25 | 1.07 ± 0.23 |
+| Diffusion verdict | tied | tied | tied |
+| Ionic conductivity | not computed | not computed | not computed |
+| Literature | close family already studied | close family already studied | close family already studied |
+| Confidence flags | window via a polysulfide | window via a polysulfide | window via a polysulfide |
+
+### Champion: Li6P2SeS7
+
+**Why it is preferred.**
+- The champion has energy above the hull of -0.007 eV/atom, lower than -0.004 eV/atom for Li12P4SeS15 and 0.015 eV/atom for Li7P3SeS10.
+- Its energy per substitution of -0.115 eV is more favorable than -0.113 eV for Li12P4SeS15 and 0.323 eV for Li7P3SeS10.
+- Its stable window from 1.8 V to 2.24 V is much wider than 2.28 V to 2.3 V for Li7P3SeS10, while matching 1.8 V to 2.24 V for Li12P4SeS15.
+
+**Trade-offs.**
+- The champion does not test the requested Br or I substitution and has 0 Li vacancies, so it does not address the vacancy-halogen mechanism.
+- Its diffusion coefficient at 600 K of 3.9e-06 cm²/s is lower than 4.87e-06 cm²/s for Li12P4SeS15 and 1.39e-05 cm²/s for Li7P3SeS10, with a ratio to the parent of 0.657.
+- Its window from 1.8 V to 2.24 V is still narrow, and its reaction energy with LiFePO4 of -0.145 eV/atom indicates interfacial reactivity.
+- Its band gap of 2.485 eV is lower than 2.594 eV for Li12P4SeS15, and ionic conductivity was not computed.
+
+**Uncertainties.**
+- Diffusion was computed only at 600 K, so room-temperature transport is unknown.
+- The diffusion coefficient has statistical error of 9.6e-07 cm²/s and the ratio to the parent has error of 0.211, and all diffusion verdicts were tied.
+- The stable window from 1.8 V to 2.24 V carries a reduced-confidence flag because it involves a polysulfide.
+- DFT-level energies were not computed, and synthesis routes and experimental data were not computed.
+
+**Validation.**
+- Powder X-ray diffraction should be used to check the predicted structure against Li3PS4 and decomposition products. *(documented)*
+- Impedance spectroscopy should be used to measure ionic conductivity and electronic leakage. *(documented)*
+- DFT checks of energy above the hull and band gap should be run to confirm stability and electronic insulation. *(documented)*
+- Cycling against Li metal should be tested to confirm passivating behavior. *(documented)*
+
+**Synthesis routes to consider.**
+- Ball milling then annealing under inert atmosphere might be attempted as a route used for sulfide electrolytes, but success is not guaranteed. *(documented)*
+- Se incorporation with control of stoichiometry and atmosphere could be explored, but yield and phase purity are uncertain. *(hypothesis)*
+
+### Methods
+
+- **Candidate proposals and decisions**: Meta Muse Spark (reasoning model), with comparisons computed by the code
+- **Structure relaxation and energies**: Meta FAIR UMA (uma-s-1p2, OMat head), MP2020 corrections; references from Materials Project, all relaxed with UMA (no mixing of energy sources)
+- **Thermodynamic stability**: energy above the convex hull of the chemical system; kept if <= 0.05 eV/atom
+- **Electronic band gap**: ALIGNN graph neural network (optB88vdW scale for the filter, mBJ shown); kept if >= 2 eV
+- **Electrochemical window and electrodes**: grand-potential phase diagrams (window, reaction with Li metal), interface reactivity with LiFePO4 (calibrated against MP)
+- **Independent reviews**: Meta Muse Spark Open, one review per candidate, in parallel
+- **Lithium diffusion**: Langevin molecular dynamics with UMA at 600 K, 2 x 40 ps per structure, diffusion coefficient by blocks, compared with the parent crystal (calibrated: Li7P3S11 2.0x faster than beta-Li3PS4)
+- **Literature check**: Meta Muse Spark with web search; a known electrolyte (LGPS) checked first as a control
+- **Plain-language summaries**: Meta Muse Glimmer
+
+### Limitations
+
+- The requested Br and I substitutions with Li vacancies in Li7P3S11 were not achieved in the finalists.
+- Ionic conductivity at room temperature was not computed.
+- DFT-level energies, synthesis routes, cost, and experimental data were not computed.
+- The candidates are computational predictions, not proven materials, and need electrochemical, interfacial, and moisture-stability validation.
+- Not computed: ionic conductivity at room temperature (only the diffusion coefficient at 600 K, relative to the parent), DFT-level energies, synthesis routes, cost of the elements, experimental data.
+- The candidates are computational predictions, not proven materials.
+
 
 Model ranking (last analysis): ['it1-c3', 'it1-c2', 'it1-c1']
 
@@ -400,6 +478,7 @@ Model ranking (last analysis): ['it1-c3', 'it1-c2', 'it1-c1']
 
 - meta: 3 calls, 32676 in / 9014 out tokens, ~$0.0791
 - baseten: 0 calls, 0 in / 0 out tokens, ~$0.0000
+- meta (rerun): 1 calls, 3840 in / 4155 out tokens, ~$0.0225
 - candidate analyses (baseten): 30 calls, ~$0.4198
 - novelty web search: 0 calls, ~$0.0000
 - molecular dynamics: 2 new runs of 24 on Modal A10G, estimate 0.66 $

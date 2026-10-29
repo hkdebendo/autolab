@@ -5477,6 +5477,341 @@
         },
         "stopped": null
       }
+    },
+    "report": {
+      "status": "done",
+      "completeness": "complete",
+      "missing_steps": [],
+      "champion": "it1-c2",
+      "finalists": [
+        {
+          "id": "it1-c2",
+          "formula": "Li6P2SeS7",
+          "parent": "Li3PS4",
+          "substitution": {
+            "remove": "S",
+            "add": "Se",
+            "count": 2,
+            "li_vacancies": 0
+          },
+          "space_group": "Pmc2_1",
+          "a_A": 6.265,
+          "b_A": 8.146,
+          "c_A": 13.146,
+          "alpha": 90.0,
+          "beta": 90.0,
+          "gamma": 90.0,
+          "volume_A3": 670.9,
+          "atoms_in_cell": 32,
+          "e_hull_eV_per_atom": -0.007,
+          "e_hull_per_substitution_eV": -0.115,
+          "decomposition": [
+            {
+              "formula": "Li3PS4",
+              "id": "mp-985583",
+              "fraction": 0.875
+            },
+            {
+              "formula": "Li7PSe6",
+              "id": "mp-1211446",
+              "fraction": 0.094
+            },
+            {
+              "formula": "P2Se5",
+              "id": "mp-28860",
+              "fraction": 0.031
+            }
+          ],
+          "gap_optb88_eV": 2.485,
+          "gap_mbj_eV": 3.102,
+          "window_V": {
+            "v_low": 1.8,
+            "v_high": 2.24,
+            "stable": true,
+            "reduction_products": [
+              "Li2Se",
+              "Li3PS4",
+              "P"
+            ],
+            "oxidation_products": [
+              "Li3PS4",
+              "P2Se5",
+              "SeS7"
+            ]
+          },
+          "against_li_metal": "passivating",
+          "reaction_with_LiFePO4_eV_per_atom": -0.145,
+          "D_600K_cm2_per_s": 3.9e-06,
+          "D_error_cm2_per_s": 9.6e-07,
+          "D_ratio_to_parent": 0.657,
+          "D_ratio_error": 0.211,
+          "diffusion_verdict": "tied",
+          "ionic_conductivity": "not computed",
+          "confidence_flags": [
+            "window via a polysulfide"
+          ],
+          "novelty": "close family already studied",
+          "novelty_summary": "Se has been introduced as an anion dopant for the Li7P3S11-type sulfide electrolyte to enhance conductivity and moisture stability, and SnSe2-doped 70Li2S-(30-x)P2S5-xSnSe2 glass-ceramic electrolytes based on Li7P3S11 have been prepared by ball-milling and annealing. In the Li-P-Se system, Li7PSe6 has been successfully synthesized in the argyrodite structure, while \u201cLi3PSe4\u201d was noted as unconfirmed experimentally. A computational review notes Li4P2Se6 and Li7PSe6 as reported phases and describes Li4PSe3 constructed by replacing S in Li3PS4 with Se. This search found no exact Li6P2SeS7 report.",
+          "novelty_sources": [
+            "https://patents.google.com/patent/TW201336147A/en",
+            "https://patents.google.com/patent/JP2022515440A/en",
+            "https://physicsworld.com/a/solid-state-battery-electrolyte-makes-a-fast-lithium-ion-conductor/"
+          ],
+          "review": null
+        },
+        {
+          "id": "s9:it1-c4",
+          "formula": "Li7P3SeS10",
+          "parent": "Li7P3S11",
+          "substitution": {
+            "remove": "S",
+            "add": "Se",
+            "count": 2,
+            "li_vacancies": 0
+          },
+          "space_group": "P1",
+          "a_A": 6.202,
+          "b_A": 12.673,
+          "c_A": 12.67,
+          "alpha": 107.2,
+          "beta": 103.3,
+          "gamma": 102.3,
+          "volume_A3": 882.7,
+          "atoms_in_cell": 42,
+          "e_hull_eV_per_atom": 0.015,
+          "e_hull_per_substitution_eV": 0.323,
+          "decomposition": [
+            {
+              "formula": "Li3PS4",
+              "id": "mp-985583",
+              "fraction": 0.889
+            },
+            {
+              "formula": "P2Se5",
+              "id": "mp-28860",
+              "fraction": 0.067
+            },
+            {
+              "formula": "P2S5",
+              "id": "mp-541788",
+              "fraction": 0.044
+            }
+          ],
+          "gap_optb88_eV": 2.355,
+          "gap_mbj_eV": 2.886,
+          "window_V": {
+            "v_low": 2.28,
+            "v_high": 2.3,
+            "stable": true,
+            "reduction_products": [
+              "Li3PS4",
+              "P2Se5",
+              "P4S7"
+            ],
+            "oxidation_products": [
+              "Li3PS4",
+              "P2S7",
+              "P2Se5"
+            ]
+          },
+          "against_li_metal": "passivating",
+          "reaction_with_LiFePO4_eV_per_atom": -0.143,
+          "D_600K_cm2_per_s": 1.39e-05,
+          "D_error_cm2_per_s": 1.79e-06,
+          "D_ratio_to_parent": 1.069,
+          "D_ratio_error": 0.23,
+          "diffusion_verdict": "tied",
+          "ionic_conductivity": "not computed",
+          "confidence_flags": [
+            "window via a polysulfide"
+          ],
+          "novelty": "close family already studied",
+          "novelty_summary": "This search found no exact Li7P3SeS10 entry, but found Se-containing modification of the same Li7P3S11 parent by SnSe2 doping. The SnSe2-doping study reports improved ionic conductivity and air stability of Li7P3S11, with SnSe doping enhancing chemical stability. All-solid-state batteries based on the resulting LiPSnSSe electrolyte demonstrate enhanced rate capability and cycling stability. A related listing also cites a Bi2Se3 co-doping route to Se-containing sulfide electrolytes in the same Li-P-S family.",
+          "novelty_sources": [
+            "https://patents.google.com/patent/CN114447423B/en",
+            "https://patents.google.com/patent/TW201336147A/en",
+            "https://patents.google.com/patent/CN105210154A/en"
+          ],
+          "review": null
+        },
+        {
+          "id": "s9:it2-c5",
+          "formula": "Li11P4S15I",
+          "parent": "Li3PS4",
+          "substitution": {
+            "remove": "S",
+            "add": "I",
+            "count": 1,
+            "li_vacancies": 1
+          },
+          "space_group": "P1",
+          "a_A": 6.314,
+          "b_A": 8.196,
+          "c_A": 13.09,
+          "alpha": 90.0,
+          "beta": 89.9,
+          "gamma": 90.0,
+          "volume_A3": 677.5,
+          "atoms_in_cell": 31,
+          "e_hull_eV_per_atom": 0.023,
+          "e_hull_per_substitution_eV": 0.362,
+          "decomposition": [
+            {
+              "formula": "Li3PS4",
+              "id": "mp-985583",
+              "fraction": 0.86
+            },
+            {
+              "formula": "P2S5",
+              "id": "mp-541788",
+              "fraction": 0.075
+            },
+            {
+              "formula": "LiI",
+              "id": "mp-570935",
+              "fraction": 0.065
+            }
+          ],
+          "gap_optb88_eV": 2.522,
+          "gap_mbj_eV": 3.178,
+          "window_V": {
+            "v_low": 2.28,
+            "v_high": 2.3,
+            "stable": true,
+            "reduction_products": [
+              "Li3PS4",
+              "LiI",
+              "P4S7"
+            ],
+            "oxidation_products": [
+              "Li3PS4",
+              "LiI",
+              "P2S7"
+            ]
+          },
+          "against_li_metal": "passivating",
+          "reaction_with_LiFePO4_eV_per_atom": -0.139,
+          "D_600K_cm2_per_s": 5.34e-06,
+          "D_error_cm2_per_s": 1.69e-06,
+          "D_ratio_to_parent": 0.899,
+          "D_ratio_error": 0.339,
+          "diffusion_verdict": "tied",
+          "ionic_conductivity": "not computed",
+          "confidence_flags": [
+            "window via a polysulfide"
+          ],
+          "novelty": "close family already studied",
+          "novelty_summary": "This search found no exact hit for Li11P4S15I, but iodine-doped Li3PS4 / LiI\u2013Li3PS4 amorphous electrolytes are widely reported with about 1.2 mS cm-1 at 25\u00b0C. The same parent-doping family includes crystalline iodine thiophosphates such as Li7P2S8I, reported to retain good stability against Li metal with conductivity 6.3\u00d710-4 S cm-1. A closely related composition Li6P2S8I solid electrolyte with excellent ionic conductivity is also patented for all-solid lithium batteries. LiI addition to Li2S\u2013P2S5 / Li3PS4 is therefore an established dopant family, differing only in I concentration and stoichiometry from the queried phase.",
+          "novelty_sources": [
+            "https://www.frontiersin.org/journals/energy-research/articles/10.3389/fenrg.2016.00018/full",
+            "https://patents.google.com/patent/KR102381363B1/en"
+          ],
+          "review": null
+        }
+      ],
+      "excluded": {
+        "s9:it2-c1": "molecular_dynamics: framework moved: Cl diffuses at 40% of Li (limit 5%), seed 0, final MSD 5.4 A2",
+        "s9:it2-c4": "electrodes: non_passivating against Li metal (metallic products Na, reaction 2.204 eV/atom)",
+        "s9:it1-c5": "electrodes: non_passivating against Li metal (metallic products Na, reaction 2.365 eV/atom)"
+      },
+      "methods": [
+        {
+          "step": "Candidate proposals and decisions",
+          "method": "Meta Muse Spark (reasoning model), with comparisons computed by the code"
+        },
+        {
+          "step": "Structure relaxation and energies",
+          "method": "Meta FAIR UMA (uma-s-1p2, OMat head), MP2020 corrections; references from Materials Project, all relaxed with UMA (no mixing of energy sources)"
+        },
+        {
+          "step": "Thermodynamic stability",
+          "method": "energy above the convex hull of the chemical system; kept if <= 0.05 eV/atom"
+        },
+        {
+          "step": "Electronic band gap",
+          "method": "ALIGNN graph neural network (optB88vdW scale for the filter, mBJ shown); kept if >= 2 eV"
+        },
+        {
+          "step": "Electrochemical window and electrodes",
+          "method": "grand-potential phase diagrams (window, reaction with Li metal), interface reactivity with LiFePO4 (calibrated against MP)"
+        },
+        {
+          "step": "Independent reviews",
+          "method": "Meta Muse Spark Open, one review per candidate, in parallel"
+        },
+        {
+          "step": "Lithium diffusion",
+          "method": "Langevin molecular dynamics with UMA at 600 K, 2 x 40 ps per structure, diffusion coefficient by blocks, compared with the parent crystal (calibrated: Li7P3S11 2.0x faster than beta-Li3PS4)"
+        },
+        {
+          "step": "Literature check",
+          "method": "Meta Muse Spark with web search; a known electrolyte (LGPS) checked first as a control"
+        },
+        {
+          "step": "Plain-language summaries",
+          "method": "Meta Muse Glimmer"
+        }
+      ],
+      "not_computed": "ionic conductivity at room temperature (only the diffusion coefficient at 600 K, relative to the parent), DFT-level energies, synthesis routes, cost of the elements, experimental data",
+      "narrative": {
+        "executive_summary": "The goal was to find sulfide solid electrolytes for lithium metal batteries by substitution in known crystals. The best compromise is Li6P2SeS7 derived from Li3PS4. It has an energy above the hull of -0.007 eV/atom and band gaps of 2.485 eV and 3.102 eV. It is stable from 1.8 V to 2.24 V and shows passivating behavior against lithium metal. Its diffusion coefficient at 600 K is 3.9e-06 cm\u00b2/s with a ratio to the parent of 0.657. Ionic conductivity at room temperature was not computed.",
+        "champion_reasons": [
+          "Li6P2SeS7 has an energy above the hull of -0.007 eV/atom, lower than 0.015 eV/atom for Li7P3SeS10 and 0.023 eV/atom for Li11P4S15I.",
+          "Li6P2SeS7 is stable from 1.8 V to 2.24 V, covering a broader voltage interval than 2.28 V to 2.3 V for Li7P3SeS10 and 2.28 V to 2.3 V for Li11P4S15I.",
+          "Li6P2SeS7 has an energy of -0.115 eV per substitution, lower than 0.323 eV per substitution for Li7P3SeS10 and 0.362 eV per substitution for Li11P4S15I."
+        ],
+        "tradeoffs": [
+          "Its diffusion coefficient at 600 K of 3.9e-06 cm\u00b2/s is lower than 1.39e-05 cm\u00b2/s for Li7P3SeS10 and 5.34e-06 cm\u00b2/s for Li11P4S15I, with a ratio to the parent of 0.657.",
+          "Its reaction energy with LiFePO4 is -0.145 eV/atom, slightly more negative than -0.143 eV/atom for Li7P3SeS10 and -0.139 eV/atom for Li11P4S15I.",
+          "Its band gap of 3.102 eV is higher than 2.886 eV for Li7P3SeS10 but lower than 3.178 eV for Li11P4S15I.",
+          "Its novelty is listed as close family already studied, so Se substitution in this sulfide family is not fully new."
+        ],
+        "uncertainties": [
+          "Diffusion was evaluated only at 600 K, not at room temperature, with an error of 9.6e-07 cm\u00b2/s and a ratio error of 0.211 leading to a tied verdict.",
+          "The electrochemical window carries a reduced confidence flag because it was determined via a polysulfide.",
+          "The energy above the hull of -0.007 eV/atom is close to zero and method accuracy limits confidence in exact stability.",
+          "Ionic conductivity at room temperature was not computed and no experimental data were available."
+        ],
+        "validation": [
+          {
+            "text": "Powder diffraction can test whether the predicted orthorhombic structure forms.",
+            "basis": "documented"
+          },
+          {
+            "text": "Impedance spectroscopy can measure ionic conductivity and electronic leakage.",
+            "basis": "documented"
+          },
+          {
+            "text": "Cycling against lithium metal can test whether passivation holds in practice.",
+            "basis": "documented"
+          },
+          {
+            "text": "Higher accuracy density functional calculations can recheck stability and band gap.",
+            "basis": "documented"
+          }
+        ],
+        "synthesis": [
+          {
+            "text": "Ball milling followed by annealing under inert atmosphere could be tried as a route to Li6P2SeS7.",
+            "basis": "documented"
+          },
+          {
+            "text": "Solid state reaction of lithium sulfide with phosphorus and selenium precursors in sealed tubes could be explored.",
+            "basis": "hypothesis"
+          }
+        ],
+        "limitations": [
+          "Ionic conductivity at room temperature was not computed.",
+          "Synthesis routes, cost of the elements, and experimental performance were not studied.",
+          "Long term cycling, moisture stability, and compatibility beyond LiFePO4 still need validation.",
+          "The candidates are computational predictions and are not proven materials."
+        ]
+      },
+      "summary": {
+        "champion": "it1-c2",
+        "completeness": "complete",
+        "narrative": true
+      }
     }
   },
   "stop_reason": "iterations done",
@@ -5519,6 +5854,20 @@
             "cost_usd": 0.06295
           }
         }
+      },
+      "meta (rerun)": {
+        "calls": 1,
+        "input_tokens": 2742,
+        "output_tokens": 4727,
+        "cost_usd": 0.02352,
+        "by_provider": {
+          "meta": {
+            "calls": 1,
+            "input_tokens": 2742,
+            "output_tokens": 4727,
+            "cost_usd": 0.02352
+          }
+        }
       }
     },
     "novelty": {
@@ -5545,7 +5894,7 @@
     "seconds": 1979.7
   },
   "rerun": {
-    "from": "molecular_dynamics",
+    "from": "report",
     "new_relaxations": 0
   }
 }

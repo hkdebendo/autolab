@@ -1,147 +1,74 @@
-"""Tests for the jury page backend (no network)."""
+"""The web server of the interface: the page, the relay to the AutoLab service, and what the page never shows
+(interface.md 15). No network: the AutoLab service is a fake HTTP transport."""
 
 import json
+import re
 
 import httpx
 import pytest
 from fastapi.testclient import TestClient
 
-import web.app as appmod
+import web.app as webapp
 
-REF = appmod.REF_DIR
+client = TestClient(webapp.app)
 
 
-@pytest.fixture
-def client(monkeypatch):
-    """Test client with live mode off, as on a plain checkout."""
-    monkeypatch.delenv("AUTOLAB_LIVE", raising=False)
+def test_the_page_opens_at_home_and_at_a_conversation_address():
+    for path in ("/", "/c/3f2a9c1b77aa"):
+        r = client.get(path)
+        assert r.status_code == 200 and "What material shall we discover today?" not in r.text  # rendered by JS
+        assert '<script type="module" src="/static/app.js">' in r.text
+    assert client.get("/static/app.js").status_code == 200
+
+
+def test_the_api_is_unavailable_until_the_service_is_configured(monkeypatch):
     monkeypatch.delenv("AUTOLAB_API_URL", raising=False)
-    return TestClient(appmod.app)
+    r = client.get("/api/conversations")
+    assert r.status_code == 503 and "not configured" in r.json()["detail"]
 
 
-def test_index_served(client):
-    response = client.get("/")
-    assert response.status_code == 200
-    assert "AutoLab" in response.text
+def test_the_relay_passes_method_body_query_and_status_through(monkeypatch):
+    seen = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append((request.method, request.url.path, request.url.query.decode(), request.content))
+        if request.url.path.endswith("/cancel"):
+            return httpx.Response(404, json={"detail": "conversation not found"})
+        return httpx.Response(200, json={"ok": True, "echo": json.loads(request.content or b"null")})
+
+    real = httpx.AsyncClient
+    monkeypatch.setattr(webapp.httpx, "AsyncClient",
+                        lambda **kw: real(transport=httpx.MockTransport(handler), **kw))
+    monkeypatch.setenv("AUTOLAB_API_URL", "https://service.example/")
+    r = client.post("/api/conversations", json={"message": "Find sulfide electrolytes"})
+    assert r.status_code == 200 and r.json()["echo"] == {"message": "Find sulfide electrolytes"}
+    assert client.get("/api/conversations/abc/progress", params={"after": 12}).status_code == 200
+    assert client.post("/api/conversations/abc/cancel").status_code == 404
+    assert client.patch("/api/conversations/abc", json={"title": "New title"}).status_code == 200
+    assert client.delete("/api/conversations/abc").status_code == 200
+    assert [s[0] for s in seen] == ["POST", "GET", "POST", "PATCH", "DELETE"]
+    assert seen[1][1] == "/api/conversations/abc/progress" and seen[1][2] == "after=12"
 
 
-def test_replay_events_keep_order(client):
-    """Replay serves events.jsonl as an array, in file order."""
-    lines = [json.loads(line) for line in (REF / "events.jsonl").read_text(encoding="utf-8").splitlines()
-             if line.strip()]
-    response = client.get("/api/replay/events.jsonl")
-    assert response.status_code == 200
-    events = response.json()
-    assert len(events) == len(lines) > 100
-    assert [(e["type"], e["step"], e.get("candidate_id")) for e in events] == [
-        (e["type"], e["step"], e.get("candidate_id")) for e in lines]
+def visible_text() -> str:
+    """The page and its script without code comments: what can end up on screen."""
+    html = (webapp.HERE / "static" / "index.html").read_text(encoding="utf-8")
+    js = (webapp.HERE / "static" / "app.js").read_text(encoding="utf-8")
+    js = re.sub(r"/\*.*?\*/", "", js, flags=re.S)
+    js = re.sub(r"(?m)^\s*//.*$|\s//\s.*$", "", js)
+    html = re.sub(r"<!--.*?-->|<script>.*?</script>", "", html, flags=re.S)
+    return html + js
 
 
-def test_replay_result_returns_goal(client):
-    want = json.loads((REF / "result.json").read_text(encoding="utf-8"))["goal"]
-    response = client.get("/api/replay/result.json")
-    assert response.status_code == 200
-    assert response.json()["goal"] == want
-    assert "lithium" in want.lower()
+@pytest.mark.parametrize("word", ["Muse", "Baseten", "Fireworks", "Glimmer", "Meta ", "token", "Replay", "replay",
+                                  "GPU", "credit", "USD", "$/"])
+def test_no_model_provider_cost_or_replay_mode_is_shown(word):
+    assert word not in visible_text()
 
 
-def test_replay_unknown_file_404(client):
-    assert client.get("/api/replay/nope.json").status_code == 404
-    assert client.get("/api/replay/replay/md/../../app.py").status_code == 404
-
-
-def test_live_routes_403_when_disabled(client):
-    assert client.get("/api/live/health").status_code == 403
-    assert client.post("/api/live/runs", json={"goal": "x", "access_code": "y"}).status_code == 403
-    assert client.get("/api/live/runs/abc/events").status_code == 403
-    assert client.get("/api/live/runs/abc/result").status_code == 403
-    assert client.get("/api/live/health").json() == {"detail": "live mode disabled"}
-
-
-def test_live_routes_403_without_url(monkeypatch):
-    monkeypatch.setenv("AUTOLAB_LIVE", "1")
-    monkeypatch.delenv("AUTOLAB_API_URL", raising=False)
-    client = TestClient(appmod.app)
-    assert client.get("/api/live/health").status_code == 403
-
-
-class _FakeResponse:
-    def __init__(self, status_code=200, content=b"{}"):
-        self.status_code = status_code
-        self.content = content
-        self.headers = {"content-type": "application/json"}
-
-
-def _patch_http(monkeypatch, response, error=None):
-    """Replace the HTTP client with a fake that records its request."""
-    seen = {}
-
-    class FakeClient:
-        def __init__(self, base_url=None, timeout=None):
-            seen["base_url"] = base_url
-
-        async def __aenter__(self):
-            return self
-
-        async def __aexit__(self, *args):
-            return False
-
-        async def request(self, method, path, content=None, params=None, headers=None):
-            seen.update(method=method, path=path, content=content, params=params)
-            if error is not None:
-                raise error
-            return response
-
-    monkeypatch.setenv("AUTOLAB_LIVE", "1")
-    monkeypatch.setenv("AUTOLAB_API_URL", "https://modal.test")
-    monkeypatch.setattr("web.app.httpx.AsyncClient", FakeClient)
-    return seen
-
-
-def test_relay_passes_body_and_status_through(monkeypatch):
-    seen = _patch_http(monkeypatch, _FakeResponse(403, b'{"detail": "wrong code"}'))
-    response = TestClient(appmod.app).post("/api/live/runs", json={"goal": "hi", "access_code": "zz"})
-    assert response.status_code == 403
-    assert response.json() == {"detail": "wrong code"}
-    assert seen["method"] == "POST" and seen["path"] == "/api/runs"
-    assert json.loads(seen["content"]) == {"goal": "hi", "access_code": "zz"}
-
-
-def test_relay_passes_query_through(monkeypatch):
-    seen = _patch_http(monkeypatch, _FakeResponse(200, b'{"events":[],"next":3}'))
-    response = TestClient(appmod.app).get("/api/live/runs/abc123/events?after=12")
-    assert response.status_code == 200
-    assert (seen["path"], seen["params"]) == ("/api/runs/abc123/events", {"after": 12})
-
-
-def test_relay_unreachable_503(monkeypatch):
-    _patch_http(monkeypatch, _FakeResponse(), error=httpx.ConnectError("down"))
-    response = TestClient(appmod.app).get("/api/live/health")
-    assert response.status_code == 503
-
-
-def test_every_replay_url_of_the_page_is_served():
-    """The page fetches these paths: each must answer 200 (index.json lives in replay/)."""
-    import re
-
-    from fastapi.testclient import TestClient
-
-    from web.app import HERE, app
-
-    js = (HERE / "static" / "app.js").read_text(encoding="utf-8")
-    urls = sorted(set(re.findall(r'"(/api/replay/[^"$`]+)"', js)) - {"/api/replay/report.html"})
-    assert "/api/replay/replay/index.json" in urls
-    client = TestClient(app)
-    for url in urls:
-        assert client.get(url).status_code == 200, url
-
-
-def test_the_report_renders_its_tables():
-    from fastapi.testclient import TestClient
-
-    from web.app import app
-
-    client = TestClient(app)
-    assert "<table>" in client.get("/api/replay/report.html").text
-    page = client.get("/api/replay/report.page")
-    assert page.status_code == 200 and "<title>AutoLab report</title>" in page.text and "<table>" in page.text
+def test_light_theme_by_default_and_a_tutorial_of_five_cards():
+    html = (webapp.HERE / "static" / "index.html").read_text(encoding="utf-8")
+    js = (webapp.HERE / "static" / "app.js").read_text(encoding="utf-8")
+    assert 'data-theme="light"' in html and '|| "light"' in js
+    tutorial = js[js.index("const TUT = ["):js.index("let tutIndex")]
+    assert "How does AutoLab work?" in html and len(re.findall(r'(?m)^  { title: "', tutorial)) == 5

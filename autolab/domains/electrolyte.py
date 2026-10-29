@@ -186,7 +186,7 @@ def electrodes(camp: Campaign) -> dict:
                                                 for x in r.get("polysulfide_products") or []}),
                  electrodes_polysulfides=sorted(polys), electrodes_reduced_confidence=bool(polys))
         out["candidates"].append(c["id"])
-        camp.emit("electrodes", "done", c["id"], window=c["window"], passivation=p["verdict"],
+        camp.emit("electrodes", "done", c["id"], formula=c["formula"], window=c["window"], passivation=p["verdict"],
                   interface_reaction_energy=c["interface_reaction_energy"],
                   reduced_confidence=c["electrodes_reduced_confidence"], excluded=c.get("excluded_at") == "electrodes")
     if out["not_computed"]:
@@ -236,7 +236,7 @@ def candidate_analyses(camp: Campaign) -> dict:
                 continue
             c["analysis"] = {k: analysis[k] for k in ("strengths", "risks", "md_priority", "summary")}
             out["analysed"].append(c["id"])
-            camp.emit("candidate_analyses", "done", c["id"], provider=client.provider, **analysis)
+            camp.emit("candidate_analyses", "done", c["id"], formula=c["formula"], provider=client.provider, **analysis)
     if out["failed"]:
         out["stopped"] = f"{len(out['failed'])} analysis call(s) failed (no retry)"
     out["summary"] = {"provider": client.provider, "analysed": len(out["analysed"]), "reused": len(reused),
@@ -318,7 +318,7 @@ def molecular_dynamics(camp: Campaign) -> dict:
         if r["conduction"] == "excluded":
             exclude(c, "molecular_dynamics", r["conduction_reason"])
             out["excluded"].append(c["id"])
-        camp.emit("molecular_dynamics", "done", c["id"], D_cm2_per_s=c["D_cm2_per_s"],
+        camp.emit("molecular_dynamics", "done", c["id"], formula=c["formula"], D_cm2_per_s=c["D_cm2_per_s"],
                   ratio=c["D_ratio_to_parent"], verdict=c["md_verdict"], conduction=c["conduction"])
     out["summary"] = {"verdicts": {r["id"]: (r.get("vs_parent") or {}).get("verdict") for r in rows
                                    if r.get("kind") == "candidate"}, "excluded": out["excluded"],
@@ -496,6 +496,7 @@ Rules:
 - validation: experiments or calculations to confirm it (e.g. XRD, impedance spectroscopy, DFT checks, cycling against Li metal), each with "basis": "documented" (standard practice) or "hypothesis".
 - synthesis: possible routes, each with "basis": "documented" only for well-established routes for this family of sulfide electrolytes (e.g. ball milling then annealing under inert atmosphere), else "hypothesis"; never present a route as guaranteed.
 - limitations: properties not studied and validations still needed. The candidates are computational predictions, not proven materials.
+- Write readable prose: name quantities in words (energy above the hull, band gap, diffusion coefficient), never field names such as e_hull or gap_optb88; numbers as given (already rounded), with units written normally (eV/atom, cm²/s).
 - Do not name AI models or providers. Plain English, short sentences.
 Reply with JSON only, exactly this shape: {template}"""
 
@@ -541,6 +542,17 @@ def _finalist_row(c: dict, novelty_by_id: dict) -> dict:
             "review": c.get("analysis")}
 
 
+def _rounded(x, digits: int = 3):
+    """Numbers for the report: fixed decimals, or 3 significant digits for small values such as D."""
+    if isinstance(x, float):
+        return float(f"{x:.3g}") if x and abs(x) < 1e-3 else round(x, digits)
+    if isinstance(x, dict):
+        return {k: _rounded(v, digits) for k, v in x.items()}
+    if isinstance(x, list):
+        return [_rounded(v, digits) for v in x]
+    return x
+
+
 def report(camp: Campaign) -> dict:
     from autolab.agent.loop import LoopStopped
     from autolab.llm.schemas import template
@@ -551,7 +563,7 @@ def report(camp: Campaign) -> dict:
         return {"skipped": "no finalist", "summary": {"skipped": "no finalist"}}
     by_id = camp.by_id
     novelty_by_id = {r["id"]: r for r in (camp.outputs.get("novelty", {}).get("candidates") or [])}
-    rows = [_finalist_row(by_id[i], novelty_by_id) for i in finalists]
+    rows = [_rounded(_finalist_row(by_id[i], novelty_by_id)) for i in finalists]
     needed = ("electrodes", "molecular_dynamics", "ranking", "novelty")
     missing = [n for n in needed if (camp.outputs.get(n) or {}).get("skipped") or n not in camp.outputs
                or (camp.outputs.get(n) or {}).get("error")]

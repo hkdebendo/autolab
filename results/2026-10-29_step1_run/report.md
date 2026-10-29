@@ -103,7 +103,7 @@ Reduced confidence: the decomposition of the electrolyte (window limits, Li meta
 
 ## Choice of the candidates for molecular dynamics
 
-Eligible: it1-c2, s9:it1-c4, s9:it2-c5, it1-c1, s9:it1-c2, s9:it1-c1, s9:it2-c2, it1-c3, s9:it2-c1, s9:it2-c3. Selected by meta: it1-c2, s9:it2-c5, s9:it1-c4.
+Not simulated yet (the choice): none. Selected by meta: it1-c2, s9:it2-c5, s9:it1-c4.
 
 Rationale: Diverse soft-anion plus vacancy set pairing Se on both parents with I-vacancy, where rankings give it1-c2 -0.115, s9:it2-c5 0.362 < it1-c1 0.367, and s9:it1-c4 0.323 best on its parent, with two cached free.
 
@@ -207,12 +207,91 @@ _6 web searches, 41 sources considered, ~$0.0590, 2026-10-29_
 
 Total: 0 calls, ~$0.0000.
 
+## Final scientific report
+
+*Ranking complete*.
+
+### Executive summary
+
+The goal was to find sulfide solid electrolytes for lithium metal batteries by substitution in known crystals. The best compromise is Li6P2SeS7 derived from Li3PS4. It has an energy above the hull of -0.007 eV/atom and band gaps of 2.485 eV and 3.102 eV. It is stable from 1.8 V to 2.24 V and shows passivating behavior against lithium metal. Its diffusion coefficient at 600 K is 3.9e-06 cm²/s with a ratio to the parent of 0.657. Ionic conductivity at room temperature was not computed.
+
+### Comparison of the three finalists
+
+| | Li6P2SeS7 | Li7P3SeS10 | Li11P4S15I |
+|---|---|---|---|
+| Parent crystal | Li3PS4 | Li7P3S11 | Li3PS4 |
+| Space group | Pmc2_1 | P1 | P1 |
+| Cell a / b / c (Å) | 6.26 / 8.15 / 13.15 | 6.20 / 12.67 / 12.67 | 6.31 / 8.20 / 13.09 |
+| E_hull (eV/atom) | -0.007 | 0.015 | 0.023 |
+| E_hull per substitution (eV) | -0.115 | 0.323 | 0.362 |
+| Band gap optB88 / mBJ (eV) | 2.48 / 3.10 | 2.35 / 2.89 | 2.52 / 3.18 |
+| Window (V) | 1.80–2.24 | 2.28–2.30 | 2.28–2.30 |
+| Against Li metal | passivating | passivating | passivating |
+| Reaction with LiFePO4 (eV/atom) | -0.145 | -0.143 | -0.139 |
+| D at 600 K (cm²/s) | 3.90e-06 | 1.39e-05 | 5.34e-06 |
+| D / D(parent) | 0.66 ± 0.21 | 1.07 ± 0.23 | 0.90 ± 0.34 |
+| Diffusion verdict | tied | tied | tied |
+| Ionic conductivity | not computed | not computed | not computed |
+| Literature | close family already studied | close family already studied | close family already studied |
+| Confidence flags | window via a polysulfide | window via a polysulfide | window via a polysulfide |
+
+### Champion: Li6P2SeS7
+
+**Why it is preferred.**
+- Li6P2SeS7 has an energy above the hull of -0.007 eV/atom, lower than 0.015 eV/atom for Li7P3SeS10 and 0.023 eV/atom for Li11P4S15I.
+- Li6P2SeS7 is stable from 1.8 V to 2.24 V, covering a broader voltage interval than 2.28 V to 2.3 V for Li7P3SeS10 and 2.28 V to 2.3 V for Li11P4S15I.
+- Li6P2SeS7 has an energy of -0.115 eV per substitution, lower than 0.323 eV per substitution for Li7P3SeS10 and 0.362 eV per substitution for Li11P4S15I.
+
+**Trade-offs.**
+- Its diffusion coefficient at 600 K of 3.9e-06 cm²/s is lower than 1.39e-05 cm²/s for Li7P3SeS10 and 5.34e-06 cm²/s for Li11P4S15I, with a ratio to the parent of 0.657.
+- Its reaction energy with LiFePO4 is -0.145 eV/atom, slightly more negative than -0.143 eV/atom for Li7P3SeS10 and -0.139 eV/atom for Li11P4S15I.
+- Its band gap of 3.102 eV is higher than 2.886 eV for Li7P3SeS10 but lower than 3.178 eV for Li11P4S15I.
+- Its novelty is listed as close family already studied, so Se substitution in this sulfide family is not fully new.
+
+**Uncertainties.**
+- Diffusion was evaluated only at 600 K, not at room temperature, with an error of 9.6e-07 cm²/s and a ratio error of 0.211 leading to a tied verdict.
+- The electrochemical window carries a reduced confidence flag because it was determined via a polysulfide.
+- The energy above the hull of -0.007 eV/atom is close to zero and method accuracy limits confidence in exact stability.
+- Ionic conductivity at room temperature was not computed and no experimental data were available.
+
+**Validation.**
+- Powder diffraction can test whether the predicted orthorhombic structure forms. *(documented)*
+- Impedance spectroscopy can measure ionic conductivity and electronic leakage. *(documented)*
+- Cycling against lithium metal can test whether passivation holds in practice. *(documented)*
+- Higher accuracy density functional calculations can recheck stability and band gap. *(documented)*
+
+**Synthesis routes to consider.**
+- Ball milling followed by annealing under inert atmosphere could be tried as a route to Li6P2SeS7. *(documented)*
+- Solid state reaction of lithium sulfide with phosphorus and selenium precursors in sealed tubes could be explored. *(hypothesis)*
+
+### Methods
+
+- **Candidate proposals and decisions**: Meta Muse Spark (reasoning model), with comparisons computed by the code
+- **Structure relaxation and energies**: Meta FAIR UMA (uma-s-1p2, OMat head), MP2020 corrections; references from Materials Project, all relaxed with UMA (no mixing of energy sources)
+- **Thermodynamic stability**: energy above the convex hull of the chemical system; kept if <= 0.05 eV/atom
+- **Electronic band gap**: ALIGNN graph neural network (optB88vdW scale for the filter, mBJ shown); kept if >= 2 eV
+- **Electrochemical window and electrodes**: grand-potential phase diagrams (window, reaction with Li metal), interface reactivity with LiFePO4 (calibrated against MP)
+- **Independent reviews**: Meta Muse Spark Open, one review per candidate, in parallel
+- **Lithium diffusion**: Langevin molecular dynamics with UMA at 600 K, 2 x 40 ps per structure, diffusion coefficient by blocks, compared with the parent crystal (calibrated: Li7P3S11 2.0x faster than beta-Li3PS4)
+- **Literature check**: Meta Muse Spark with web search; a known electrolyte (LGPS) checked first as a control
+- **Plain-language summaries**: Meta Muse Glimmer
+
+### Limitations
+
+- Ionic conductivity at room temperature was not computed.
+- Synthesis routes, cost of the elements, and experimental performance were not studied.
+- Long term cycling, moisture stability, and compatibility beyond LiFePO4 still need validation.
+- The candidates are computational predictions and are not proven materials.
+- Not computed: ionic conductivity at room temperature (only the diffusion coefficient at 600 K, relative to the parent), DFT-level energies, synthesis routes, cost of the elements, experimental data.
+- The candidates are computational predictions, not proven materials.
+
 
 Model ranking (last analysis): ['it1-c2', 'it1-c1', 'it1-c3']
 
 ## Usage
 
 - meta: 3 calls, 16195 in / 10048 out tokens, ~$0.0630
+- meta (rerun): 1 calls, 2742 in / 4727 out tokens, ~$0.0235
 - novelty web search: 0 calls, ~$0.0000
 - molecular dynamics: 0 new runs of 16 on Modal A10G, estimate 0.00 $
 - UMA relaxations: 55 new / 80 allowed
