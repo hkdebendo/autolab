@@ -126,6 +126,11 @@ MD_CALIBRATION_RUNS = ((600, 40, 0), (700, 30, 0), (1000, 20, 1))  # (T in K, ps
 MD_CALIBRATION_TEST_T = (600, 700)  # temperatures where the order must hold
 MD_CALIBRATION_SIGMA = 2.0  # D(fast) - D(slow) must exceed 2 x their combined standard error
 MD_EA_LITERATURE_EV = {"Li7P3S11": (0.19, 0.19), "Li3PS4": (0.35, 0.41)}  # MD in the literature, comparison only
+# Calibration v2 (SPEC 7, fixed 2026-10-29 before the runs): 600 K only (700 K is too close to the beta -> alpha
+# transition of Li3PS4), 3 seeds of 40 ps, the 12 blocks pooled; seed 0 is the plan A run.
+MD_CALIBRATION_V2_T = 600
+MD_CALIBRATION_V2_PS = 40
+MD_CALIBRATION_V2_SEEDS = (0, 1, 2)
 
 # --- Modal (GPU) ---------------------------------------------------------------
 

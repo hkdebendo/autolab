@@ -106,3 +106,26 @@ def md_calibration(rows: list[dict], test_t=config.MD_CALIBRATION_TEST_T,
              "fast_faster_than_slow": all(o["ok"] for o in order)}
     return {"passed": all(tests.values()), "tests": tests, "order": order, "framework": framework,
             "barriers": barriers, "n_sigma": n_sigma}
+
+
+def md_calibration_v2(rows: list[dict], n_sigma: float = config.MD_CALIBRATION_SIGMA) -> dict:
+    """Calibration v2 (SPEC 7): seeds pooled per parent (all blocks together: D = mean, error = std / sqrt(n));
+    passes if every framework stayed intact and D(fast) - D(slow) > n_sigma combined errors."""
+    import numpy as np
+
+    pooled = {}
+    for role in ("fast", "slow"):
+        mine = sorted((r for r in rows if r["role"] == role), key=lambda r: r["seed"])
+        blocks = np.array([b for r in mine for b in r["D_blocks_cm2_per_s"]])
+        pooled[role] = {"formula": mine[0]["formula"], "seeds": [r["seed"] for r in mine],
+                        "D_per_seed": [r["D_cm2_per_s"] for r in mine], "n_blocks": len(blocks),
+                        "D_cm2_per_s": float(blocks.mean()),
+                        "D_sem_cm2_per_s": float(blocks.std(ddof=1) / np.sqrt(len(blocks)))}
+    f, s = pooled["fast"], pooled["slow"]
+    err = float(np.hypot(f["D_sem_cm2_per_s"], s["D_sem_cm2_per_s"]))
+    diff = f["D_cm2_per_s"] - s["D_cm2_per_s"]
+    framework = all(r.get("framework") and r["framework"]["intact"] for r in rows)
+    order = diff > n_sigma * err
+    return {"passed": framework and order, "tests": {"framework_intact": framework, "fast_faster_than_slow": order},
+            "pooled": pooled, "ratio": f["D_cm2_per_s"] / s["D_cm2_per_s"], "diff_in_sigma": diff / err,
+            "n_sigma": n_sigma}
