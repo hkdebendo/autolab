@@ -139,6 +139,10 @@ MODAL_MD_TIMEOUT = 1800  # s
 MODAL_SPEED_TIMEOUT = 600  # s, MD speed measurement (warm-up + 0.5 ps)
 MODAL_SPEED_DEADLINE_S = 900  # s; speed calls unfinished by then are cancelled (GPU never available)
 MODAL_SCALEDOWN_S = 2  # s a GPU container stays up after its work (Modal's default of 60 s is billed)
+MODAL_MD_MS_PER_ATOM_STEP = {"H100": 0.147, "A10G": 0.281, "A100": 0.398}  # ms, Li7P3S11 84 atoms, 0.5 ps after warm-up (2026-10-29); L4 never got a container
+MODAL_STARTUP_S = 180  # s per container: start, model load and compilation (estimate)
+MODAL_TIMEOUT_FACTOR = 2.0  # time limit of a run = factor x its estimate
+MODAL_MAX_TIMEOUT_S = 4 * 3600  # hard cap per run
 MODAL_GPU_USD_PER_H = {"T4": 0.59, "L4": 0.80, "A10G": 1.10, "A100": 2.10, "H100": 3.95}  # modal.com/pricing, 2026-10-29
 MODAL_RELAX_CHUNK = 10  # structures per remote call
 
