@@ -213,7 +213,8 @@ LLM_FAST_PROVIDER = "baseten"  # small tasks (formula checks, JSON conversion) u
 SUMMARY_PROVIDER = "fireworks"
 GLIMMER_WARMUP_MAX_S = 600  # wait at most this for a scaled-to-zero deployment to wake up (HTTP 503 meanwhile)
 GLIMMER_POLL_S = 20
-GLIMMER_MAX_OUTPUT_TOKENS = 400
+GLIMMER_MAX_OUTPUT_TOKENS = 1500  # reasoning + summary: Glimmer always thinks first (400 left an empty text)
+GLIMMER_REASONING_EFFORT = "low"  # "none" is refused (thinking-only model); "low" answers in ~1 s
 SUMMARY_MAX_PER_RUN = 4  # iteration summaries + the run summary
 # Parallel analyses of the candidates (SPEC 5.11): Muse Spark Open writes one short analysis per eligible candidate
 # after the electrodes; Muse Spark reads them before choosing the MD candidates.
