@@ -57,6 +57,12 @@ class ModalBackend:
 
     name = "modal"
 
+    def __init__(self, gpu: str | None = None, md_timeout_s: int | None = None, poll_s: float = 10.0):
+        self.gpu = gpu
+        self.md_timeout_s = md_timeout_s
+        self.poll_s = poll_s
+        self.errors: dict[int, str] = {}
+
     def _fn(self, name: str):
         import modal
 
@@ -68,6 +74,44 @@ class ModalBackend:
 
     def md(self, atoms: dict, precision: str, **kwargs) -> dict:
         return self._fn("md_run").remote(atoms, precision=precision, **kwargs)
+
+    def md_batch_iter(self, items: list[dict], precision: str) -> Iterator[tuple[int, dict | None]]:
+        """All MD runs at once, one container each ({"atoms", "temperature_K", "n_steps", "seed"}); yields
+        (index, result) as each run ends, None for a failed run (error in self.errors). No retry: a refused
+        call (quota, payment) stops everything and cancels what was already sent."""
+        import time
+
+        import modal.exception
+
+        opts = {"max_containers": len(items)}
+        if self.gpu:
+            opts["gpu"] = self.gpu
+        if self.md_timeout_s:
+            opts["timeout"] = self.md_timeout_s
+        fn = self._fn("md_run").with_options(**opts)
+        calls = {}
+        try:
+            for i, it in enumerate(items):
+                calls[i] = fn.spawn(it["atoms"], precision=precision, temperature_K=it["temperature_K"],
+                                    n_steps=it["n_steps"], seed=it.get("seed", 0))
+        except Exception:
+            for c in calls.values():
+                c.cancel(terminate_containers=True)
+            raise
+        while calls:
+            for i, call in list(calls.items()):
+                try:
+                    res = call.get(timeout=0)
+                except modal.exception.FunctionTimeoutError as e:
+                    res, self.errors[i] = None, f"function timeout: {e}"[:300]
+                except (modal.exception.TimeoutError, TimeoutError):
+                    continue  # still running
+                except Exception as e:
+                    res, self.errors[i] = None, f"{type(e).__name__}: {e}"[:300]
+                del calls[i]
+                yield i, res
+            if calls:
+                time.sleep(self.poll_s)
 
 
 def get_backend(name: str | None = None):
@@ -179,7 +223,7 @@ def run_md_runs(runs: list[dict], precision: str = config.UMA_PRECISION_MD, back
     "seed"}) in one backend call when the backend can batch (Kaggle: one session). Returns the number sent."""
     cache = cache or JsonCache(config.CACHE_DIR / "md")
     backend = backend or get_backend()
-    if not hasattr(backend, "md_batch"):
+    if not hasattr(backend, "md_batch") and not hasattr(backend, "md_batch_iter"):
         return 0
     missing: dict[str, tuple[dict, dict]] = {}
     for r in runs:
@@ -191,9 +235,16 @@ def run_md_runs(runs: list[dict], precision: str = config.UMA_PRECISION_MD, back
             missing.setdefault(key, (d, settings))
     if not missing:
         return 0
-    results = backend.md_batch([{"atoms": d, "seed": s["seed"], "temperature_K": s["T"], "n_steps": s["n_steps"]}
-                                for d, s in missing.values()], precision=precision)
-    for (key, (_, settings)), res in zip(missing.items(), results):
+    items = [{"atoms": d, "seed": s["seed"], "temperature_K": s["T"], "n_steps": s["n_steps"]}
+             for d, s in missing.values()]
+    entries = list(missing.items())
+    if hasattr(backend, "md_batch_iter"):  # Modal: runs in parallel, each saved as soon as it ends
+        for i, res in backend.md_batch_iter(items, precision=precision):
+            if res is not None:
+                key, (_, settings) = entries[i]
+                cache.set(key, {**res, "settings": settings})
+        return len(missing)
+    for (key, (_, settings)), res in zip(entries, backend.md_batch(items, precision=precision)):
         if res is not None:
             cache.set(key, {**res, "settings": settings})
     return len(missing)
