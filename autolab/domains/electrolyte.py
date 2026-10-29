@@ -92,7 +92,8 @@ def _md_screen(cands: list[dict], plan: dict) -> list[dict]:
     backend = None
     if config.SIM_BACKEND == "modal" and plan["runs"]:
         backend = ModalBackend(md_timeout_s=plan["timeout_s"])
-    return md_verdicts(md_screen(_md_jobs(cands), backend=backend))
+    jobs = _md_jobs(cands)  # the limit applies to the runs to compute (plan), cached runs are free
+    return md_verdicts(md_screen(jobs, backend=backend, max_runs=len(jobs) * config.MD_SCREEN_SEEDS))
 
 
 def _novelty(cands: list[dict], client) -> dict:
@@ -226,21 +227,25 @@ def md_selection(camp: Campaign) -> dict:
 
 
 def molecular_dynamics(camp: Campaign) -> dict:
-    sel = camp.outputs.get("md_selection", {}).get("selected") or []
-    out = {"rows": [], "plan": None, "excluded": [], "stopped": None}
-    if not sel:
+    """The selected candidates, plus every eligible candidate whose MD is already in the cache (free: its verdict
+    is known, e.g. a framework that moves). Only the selected ones can cost GPU time."""
+    choice = camp.outputs.get("md_selection", {})
+    sel = choice.get("selected") or []
+    by_id = camp.by_id
+    from_cache = [i for i in choice.get("eligible") or [] if i not in sel and by_id[i].get("md_cached")]
+    out = {"rows": [], "plan": None, "excluded": [], "from_cache": from_cache, "stopped": None}
+    if not sel and not from_cache:
         out["summary"] = {"reason": "no candidate selected"}
         return out
-    by_id = camp.by_id
-    cands = [by_id[i] for i in sel]
+    cands = [by_id[i] for i in sel + from_cache]
     plan = camp.tools.md_plan(cands)
     out["plan"] = {k: plan.get(k) for k in ("gpu", "runs", "total_runs", "wall_s", "usd", "usd_max", "timeout_s")}
     camp.emit("molecular_dynamics", "plan", **out["plan"])
     if plan["usd"] > config.MD_MAX_USD_PER_RUN:
         out["stopped"] = (f"estimated Modal cost {plan['usd']:.2f} $ above MD_MAX_USD_PER_RUN "
                           f"({config.MD_MAX_USD_PER_RUN:g} $): not launched")
-    elif plan["total_runs"] > config.MD_SCREEN_MAX_RUNS:
-        out["stopped"] = f"{plan['total_runs']} MD runs above MD_SCREEN_MAX_RUNS ({config.MD_SCREEN_MAX_RUNS}): not launched"
+    elif plan["runs"] > config.MD_SCREEN_MAX_RUNS:
+        out["stopped"] = f"{plan['runs']} MD runs to compute, above MD_SCREEN_MAX_RUNS ({config.MD_SCREEN_MAX_RUNS}): not launched"
     if out["stopped"]:
         out["summary"] = {"stopped": out["stopped"]}
         return out
@@ -261,7 +266,8 @@ def molecular_dynamics(camp: Campaign) -> dict:
         camp.emit("molecular_dynamics", "done", c["id"], D_cm2_per_s=c["D_cm2_per_s"],
                   ratio=c["D_ratio_to_parent"], verdict=c["md_verdict"], conduction=c["conduction"])
     out["summary"] = {"verdicts": {r["id"]: (r.get("vs_parent") or {}).get("verdict") for r in rows
-                                   if r.get("kind") == "candidate"}, "excluded": out["excluded"]}
+                                   if r.get("kind") == "candidate"}, "excluded": out["excluded"],
+                      "from_cache": from_cache}
     return out
 
 
@@ -351,6 +357,9 @@ def render_md(out: dict, result: dict) -> list[str]:
     if p:
         lines.append(f"Runs computed: {p['runs']} of {p['total_runs']} (others from the cache); estimate "
                      f"{p['usd']:.2f} $, about {p['wall_s'] / 60:.0f} min in parallel.")
+    if out.get("from_cache"):
+        lines.append(f"Not selected but already simulated (verdict from the cache, no cost): "
+                     f"{', '.join(out['from_cache'])}.")
     if out.get("stopped"):
         return lines + ["", f"**Not launched:** {out['stopped']}", ""]
     if out["rows"]:

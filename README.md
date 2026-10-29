@@ -118,13 +118,16 @@ AutoLab's outputs are **computationally predicted candidates**, not experimental
 - [x] Materials Project access with disk cache
 - [x] Band gap filter (ALIGNN, CPU)
 - [x] Convex hull and electrode checks (window, passivation, cathode interface), validated with Materials Project energies
-- [x] UMA relaxation, energies and convex hull on GPU (validated on a Colab T4; Modal deployment pending)
+- [x] UMA relaxation, energies and convex hull on GPU (validated on a Colab T4, then deployed on Modal)
 - [x] Language-model client (Muse Spark via the Meta Model API, Muse Spark Open via Baseten)
-- [ ] Electrode checks with UMA energies
+- [x] Electrode checks with UMA energies (MP2020 corrections; window, passivation, LiFePO4 interface calibrated against MP)
 - [x] Muse Spark agent loop (first run on a Colab T4: 2 iterations, 10 candidates; see `results/2026-10-28_first_loop_colab/`)
-- [ ] Molecular dynamics on top candidates
-- [ ] Rediscovery benchmark
-- [ ] Web interface and final report
+- [x] Molecular dynamics: calibration on the parents (first test failed, v2 passed: Li7P3S11 2.0x faster than Li3PS4, 3.6 sigma) and screening of 5 candidates at 600 K on Modal (all tied with their parent)
+- [x] Complete autonomous loop: funnel, electrodes, MD choice by Muse Spark, MD, final ranking, novelty check (tested with mocks)
+- [ ] First real run of the complete loop (in progress)
+- [ ] Validation benchmark on known electrolytes
+- [ ] Reference run for the demo
+- [ ] Web interface (replay mode) and final report
 - [ ] Demo video
 
 ## Author

@@ -4,8 +4,9 @@ Three levels only, decided by the model but bounded by the code:
 - "published": the composition itself is reported (needs at least one API citation);
 - "related": a close family (same dopant family or same parent) is studied (needs a citation);
 - "none_found": nothing found in this search. It never means "never discovered".
-Links come only from the API's url_citation annotations: URLs typed by the model are removed,
-and a "published"/"related" claim without any citation is downgraded to "none_found".
+Links come only from the API: its url_citation annotations, or, when it returns none, the search results it
+returned (marked as such). URLs typed by the model are removed, and a "published"/"related" claim with neither is
+downgraded to "none_found".
 """
 
 from __future__ import annotations
@@ -21,7 +22,17 @@ LEVELS = {
     "none_found": "no publication found in this search",
 }
 
-_LEVEL = re.compile(r"^\s*LEVEL\s*:\s*(published|related|none_found)\b", re.I | re.M)
+_LEVEL = re.compile(r"LEVEL\s*:\s*(published|related|none_found)\b", re.I)  # anywhere: may follow a preamble
+SEARCH_RESULTS_SHOWN = 5  # search results listed as sources when the API returns no inline citation
+# A search result can stand for a source only if its title or address names the compound, its parent, or the field
+# (many results of a web search are unrelated: songs, paintings, stock news were seen on 2026-10-29).
+RELEVANT_TERMS = ("electrolyte", "superionic", "ionic conduct", "ion conduct", "thiophosphate", "argyrodite")
+
+
+def _relevant(result: dict, c: dict) -> bool:
+    text = f"{result.get('title') or ''} {result.get('url') or ''}".lower()
+    names = [n.lower() for n in (c.get("formula"), c.get("parent_formula")) if n]
+    return any(n in text for n in names) or any(t in text for t in RELEVANT_TERMS)
 _URL = re.compile(r"\(?\s*(?:https?://|www\.)\S+\s*\)?")
 _OVERCLAIM = re.compile(r"never (?:been )?(?:reported|discovered|published|synthesi[sz]ed|studied)|"
                         r"first (?:ever|time)|(?:entirely |completely )?new to (?:the|all) literature|"
@@ -60,7 +71,8 @@ def messages_for(c: dict) -> list[dict]:
 def _clean(text: str) -> tuple[str, list[str]]:
     """Body without the LEVEL line, typed URLs and over-claiming sentences; notes on what was removed."""
     notes = []
-    body = _LEVEL.sub("", text, count=1).strip()
+    m = _LEVEL.search(text)
+    body = text[m.end():].strip() if m else text.strip()  # the preamble before the level is dropped
     body, n_urls = _URL.subn("", body)
     if n_urls:
         notes.append(f"{n_urls} URL(s) written by the model removed (only API citations are kept)")
@@ -71,34 +83,55 @@ def _clean(text: str) -> tuple[str, list[str]]:
     return " ".join(kept).strip(), notes
 
 
-def check(c: dict, client, today: str | None = None) -> dict:
-    """Novelty level of one candidate from one grounded web search."""
+def search(c: dict, client, today: str | None = None) -> dict:
+    """One grounded web search, kept raw (text, citations, search results): this is what is cached."""
     reply = client.web_search(messages_for(c), reasoning_effort=config.NOVELTY_REASONING_EFFORT,
                               max_output_tokens=config.NOVELTY_MAX_OUTPUT_TOKENS)
-    m = _LEVEL.search(reply.text)
+    return {"text": reply.text, "citations": reply.citations, "considered": reply.sources_considered,
+            "web_searches": reply.web_searches, "cost_usd": round(reply.cost_usd, 5),
+            "date": today or datetime.now(timezone.utc).date().isoformat()}
+
+
+def interpret(c: dict, raw: dict) -> dict:
+    """Novelty level from a raw search: level line, cleaned summary, sources from the API only."""
+    m = _LEVEL.search(raw["text"])
     level = m.group(1).lower() if m else "none_found"
-    summary, notes = _clean(reply.text)
+    summary, notes = _clean(raw["text"])
     if not m:
         notes.append("the model gave no level: check manually")
     sources, seen = [], set()
-    for cit in reply.citations:
+    for cit in raw["citations"]:
         if cit.get("url") and cit["url"] not in seen:
             seen.add(cit["url"])
             sources.append({"title": cit.get("title") or cit["url"], "url": cit["url"]})
+    if not sources and level in ("published", "related"):
+        for r in raw["considered"]:
+            if r.get("url") and r["url"] not in seen and len(sources) < SEARCH_RESULTS_SHOWN and _relevant(r, c):
+                seen.add(r["url"])
+                sources.append({"title": r.get("title") or r["url"], "url": r["url"], "kind": "search result"})
+        if sources:
+            notes.append("no inline citation returned by the API: the relevant search results it returned are "
+                         "listed instead")
     if level in ("published", "related") and not sources:
-        notes.append(f"'{level}' claimed without any citation from the API: unsourced claim discarded")
+        notes.append(f"'{level}' claimed without any citation or relevant search result from the API: unsourced "
+                     "claim discarded")
         level = "none_found"
     return {"id": c["id"], "formula": c["formula"], "level": level, "label": LEVELS[level], "summary": summary,
-            "sources": sources, "sources_considered": len(reply.sources_considered), "web_searches": reply.web_searches,
-            "cost_usd": round(reply.cost_usd, 5), "date": today or datetime.now(timezone.utc).date().isoformat(),
-            "notes": notes}
+            "sources": sources, "sources_considered": len(raw["considered"]), "web_searches": raw["web_searches"],
+            "cost_usd": raw["cost_usd"], "date": raw["date"], "notes": notes}
+
+
+def check(c: dict, client, today: str | None = None) -> dict:
+    """Novelty level of one candidate from one grounded web search."""
+    return interpret(c, search(c, client, today))
 
 
 def _cache_key(c: dict) -> str:
     import hashlib
     import json
 
-    payload = {"model": config.LLM_PROVIDERS[config.NOVELTY_PROVIDER]["model"], "messages": messages_for(c)}
+    payload = {"model": config.LLM_PROVIDERS[config.NOVELTY_PROVIDER]["model"], "messages": messages_for(c),
+               "cache": "raw-v2"}  # raw answers, interpreted when read
     return hashlib.sha1(json.dumps(payload, sort_keys=True).encode()).hexdigest()
 
 
@@ -115,12 +148,11 @@ def novelty_check(candidates: list[dict], client, control: dict | None = config.
     out = {"control": None, "candidates": [], "stopped": None}
     for c in ([control] if control else []) + list(candidates):
         key = _cache_key(c)
-        hit = cache.get(key) if cache is not None else None
-        if hit is not None:
-            res = {**hit, "id": c["id"], "cached": True}
-        else:
+        raw = cache.get(key) if cache is not None else None
+        cached = raw is not None
+        if raw is None:
             try:
-                res = check(c, client)
+                raw = search(c, client)
             except BudgetExceeded as e:
                 out["stopped"] = f"budget: {e}"
                 break
@@ -128,7 +160,8 @@ def novelty_check(candidates: list[dict], client, control: dict | None = config.
                 out["stopped"] = f"language model: {e}"
                 break
             if cache is not None:
-                cache.set(key, res)
+                cache.set(key, raw)
+        res = {**interpret(c, raw), **({"cached": True} if cached else {})}
         if control and c is control:
             res["control_ok"] = res["level"] == "published"
             out["control"] = res
@@ -147,7 +180,8 @@ def render(result: dict) -> str:
     lines = ["## Novelty check (literature, web search)", ""]
     rows = ([result["control"]] if result.get("control") else []) + result["candidates"]
     if rows:
-        lines += [f"Search date: {rows[0]['date']}. Links come only from the citations returned by the API. "
+        lines += [f"Search date: {rows[0]['date']}. Links come only from the API (its citations, or the relevant "
+                  "search results it returned when it gave no citation). "
                   "\"No publication found in this search\" does not mean the material was never reported.", ""]
     for r in rows:
         tag = " (control, expected: already published)" if "control_ok" in r else ""

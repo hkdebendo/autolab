@@ -182,6 +182,8 @@ def relax_structures(
                     continue
                 cache.set(key, {**res, "settings": settings})  # saved as soon as each chunk returns
                 fresh.add(key)
+        for _ in results:  # finish the iterator (Modal's map otherwise warns when it is closed half-read)
+            pass
         if failed:
             raise RuntimeError(f"{len(failed)} of {len(missing)} relaxations failed on the {getattr(backend, 'name', 'remote')} backend")
 

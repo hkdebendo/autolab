@@ -58,11 +58,30 @@ def test_published_with_citations_keeps_only_api_links():
     assert req["include"] == ["web_search_call.results"] and "Never write a URL" in req["instructions"]
 
 
-def test_claim_without_citation_is_downgraded():
-    client, _ = meta([response("LEVEL: related\nIodine-doped Li3PS4 has been studied.", citations=())])
+def test_claim_without_citation_or_search_result_is_downgraded():
+    client, _ = meta([response("LEVEL: related\nIodine-doped Li3PS4 has been studied.", citations=(), results=0)])
     r = novelty.check(CAND, client)
     assert r["level"] == "none_found" and r["label"] == "no publication found in this search"
     assert any("unsourced claim discarded" in n for n in r["notes"])
+
+
+def test_level_after_a_preamble_and_search_results_as_sources():
+    """Real answer of 2026-10-29: a preamble glued before the level, no inline citation, 11 search results."""
+    text = ("I'll search the literature for Li10GeP2S12.LEVEL: published\nLi10GeP2S12 is reported in Nature "
+            "Materials 10, 682 (2011).")
+    client, _ = meta([response(text, citations=(), searches=1, results=7)])
+    r = novelty.check(LGPS, client)
+    assert r["summary"].startswith("Li10GeP2S12 is reported")
+    assert r["sources"] == [] and r["level"] == "none_found"  # results titled "r": unrelated, not sources
+
+    raw = novelty.search(LGPS, meta([response(text, citations=(), searches=1, results=0)])[0])
+    raw["considered"] = [{"url": "https://museum.org/potato-eaters", "title": "The Potato Eaters"},
+                         {"url": "https://pubs.rsc.org/c3cp51985f", "title": "Single-crystal structure of Li10GeP2S12"},
+                         {"url": "https://x.org/a", "title": "A sulfide solid electrolyte made in water"}]
+    r = novelty.interpret(LGPS, raw)
+    assert r["level"] == "published" and [s["url"] for s in r["sources"]] == ["https://pubs.rsc.org/c3cp51985f",
+                                                                             "https://x.org/a"]
+    assert r["sources"][0]["kind"] == "search result" and any("search results it returned" in n for n in r["notes"])
 
 
 def test_overclaims_are_removed_and_missing_level_is_flagged():
