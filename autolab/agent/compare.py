@@ -15,6 +15,7 @@ METRICS = (
     ("e_hull", "E_hull per atom", "eV/atom", "low"),
     ("e_hull_per_substitution", "E_hull per substitution", "eV per modified site", "low"),
     ("gap_optb88", "band gap optB88", "eV", "high"),
+    ("interface_reaction_energy", "worst reaction energy with the cathode", "eV/atom", "high"),  # after the electrodes
 )
 
 
@@ -88,5 +89,5 @@ def comparisons(candidates: list[dict]) -> list[dict]:
             continue
         out.append({"kind": "ranking on one parent", "about": parent, "statements": [
             f"{label} ({'lowest' if better == 'low' else 'highest'} first): {_ranking(items, field, better)}"
-            for field, label, unit, better in METRICS]})
+            for field, label, unit, better in METRICS if sum(c.get(field) is not None for c in items) >= 2]})
     return out

@@ -1,4 +1,4 @@
-"""Markdown report of one loop run (proposals, funnel results, reasoning, ranking, usage)."""
+"""Markdown report of one loop run (proposals, funnel results, reasoning, stages, ranking, usage)."""
 
 from __future__ import annotations
 
@@ -48,8 +48,26 @@ def _candidate_row(c: dict) -> str:
             f"{_num(c.get('e_hull_per_substitution'))} | {gap} | {ss} | {known} | {verdict} |")
 
 
-def render(result: dict) -> str:
-    lines = ["# AutoLab loop report", "", f"**Goal.** {result['goal']}", ""]
+def candidate_table(candidates: list[dict]) -> list[str]:
+    """Funnel results of one iteration (electrolyte domain)."""
+    lines = ["| Candidate | Formula | Arrangements/converged | Spread (meV/at) | E_hull per atom (eV/atom) | "
+             "E_hull per substitution (eV per modified site) | Gap optB88/mBJ (eV) | S-S | Known in MP | Result |",
+             "|---|---|---|---|---|---|---|---|---|---|"]
+    lines += [_candidate_row(c) for c in candidates]
+    for c in candidates:
+        if c.get("decomposition"):
+            products = ", ".join(f"{d['formula']} {d['fraction']:.2f}" for d in c["decomposition"])
+            lines.append(f"- {c['id']} decomposes into: {products}")
+    return lines
+
+
+def render(result: dict, domain=None) -> str:
+    """Report of a run; the domain gives the iteration table and the sections of its stages."""
+    from autolab.domains import get_domain
+
+    domain = domain or get_domain(result.get("domain", "electrolyte"))
+    table = domain.render_candidates or candidate_table
+    lines = ["# AutoLab loop report", "", f"**Domain.** {domain.name}. **Goal.** {result['goal']}", ""]
     lines.append("**Parents.** " + "; ".join(f"{p['formula']} {p['id']} ({p['cell_formula']}, {p['nsites']} atoms)"
                                              for p in result["parents"]))
     s = result["settings"]
@@ -70,14 +88,7 @@ def render(result: dict) -> str:
         if p["reasoning"]:
             lines += ["", "<details><summary>Reasoning summary (proposals)</summary>", "",
                       _short(p["reasoning"]), "", "</details>"]
-        lines += ["", "| Candidate | Formula | Arrangements/converged | Spread (meV/at) | E_hull per atom (eV/atom) | "
-                      "E_hull per substitution (eV per modified site) | Gap optB88/mBJ (eV) | S-S | Known in MP | Result |",
-                  "|---|---|---|---|---|---|---|---|---|---|"]
-        lines += [_candidate_row(c) for c in r["candidates"]]
-        for c in r["candidates"]:
-            if c.get("decomposition"):
-                products = ", ".join(f"{d['formula']} {d['fraction']:.2f}" for d in c["decomposition"])
-                lines.append(f"- {c['id']} decomposes into: {products}")
+        lines += [""] + table(r["candidates"])
         if r.get("comparisons"):
             lines += ["", "<details><summary>Comparisons computed by the code (given to the model)</summary>", ""]
             for comp in r["comparisons"]:
@@ -94,25 +105,40 @@ def render(result: dict) -> str:
                           _short(a["reasoning"]), "", "</details>"]
         lines.append("")
 
-    lines += ["## Final ranking (passed candidates, lowest E_hull per substitution first)", ""]
-    by_id = {c["id"]: c for r in result["iterations"] for c in r["candidates"]}
-    if result["final_ranking"]:
-        for i, cid in enumerate(result["final_ranking"], 1):
-            c = by_id[cid]
-            lines.append(f"{i}. {cid} {c['formula']} ({_sub(c['substitution'])} in {c['parent']}): "
-                         f"E_hull per substitution {_num(c.get('e_hull_per_substitution'))} eV per modified site, "
-                         f"E_hull per atom {_num(c['e_hull'])} eV/atom, gap {_num(c['gap_optb88'], '.2f')} eV"
-                         f"{', S-S bonds (reduced reliability)' if c.get('ss_bonds') else ''}"
-                         f"{_reduced(c)}")
-    else:
-        lines.append("No candidate passed all filters.")
-    lines += ["", f"Model ranking (last analysis): {result['model_ranking'] or '[]'}", "",
-              "Not computed in this minimal loop: electrochemical window, interfaces, molecular dynamics. "
-              "Candidates are computational predictions, not proven materials.", "", "## Usage", ""]
+    if result.get("prior"):
+        lines += [f"**Earlier runs.** {len(result['prior'])} candidates given to the model and to the stages: "
+                  f"{', '.join(c['id'] for c in result['prior'])}.", ""]
+    stages = {s.name: s for s in domain.stages}
+    for name, out in result.get("stages", {}).items():
+        stage = stages.get(name)
+        if out["status"] == "error":
+            lines += [f"## {name}", "", f"**Error:** {out['error']}", ""]
+        elif stage and stage.render:
+            lines += stage.render(out, result)
+    if not result.get("stages"):
+        by_id = {c["id"]: c for r in result["iterations"] for c in r["candidates"]}
+        lines += ["## Ranking after the funnel (passed candidates, lowest E_hull per substitution first)", ""]
+        if result["final_ranking"]:
+            for i, cid in enumerate(result["final_ranking"], 1):
+                c = by_id[cid]
+                lines.append(f"{i}. {cid} {c['formula']} ({_sub(c['substitution'])} in {c['parent']}): "
+                             f"E_hull per substitution {_num(c.get('e_hull_per_substitution'))} eV per modified site, "
+                             f"E_hull per atom {_num(c['e_hull'])} eV/atom, gap {_num(c['gap_optb88'], '.2f')} eV"
+                             f"{', S-S bonds (reduced reliability)' if c.get('ss_bonds') else ''}"
+                             f"{_reduced(c)}")
+        else:
+            lines.append("No candidate passed all filters.")
+        lines += ["", "Stages after the funnel not run. Candidates are computational predictions, not proven materials."]
+    lines += ["", f"Model ranking (last analysis): {result['model_ranking'] or '[]'}", "", "## Usage", ""]
     u = result["usage"]
     for provider, t in u["llm"].items():
         lines.append(f"- {provider}: {t['calls']} calls, {t['input_tokens']} in / {t['output_tokens']} out tokens, "
                      f"~${t['cost_usd']:.4f}")
+    if u.get("novelty"):
+        lines.append(f"- novelty web search: {u['novelty']['calls']} calls, ~${u['novelty']['cost_usd']:.4f}")
+    if u.get("md"):
+        lines.append(f"- molecular dynamics: {u['md']['runs']} new runs of {u['md']['total_runs']} on Modal "
+                     f"{u['md']['gpu']}, estimate {u['md']['usd']:.2f} $")
     lines += [f"- UMA relaxations: {u['relaxations']['new']} new / {u['relaxations']['limit']} allowed",
               f"- events: {u['events']}; duration {u['seconds'] / 60:.1f} min"]
     return "\n".join(lines)

@@ -44,14 +44,28 @@ def _mp_gaps(ids: list[str]) -> dict:
     return get_band_gaps([i for i in ids if i.startswith("mp-")])
 
 
+def polysulfides_among(formulas, entries: list) -> list[str]:
+    """Which of these product formulas are polysulfides (S-S bonds) in the phase diagram, judged on the lowest
+    entry of each formula: the reduced-confidence rule of the hull, applied to electrode reactions."""
+    from autolab.analysis.stability import polysulfide_products
+
+    best = {}
+    for e in entries:
+        f = e.composition.reduced_formula
+        if f in formulas and (f not in best or e.energy_per_atom < best[f].energy_per_atom):
+            best[f] = e
+    return polysulfide_products({e: 1.0 for e in best.values()})
+
+
 def window_and_passivation(c: dict, entries_fn: Callable = _default_entries, get_gaps: Callable = _mp_gaps,
                            budget=None) -> dict:
     """Electrochemical window and passivation against Li metal, with UMA references of the candidate's system."""
     target = candidate_entry(c)
     entries, skipped = entries_fn(_elements(target.composition), budget)
+    pas = passivation(target, entries, get_gaps)
+    pas["polysulfide_products"] = polysulfides_among({d["formula"] for d in pas["products"]}, entries)
     return {"id": c["id"], "formula": target.composition.reduced_formula,
-            "window": electrochemical_window(target, entries),
-            "passivation": passivation(target, entries, get_gaps), "skipped_references": skipped}
+            "window": electrochemical_window(target, entries), "passivation": pas, "skipped_references": skipped}
 
 
 def reference_window(material_id: str, elements: list[str], entries_fn: Callable = _default_entries,
@@ -97,7 +111,8 @@ def uma_interface(electrolyte, cathode: str, entries_fn: Callable = _default_ent
     entries, skipped = entries_fn(_elements(comp, cathode), budget, ehull_max=config.INTERFACE_REF_EHULL_MAX)
     hull = [*entries, *extra]
     res = cathode_interface(comp, cathode, PhaseDiagram(hull))
-    return {**res, "source": energy_source(hull[0]), "references": len(entries), "skipped_references": skipped}
+    return {**res, "polysulfide_products": polysulfides_among(set(res["products"]), hull),
+            "source": energy_source(hull[0]), "references": len(entries), "skipped_references": skipped}
 
 
 def mp_interface(electrolyte: str, cathode: str, get_entries: Callable | None = None) -> dict:

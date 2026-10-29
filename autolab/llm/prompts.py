@@ -53,10 +53,33 @@ You receive the results of the candidates evaluated in this iteration. Fields:
 - ss_bonds: true = S-S chains present, UMA less reliable for this candidate.
 - reduced_confidence: true when the decomposition goes through a polysulfide (decomposition_polysulfides, e.g. LiS4): UMA is least reliable there (LiS4 is off by about 0.17 eV/atom from MP), so its E_hull is uncertain.
 - comparisons: statements computed by the code over all candidates so far (same substitution on different parents, same parent with a different added element, rankings on one parent). Whenever a lesson compares candidates, base it only on these statements and quote their numbers; never compare values yourself.
-Electrochemical window and ionic conductivity are not computed yet: do not claim them.
+Electrochemical window, interfaces and ionic conductivity are computed only after the last iteration: do not claim them.
 
 Rank only candidates with status "passed", best first by e_hull_per_substitution unless the comparisons give a reason otherwise (empty list if none). Give 1 to 3 short lessons, one sentence of next direction, and stop=true only if more iterations are unlikely to help.
 Reply with JSON only, exactly this shape: {template("analysis")}"""
+
+
+def md_selection_system(max_selected: int) -> str:
+    return f"""You are the research brain of AutoLab, an agent searching for new solid electrolytes for lithium-metal batteries.
+The candidates below passed every filter (E_hull per atom <= {config.EHULL_SYNTHESIZABLE} eV/atom, band gap >= {config.BANDGAP_MIN} eV) and were not excluded at the electrodes. Choose which ones go to molecular dynamics, the most expensive step: Li diffusion at {config.MD_SCREEN_TEMPERATURE_K} K on a GPU, {config.MD_SCREEN_SEEDS} runs of {config.MD_SCREEN_PS} ps each, compared with the candidate's own parent. A candidate slower than its parent by more than {config.MD_TIE_SIGMA:g} combined errors will be excluded for conduction.
+Fields:
+- e_hull (eV/atom) and e_hull_per_substitution (eV per modified site, the stability ranking criterion, lower is better); reduced_confidence: the E_hull goes through a polysulfide, where UMA is least reliable.
+- window: electrochemical stability window in V (v_low, v_high; stable=false means zero width at the calculation precision, not a rejection; parents are narrow too).
+- passivation: reaction with Li metal: "stable", "passivating" or "quasi_stable" (non-passivating candidates were already excluded); passivation_reaction_energy in eV/atom.
+- interface_reaction_energy: most negative reaction energy with the cathode(s) {", ".join(config.AGENT_CATHODES)} (eV/atom, closer to 0 is better); electrodes_reduced_confidence: these reactions form a polysulfide (e.g. FeS2), so their energies are less reliable.
+- md_cached: the molecular dynamics of this candidate is already computed (it costs nothing to select it).
+- comparisons: statements computed by the code. Base every comparison only on them and quote their numbers; never compare values yourself.
+
+Select at most {max_selected} candidate ids, the most promising and diverse for Li conduction (dopants known to open Li pathways, softer anion frameworks, Li vacancies), and give a one-sentence rationale. Only ids from the list are accepted.
+Reply with JSON only, exactly this shape: {template("md_selection")}"""
+
+
+def md_selection_messages(goal: str, candidates: list[dict], comparisons: list[dict], max_selected: int) -> list[dict]:
+    """Messages asking which passed candidates go to molecular dynamics."""
+    user = {"goal": goal, "candidates": candidates, "comparisons": comparisons,
+            "request": f"Select at most {max_selected} candidates for molecular dynamics."}
+    return [{"role": "system", "content": md_selection_system(max_selected)},
+            {"role": "user", "content": json.dumps(user)}]
 
 
 def proposal_messages(goal: str, parents: list[dict], history: list[dict], max_proposals: int) -> list[dict]:
