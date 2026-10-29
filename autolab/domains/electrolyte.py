@@ -5,17 +5,19 @@ substitution) -> band gap (ALIGNN) -> S-S flag (agent/pipeline.py).
 After the iterations, on the passed candidates:
 1. electrodes: window, passivation against Li metal, interfaces with config.AGENT_CATHODES (top ELECTRODES_TOP);
    non-passivating -> excluded; polysulfide products -> reduced confidence of the electrode results;
-2. md_selection: the model picks at most MD_SELECT_MAX candidates from code-computed comparisons
+2. candidate_analyses: Muse Spark Open (Baseten) reviews each eligible candidate, in parallel;
+3. md_selection: the model picks at most MD_SELECT_MAX candidates from code-computed comparisons and the reviews
    (rule fallback: best E_hull per substitution, when no model answers);
-3. molecular_dynamics: Li diffusion at the validated screening settings on Modal, next to the parents;
+4. molecular_dynamics: Li diffusion at the validated screening settings on Modal, next to the parents;
    "lower" than the parent -> excluded for conduction (MD_EXCLUDED_VERDICTS); not launched above MD_MAX_USD_PER_RUN;
-4. ranking: FINAL_RANK_MD_ORDER, then E_hull per substitution; excluded candidates last; FINALISTS_MAX finalists;
-5. novelty: LGPS control first, then the finalists (web search, cap NOVELTY_COST_CAP_USD, answers cached).
+5. ranking: FINAL_RANK_MD_ORDER, then E_hull per substitution; excluded candidates last; FINALISTS_MAX finalists;
+6. novelty: LGPS control first, then the finalists (web search, cap NOVELTY_COST_CAP_USD, answers cached).
 Every step reads the caches (relaxations, MD, MP, band gaps, novelty answers) before computing.
 """
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from typing import Callable
 
@@ -33,9 +35,9 @@ FOR_MODEL = ("id", "parent", "substitution", "formula", "status", "rejected_at",
 FOR_SELECTION = ("id", "parent", "parent_formula", "substitution", "formula", "e_hull", "e_hull_per_substitution",
                  "reduced_confidence", "decomposition_polysulfides", "gap_optb88", "ss_bonds", "window", "passivation",
                  "passivation_reaction_energy", "interface_reaction_energy", "electrodes_reduced_confidence",
-                 "electrodes_polysulfides", "md_cached")
+                 "electrodes_polysulfides", "md_cached", "analysis")
 
-THRESHOLDS = ("EHULL_SYNTHESIZABLE", "BANDGAP_MIN", "ELECTRODES_TOP", "AGENT_CATHODES", "ELECTRODE_EXCLUDED_PASSIVATION",
+THRESHOLDS = ("CANDIDATE_ANALYSIS_PROVIDER", "CANDIDATE_ANALYSIS_MAX", "EHULL_SYNTHESIZABLE", "BANDGAP_MIN", "ELECTRODES_TOP", "AGENT_CATHODES", "ELECTRODE_EXCLUDED_PASSIVATION",
               "MD_SELECT_MAX", "MD_SCREEN_TEMPERATURE_K", "MD_SCREEN_PS", "MD_SCREEN_SEEDS", "MD_TIE_SIGMA",
               "MD_EXCLUDED_VERDICTS", "MD_MAX_USD_PER_RUN", "FINAL_RANK_MD_ORDER", "FINALISTS_MAX",
               "NOVELTY_COST_CAP_USD")
@@ -194,6 +196,51 @@ def electrodes(camp: Campaign) -> dict:
     return out
 
 
+ANALYSIS_FIELDS = tuple(k for k in FOR_SELECTION if k not in ("md_cached", "analysis"))
+
+
+def candidate_analyses(camp: Campaign) -> dict:
+    """Muse Spark Open (Baseten) reviews each eligible candidate, all in parallel: strengths, risks, MD priority.
+    A failed or over-budget call only leaves that candidate without a review."""
+    from concurrent.futures import ThreadPoolExecutor
+
+    from autolab.llm.client import BudgetExceeded, LLMError
+
+    client = getattr(camp.agent, "analyst", None)
+    eligible = sorted((c for c in camp.passed() if not c.get("excluded_at")), key=rank_key)
+    todo = eligible[:config.CANDIDATE_ANALYSIS_MAX]
+    out = {"provider": getattr(client, "provider", None), "analysed": [], "failed": {}, "skipped": None}
+    if client is None or not todo:
+        out["skipped"] = "no analyst model" if client is None else "no eligible candidate"
+        out["summary"] = {"skipped": out["skipped"]}
+        return out
+    comps = comparisons(eligible)
+
+    def review(c: dict):
+        mine = [s for s in comps if c["id"] in json.dumps(s)]
+        view = {k: c.get(k) for k in ANALYSIS_FIELDS if k in c}
+        try:
+            obj, replies = client.complete_json(prompts.candidate_analysis_messages(camp.goal, view, mine),
+                                                "candidate_analysis",
+                                                max_output_tokens=config.CANDIDATE_ANALYSIS_MAX_OUTPUT_TOKENS)
+        except (BudgetExceeded, LLMError) as e:
+            return c, None, f"{type(e).__name__}: {e}"
+        return c, {**obj, "cost_usd": round(sum(r.cost_usd for r in replies), 5)}, None
+
+    with ThreadPoolExecutor(max_workers=config.CANDIDATE_ANALYSIS_WORKERS) as pool:
+        for c, analysis, error in pool.map(review, todo):
+            if analysis is None:
+                out["failed"][c["id"]] = error
+                continue
+            c["analysis"] = {k: analysis[k] for k in ("strengths", "risks", "md_priority", "summary")}
+            out["analysed"].append(c["id"])
+            camp.emit("candidate_analyses", "done", c["id"], provider=client.provider, **analysis)
+    if out["failed"]:
+        out["stopped"] = f"{len(out['failed'])} analysis call(s) failed (no retry)"
+    out["summary"] = {"provider": client.provider, "analysed": len(out["analysed"]), "failed": list(out["failed"])}
+    return out
+
+
 def md_selection(camp: Campaign) -> dict:
     from autolab.agent.loop import LoopStopped
 
@@ -339,6 +386,20 @@ def render_electrodes(out: dict, result: dict) -> list[str]:
     return lines + [""]
 
 
+def render_candidate_analyses(out: dict, result: dict) -> list[str]:
+    lines = ["## Candidate analyses (Muse Spark Open, in parallel)", ""]
+    if out.get("skipped"):
+        return lines + [f"Not run: {out['skipped']}.", ""]
+    by_id = _pool(result)
+    for cid in out["analysed"]:
+        a = by_id[cid].get("analysis") or {}
+        lines += [f"**{cid} {by_id[cid]['formula']}** (MD priority: {a.get('md_priority')}): {a.get('summary')}",
+                  *[f"- strength: {s}" for s in a.get("strengths", [])], *[f"- risk: {s}" for s in a.get("risks", [])], ""]
+    for cid, err in out.get("failed", {}).items():
+        lines.append(f"- {cid}: no analysis ({err})")
+    return lines + [""]
+
+
 def render_md_selection(out: dict, result: dict) -> list[str]:
     lines = ["## Choice of the candidates for molecular dynamics", ""]
     if not out["eligible"]:
@@ -426,6 +487,7 @@ def make_domain() -> Domain:
         proposal_messages=prompts.proposal_messages, analysis_messages=prompts.analysis_messages,
         comparisons=comparisons, for_model=FOR_MODEL, rank_key=rank_key,
         stages=(Stage("electrodes", electrodes, render_electrodes),
+                Stage("candidate_analyses", candidate_analyses, render_candidate_analyses),
                 Stage("md_selection", md_selection, render_md_selection),
                 Stage("molecular_dynamics", molecular_dynamics, render_md),
                 Stage("ranking", ranking, render_ranking),

@@ -194,6 +194,12 @@ LLM_PROVIDERS: dict[str, dict] = {
     },
 }
 LLM_FAST_PROVIDER = "baseten"  # small tasks (formula checks, JSON conversion, iteration summaries)
+# Parallel analyses of the candidates (SPEC 5.11): Muse Spark Open writes one short analysis per eligible candidate
+# after the electrodes; Muse Spark reads them before choosing the MD candidates.
+CANDIDATE_ANALYSIS_PROVIDER = "baseten"
+CANDIDATE_ANALYSIS_MAX = 20  # candidates analysed per run (best E_hull per substitution first)
+CANDIDATE_ANALYSIS_WORKERS = 4  # parallel calls (Baseten limit: 2 M tokens/min)
+CANDIDATE_ANALYSIS_MAX_OUTPUT_TOKENS = 3000
 LLM_FALLBACK_PROVIDER = "baseten"  # used when the main provider fails
 LLM_TIMEOUT = 300  # s per call
 LLM_MAX_OUTPUT_TOKENS = 4000  # includes reasoning tokens

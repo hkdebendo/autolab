@@ -134,6 +134,9 @@ def render(result: dict, domain=None) -> str:
     for provider, t in u["llm"].items():
         lines.append(f"- {provider}: {t['calls']} calls, {t['input_tokens']} in / {t['output_tokens']} out tokens, "
                      f"~${t['cost_usd']:.4f}")
+    if u.get("analyst"):
+        lines.append(f"- candidate analyses ({', '.join(u['analyst']['by_provider']) or 'analyst'}): "
+                     f"{u['analyst']['calls']} calls, ~${u['analyst']['cost_usd']:.4f}")
     if u.get("novelty"):
         lines.append(f"- novelty web search: {u['novelty']['calls']} calls, ~${u['novelty']['cost_usd']:.4f}")
     if u.get("md"):

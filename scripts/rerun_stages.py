@@ -22,7 +22,7 @@ from autolab.agent.report import render
 from autolab.domains import Campaign, get_domain
 from autolab.sim.backend import RelaxBudget
 
-from run_loop import client, show
+from run_loop import analyst_client, client, show
 
 
 def main() -> None:
@@ -30,6 +30,7 @@ def main() -> None:
     ap.add_argument("run", type=Path)
     ap.add_argument("--from", dest="start", required=True)
     ap.add_argument("--novelty", action="store_true", help="run the novelty web search (paid, Meta)")
+    ap.add_argument("--analyst", default=config.CANDIDATE_ANALYSIS_PROVIDER, help="'none' to disable")
     ap.add_argument("--max-relaxations", type=int, default=config.MAX_RELAXATIONS_PER_RUN)
     args = ap.parse_args()
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -57,6 +58,8 @@ def main() -> None:
                 c.pop(k, None)
         if "novelty" in rerun:
             c.pop("novelty", None)
+        if "candidate_analyses" in rerun:
+            c.pop("analysis", None)
 
     lines = first_events.read_text(encoding="utf-8").splitlines()
     cut = next(i for i, line in enumerate(lines)
@@ -67,7 +70,7 @@ def main() -> None:
 
     novelty = client(config.NOVELTY_PROVIDER, config.NOVELTY_COST_CAP_USD) if args.novelty else None
     agent = Agent(None, domain=domain, events=events, budget=RelaxBudget(args.max_relaxations),
-                  novelty_client=novelty, get_structure=lambda pid: None)
+                  novelty_client=novelty, analyst=analyst_client(args.analyst), get_structure=lambda pid: None)
     campaign = Campaign(agent, result["goal"], candidates,
                         {k: v for k, v in result["stages"].items() if k not in rerun})
     result["stages"] = {k: v for k, v in result["stages"].items() if k not in rerun}
@@ -80,6 +83,8 @@ def main() -> None:
     result["final_ranking"] = result["stages"].get("ranking", {}).get("ranking", result.get("final_ranking"))
     result["usage"]["novelty"] = novelty.tracker.summary() if novelty is not None else result["usage"].get("novelty")
     result["usage"]["md"] = result["stages"].get("molecular_dynamics", {}).get("plan")
+    if agent.analyst is not None:
+        result["usage"]["analyst"] = agent.analyst.tracker.summary()
     result["rerun"] = {"from": args.start, "new_relaxations": agent.budget.used}
     events.emit("loop", "stop", {"reason": f"{result['stop_reason']} (stages rerun from {args.start})",
                                  "final_ranking": result["final_ranking"]})

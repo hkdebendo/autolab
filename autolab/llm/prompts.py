@@ -68,10 +68,25 @@ Fields:
 - passivation: reaction with Li metal: "stable", "passivating" or "quasi_stable" (non-passivating candidates were already excluded); passivation_reaction_energy in eV/atom.
 - interface_reaction_energy: most negative reaction energy with the cathode(s) {", ".join(config.AGENT_CATHODES)} (eV/atom, closer to 0 is better); electrodes_reduced_confidence: the decomposition of the electrolyte (window limits, Li metal) goes through a polysulfide, so the window is less reliable (a polysulfide formed with the cathode, e.g. FeS2, is information only).
 - md_cached: the molecular dynamics of this candidate is already computed (it costs nothing to select it).
+- analysis: a short review of the candidate written by another model (strengths, risks, md_priority); use it as an opinion, the numbers come first.
 - comparisons: statements computed by the code. Base every comparison only on them and quote their numbers; never compare values yourself.
 
 Select at most {max_selected} candidate ids, the most promising and diverse for Li conduction (dopants known to open Li pathways, softer anion frameworks, Li vacancies), and give a one-sentence rationale. Only ids from the list are accepted.
 Reply with JSON only, exactly this shape: {template("md_selection")}"""
+
+
+def candidate_analysis_system() -> str:
+    return f"""You are a materials scientist reviewing ONE candidate solid electrolyte for lithium-metal batteries, found by the AutoLab agent. It passed every filter computed by the code (E_hull per atom <= {config.EHULL_SYNTHESIZABLE} eV/atom with UMA energies and MP2020 corrections, ALIGNN band gap >= {config.BANDGAP_MIN} eV) and was not excluded at the electrodes.
+Fields: formula, parent and substitution; e_hull (eV/atom) and e_hull_per_substitution (eV per modified site, lower is better); decomposition (products if it decomposed); reduced_confidence (E_hull goes through a polysulfide, where UMA is least reliable); gap_optb88 and gap_mbj (eV); ss_bonds; window (electrochemical stability window in V; stable=false means zero width at the calculation precision, parents are narrow too); passivation against Li metal and passivation_reaction_energy (eV/atom); interface_reaction_energy with the cathode {", ".join(config.AGENT_CATHODES)} (eV/atom, closer to 0 is better); electrodes_reduced_confidence (the window goes through a polysulfide); comparisons: statements computed by the code about this candidate.
+Write 1 to 3 strengths and 1 to 3 risks, each one short sentence grounded in these numbers or in well-known chemistry (e.g. softer anions, Li vacancies, moisture sensitivity of sulfides, cost or toxicity of an element). Quote numbers only from the fields or comparisons; never compute or compare values yourself. Give md_priority "high", "medium" or "low": how much a Li-diffusion simulation of this candidate would teach us. Ionic conductivity is not known yet: do not claim it.
+Reply with JSON only, exactly this shape: {template("candidate_analysis")}"""
+
+
+def candidate_analysis_messages(goal: str, candidate: dict, comparisons: list[dict]) -> list[dict]:
+    """Messages asking Muse Spark Open for a short analysis of one candidate."""
+    user = {"goal": goal, "candidate": candidate, "comparisons": comparisons}
+    return [{"role": "system", "content": candidate_analysis_system()},
+            {"role": "user", "content": json.dumps(user)}]
 
 
 def md_selection_messages(goal: str, candidates: list[dict], comparisons: list[dict], max_selected: int) -> list[dict]:
