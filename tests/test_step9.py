@@ -264,3 +264,22 @@ def test_calibration_runs_cover_every_temperature_of_both_parents():
     assert len(runs) == 2 * len(config.MD_CALIBRATION_RUNS)
     assert {(r["temperature_K"], r["n_steps"], r["seed"]) for r in runs} == {(600, 40000, 0), (700, 30000, 0),
                                                                              (1000, 20000, 1)}
+
+
+def test_md_calibration_v2_pools_the_blocks_of_every_seed():
+    def row(role, formula, seed, blocks, intact=True):
+        return {"role": role, "formula": formula, "seed": seed, "temperature_K": 600,
+                "D_cm2_per_s": float(np.mean(blocks)), "D_blocks_cm2_per_s": blocks,
+                "framework": {"intact": intact}}
+
+    fast = [row("fast", "Li7P3S11", s, [1.3e-5 + 0.1e-5 * k for k in range(-2, 2)]) for s in (0, 1, 2)]
+    slow = [row("slow", "Li3PS4", s, [0.8e-5 + 0.1e-5 * k for k in range(-2, 2)]) for s in (0, 1, 2)]
+    out = dynamics.md_calibration_v2(fast + slow)
+    assert out["passed"] and out["pooled"]["fast"]["n_blocks"] == 12 and out["pooled"]["fast"]["seeds"] == [0, 1, 2]
+    blocks = np.array([b for r in fast for b in r["D_blocks_cm2_per_s"]])
+    assert out["pooled"]["fast"]["D_sem_cm2_per_s"] == pytest.approx(blocks.std(ddof=1) / np.sqrt(12))
+    one_seed = dynamics.md_calibration_v2([fast[0], slow[0]])  # same spread, 4 blocks: not enough
+    assert one_seed["diff_in_sigma"] < out["diff_in_sigma"]
+    melted = dynamics.md_calibration_v2(fast + slow[:2] + [row("slow", "Li3PS4", 2, slow[2]["D_blocks_cm2_per_s"],
+                                                                False)])
+    assert not melted["passed"] and melted["tests"]["fast_faster_than_slow"]

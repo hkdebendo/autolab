@@ -18,7 +18,7 @@ import json
 from pathlib import Path
 
 from autolab import config
-from autolab.agent.dynamics import calibration_runs, md_calibration, parent_job
+from autolab.agent.dynamics import calibration_runs, md_calibration, md_calibration_v2, parent_job
 from autolab.analysis.diffusion import diffusion_coefficient, framework_check
 from autolab.sim.backend import ModalBackend, _as_atoms_dict, get_backend, run_md_runs
 from autolab.sim.serialize import atoms_key
@@ -103,16 +103,41 @@ def render(rows: list[dict], cal: dict) -> str:
     return "\n".join(lines)
 
 
+def render_v2(rows: list[dict], cal: dict) -> str:
+    lines = ["# MD calibration v2: Li7P3S11 vs beta-Li3PS4 at 600 K, 3 seeds of 40 ps (UMA, block D)", "",
+             "Test fixed in SPEC section 7 before these runs (commit 19dca4a). The initial test (600 and 700 K, "
+             "md_calibration.md) failed and stays failed.", "",
+             f"**Truth test v2: {'PASSED' if cal['passed'] else 'FAILED'}** — framework intact: "
+             f"{cal['tests']['framework_intact']}; D(Li7P3S11) / D(Li3PS4) = {cal['ratio']:.2f}, difference "
+             f"{cal['diff_in_sigma']:.1f} combined standard errors (needed: more than {cal['n_sigma']:g}).", "",
+             "| Parent | seed | D, blocks ± s.e. (cm²/s) | P MSD final (Å²) | S MSD final (Å²) | Framework | GPU ms/step |",
+             "|---|---|---|---|---|---|---|"]
+    for r in sorted(rows, key=lambda r: (r["role"], r["seed"])):
+        el = (r.get("framework") or {}).get("elements", {})
+        msd = lambda e: f"{el[e]['msd_final_A2']:.2f}" if e in el else "—"
+        fw = r.get("framework")
+        lines.append(f"| {r['formula']} | {r['seed']} | {_e(r['D_cm2_per_s'])} ± {_e(r['D_sem_cm2_per_s'], 1)} | "
+                     f"{msd('P')} | {msd('S')} | {'—' if not fw else ('intact' if fw['intact'] else 'MOVED')} | "
+                     f"{r['ms_per_step']} |")
+    lines += ["", "| Parent | Seeds pooled | Blocks | D pooled ± s.e. (cm²/s) |", "|---|---|---|---|"]
+    for p in cal["pooled"].values():
+        lines.append(f"| {p['formula']} | {', '.join(map(str, p['seeds']))} | {p['n_blocks']} | "
+                     f"{_e(p['D_cm2_per_s'])} ± {_e(p['D_sem_cm2_per_s'], 1)} |")
+    return "\n".join(lines)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--gpu", default=config.MODAL_GPU, help="Modal GPU type (SIM_BACKEND=modal)")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--v2", action="store_true", help="calibration v2: 600 K, 3 seeds of 40 ps (SPEC 7)")
     args = ap.parse_args()
     on_modal = config.SIM_BACKEND == "modal"
 
     parents = {role: parent_job(mid) for role, mid in config.MD_CALIBRATION_PARENTS.items()}
-    runs = calibration_runs(parents)
+    v2 = [(config.MD_CALIBRATION_V2_T, config.MD_CALIBRATION_V2_PS, s) for s in config.MD_CALIBRATION_V2_SEEDS]
+    runs = calibration_runs(parents, v2) if args.v2 else calibration_runs(parents)
     cache = JsonCache(config.CACHE_DIR / "md")
     todo = [r for r in runs if _cached(r, cache) is None]
     if on_modal:
@@ -143,12 +168,15 @@ def main() -> None:
     if missing:  # never start a second session on its own
         raise SystemExit(f"runs missing after the session: {', '.join(missing)}")
     rows = [analyse(r, _cached(r, cache)) for r in runs]
-    cal = md_calibration(rows)
+    if args.v2:
+        cal = md_calibration_v2(rows)
+        text, name = render_v2(rows, cal), "md_calibration_v2"
+    else:
+        cal = md_calibration(rows)
+        text, name = render(rows, cal), "md_calibration"
     args.out.mkdir(parents=True, exist_ok=True)
-    (args.out / "md_calibration.json").write_text(json.dumps({"runs": rows, "calibration": cal}, indent=1),
-                                                  encoding="utf-8")
-    text = render(rows, cal)
-    (args.out / "md_calibration.md").write_text(text, encoding="utf-8")
+    (args.out / f"{name}.json").write_text(json.dumps({"runs": rows, "calibration": cal}, indent=1), encoding="utf-8")
+    (args.out / f"{name}.md").write_text(text, encoding="utf-8")
     print(text)
 
 
