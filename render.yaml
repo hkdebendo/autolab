@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: autolab-web
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements-web.txt
+    startCommand: uvicorn web.app:app --host 0.0.0.0 --port $PORT
+    envVars:
+      # Set by the owner in the Render dashboard (no model key, no .env here).
+      - key: AUTOLAB_API_URL
+        sync: false
+      - key: AUTOLAB_LIVE
+        value: "0"
