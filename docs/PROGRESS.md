@@ -24,3 +24,7 @@ Next: production backend on Modal (live agents, cache-first), then docs/MUSE_COD
 **Production backend (2026-10-29)** — modal_app/agent_app.py (whole loop on Modal CPU, live API with jury access code, one run at a time, LIVE_MAX_RUNS = 6), model reply cache (known request = free replay), whole .cache uploaded to the Modal volume autolab-data (36 MD runs, 623 relaxations). Not deployed yet: waits for the owner's Modal secret `autolab-keys`.
 **docs/MUSE_CODE_TASKS.md is ready**: the owner can launch Muse Code on web/ (replay, live mode through Modal, 3D Li diffusion, MSD curves). Claude does not touch web/ meanwhile.
 Next: deploy and test the agent app once the secret exists; step 5 (README) meanwhile.
+
+**Production test and web (2026-10-29)** — agent app deployed (https://dgamoussouricardo--autolab-agent-api.us-east.modal.run): health ok, wrong code refused; one live run end to end on Modal from a natural-language request (results/2026-10-29_live_smoke: 3 new candidates passed, Li6P3S10I excluded, framework moves; finalists unchanged; novelty from cache). Cost of the live run: Meta 0.08 $, Baseten 0.42 $ (now ~0.1 $: earlier reviews kept), Modal ~0.7 $.
+Muse Code built web/ (replay timeline, candidate table, 3D structures and Li diffusion, live relay; 9 tests), reviewed and merged. Totals: Modal ~11.1 $ / 15 $, Meta ~0.8 $ / 20 $, Baseten ~0.8 $ / 10 $.
+Next: deploy the page on Render (owner: AUTOLAB_API_URL, AUTOLAB_LIVE=1), step 5 README.

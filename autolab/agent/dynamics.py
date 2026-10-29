@@ -136,7 +136,7 @@ def _moved_reason(framework: dict) -> str:
                 worst = (el, v["D_ratio_to_Li"], k, v["msd_final_A2"])
     if worst is None:
         return "framework moved"
-    return (f"framework moved: {worst[0]} diffuses at {worst[1]:.0%} of Li (limit {config.MD_FRAMEWORK_D_RATIO_MAX:.0%}), "
+    return (f"framework moved: {worst[0]} diffuses at {worst[1]:.1%} of Li (limit {config.MD_FRAMEWORK_D_RATIO_MAX:.0%}), "
             f"seed {worst[2]}, final MSD {worst[3]:.1f} A2")
 
 
