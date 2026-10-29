@@ -1,0 +1,52 @@
+run smoke-3d9aedbf started
+     12 s [loop:start]  {'goal': 'Try Br and I for S in Li7P3S11 with Li vacancies, and compare with the Li3PS4 analogues', 'domain': 'electrolyte', 'parents': [{'id': 'mp-985583', 'formula': 'Li3PS4', 'cell_formula': 'Li12P
+     12 s [loop:iteration]  {'iteration': 1}
+     34 s [llm:proposal]  {'provider': 'meta', 'attempts': 1, 'input_tokens': 7226, 'output_tokens': 3986, 'cost_usd': 0.02597, 'seconds': 16.8, 'cached': False}
+     34 s [candidate:generate] it1-c1 {'accepted': True, 'formula': 'Li13P6S21Br', 'charge': 0.0, 'arrangements': 8, 'reason': None}
+     34 s [candidate:known_check] it1-c1 {'known': []}
+    208 s [candidate:relax] it1-c1 {'arrangements': 8, 'converged': 8, 'energies_per_atom': [-4.3518, -4.3561, -4.3612, -4.3504, -4.3494, -4.3646, -4.3545, -4.3489], 'spread_meV': 15.8}
+    219 s [candidate:hull] it1-c1 {'e_hull': 0.025825, 'e_hull_per_substitution': 0.5294, 'references': 59, 'skipped_references': []}
+    219 s [candidate:bandgap] it1-c1 {'gap_optb88': 2.382, 'gap_mbj': 2.888, 'passes': True, 'low_confidence': False}
+    219 s [candidate:ss_check] it1-c1 {'ss_bonds': False}
+    219 s [candidate:done] it1-c1 {'status': 'passed', 'rejected_at': None, 'reason': None}
+    219 s [candidate:generate] it1-c2 {'accepted': True, 'formula': 'Li6P3S10I', 'charge': 0.0, 'arrangements': 8, 'reason': None}
+    219 s [candidate:known_check] it1-c2 {'known': []}
+    404 s [candidate:relax] it1-c2 {'arrangements': 8, 'converged': 8, 'energies_per_atom': [-4.2486, -4.2626, -4.2646, -4.2696, -4.2479, -4.2623, -4.2678, -4.2722], 'spread_meV': 24.3}
+    404 s [candidate:hull] it1-c2 {'e_hull': 0.041313, 'e_hull_per_substitution': 0.4131, 'references': 62, 'skipped_references': []}
+    404 s [candidate:bandgap] it1-c2 {'gap_optb88': 2.189, 'gap_mbj': 2.94, 'passes': True, 'low_confidence': False}
+    404 s [candidate:ss_check] it1-c2 {'ss_bonds': False}
+    404 s [candidate:done] it1-c2 {'status': 'passed', 'rejected_at': None, 'reason': None}
+    404 s [candidate:generate] it1-c3 {'accepted': True, 'formula': 'Li5P2S7Br', 'charge': 0.0, 'arrangements': 8, 'reason': None}
+    404 s [candidate:known_check] it1-c3 {'known': []}
+    491 s [candidate:relax] it1-c3 {'arrangements': 8, 'converged': 8, 'energies_per_atom': [-4.2398, -4.2287, -4.2521, -4.2407, -4.2234, -4.2535, -4.2508, -4.2389], 'spread_meV': 30.1}
+    491 s [candidate:hull] it1-c3 {'e_hull': 0.044462, 'e_hull_per_substitution': 0.3335, 'references': 59, 'skipped_references': []}
+    491 s [candidate:bandgap] it1-c3 {'gap_optb88': 2.608, 'gap_mbj': 3.3, 'passes': True, 'low_confidence': False}
+    491 s [candidate:ss_check] it1-c3 {'ss_bonds': False}
+    491 s [candidate:done] it1-c3 {'status': 'passed', 'rejected_at': None, 'reason': None}
+    502 s [llm:analysis]  {'provider': 'meta', 'attempts': 1, 'input_tokens': 13600, 'output_tokens': 2341, 'cost_usd': 0.02695, 'seconds': 10.7, 'cached': False}
+    502 s [stage:electrodes]  {'status': 'start'}
+    513 s [stage:electrodes:calibration]  {'electrolyte': 'Li3PS4', 'cathode': 'LiFePO4', 'diff': -0.0113, 'ok': True, 'tolerance': 0.05, 'uma': -0.144061, 'mp': -0.13278}
+    524 s [candidate:electrodes:done] ref:it1-c3 {'window': {'v_low': 2.08, 'v_high': 2.26, 'stable': True, 'reduction_products': ['Li2S', 'Li3AsS3', 'Li3PS4'], 'oxidation_products': ['AsS2', 'Li3PS4', 'LiS4']}, 'passivation': 'passivating', 'interf
+    524 s [candidate:electrodes:done] ref:it2-c3 {'window': {'v_low': 2.08, 'v_high': 2.26, 'stable': True, 'reduction_products': ['Li2S', 'Li3AsS3', 'Li3PS4'], 'oxidation_products': ['AsS2', 'Li3PS4', 'LiS4']}, 'passivation': 'passivating', 'interf
+    534 s [candidate:electrodes:done] s1:it1-c2 {'window': {'v_low': 1.8, 'v_high': 2.24, 'stable': True, 'reduction_products': ['Li2Se', 'Li3PS4', 'P'], 'oxidation_products': ['Li3PS4', 'P2Se5', 'SeS7']}, 'passivation': 'passivating', 'interface_r
+    534 s [candidate:electrodes:done] ref:it2-c2 {'window': {'v_low': 1.8, 'v_high': 2.24, 'stable': True, 'reduction_products': ['Li2Se', 'Li3PS4', 'P'], 'oxidation_products': ['Li3PS4', 'P2Se5', 'SeS7']}, 'passivation': 'passivating', 'interface_r
+    545 s [candidate:electrodes:done] ref:it1-c5 {'window': {'v_low': 1.94, 'v_high': 2.26, 'stable': True, 'reduction_products': ['Li2S', 'Li3PS4', 'Na2PS3'], 'oxidation_products': ['Li3PS4', 'Na2PS3', 'Na2S5']}, 'passivation': 'non_passivating', '
+    545 s [candidate:electrodes:done] s9:it2-c4 {'window': {'v_low': 1.94, 'v_high': 2.26, 'stable': True, 'reduction_products': ['Li2S', 'Li3PS4', 'Na2PS3'], 'oxidation_products': ['Li3PS4', 'Na2PS3', 'Na2S5']}, 'passivation': 'non_passivating', '
+    567 s [candidate:electrodes:done] ref:it1-c4 {'window': {'v_low': None, 'v_high': None, 'stable': False, 'reduction_products': [], 'oxidation_products': []}, 'passivation': 'non_passivating', 'interface_reaction_energy': None, 'reduced_confidenc
+    567 s [candidate:electrodes:done] s9:it1-c4 {'window': {'v_low': 2.28, 'v_high': 2.3, 'stable': True, 'reduction_products': ['Li3PS4', 'P2Se5', 'P4S7'], 'oxidation_products': ['Li3PS4', 'P2S7', 'P2Se5']}, 'passivation': 'passivating', 'interfac
+    567 s [candidate:electrodes:done] it1-c3 {'window': {'v_low': 2.28, 'v_high': 2.3, 'stable': True, 'reduction_products': ['Li3PS4', 'LiBr', 'P4S7'], 'oxidation_products': ['LiBr', 'P2S7']}, 'passivation': 'passivating', 'interface_reaction_e
+    578 s [candidate:electrodes:done] s9:it1-c5 {'window': {'v_low': 2.26, 'v_high': 2.34, 'stable': True, 'reduction_products': ['Li3PS4', 'Na2PS3', 'P4S7'], 'oxidation_products': ['Na2S5', 'NaPS3', 'P2S7']}, 'passivation': 'non_passivating', 'int
+    578 s [candidate:electrodes:done] s9:it2-c5 {'window': {'v_low': 2.28, 'v_high': 2.3, 'stable': True, 'reduction_products': ['Li3PS4', 'LiI', 'P4S7'], 'oxidation_products': ['Li3PS4', 'LiI', 'P2S7']}, 'passivation': 'passivating', 'interface_re
+    578 s [candidate:electrodes:done] s1:it1-c1 {'window': {'v_low': 2.28, 'v_high': 2.3, 'stable': True, 'reduction_products': ['Li3PS4', 'LiBr', 'P4S7'], 'oxidation_products': ['Li3PS4', 'LiBr', 'P2S7']}, 'passivation': 'passivating', 'interface_
+    589 s [candidate:electrodes:done] s9:it1-c2 {'window': {'v_low': 1.74, 'v_high': 2.36, 'stable': True, 'reduction_products': ['Li2S', 'Li3PO4', 'P'], 'oxidation_products': ['Li3PO4', 'LiS4', 'P2S7']}, 'passivation': 'passivating', 'interface_re
+    600 s [candidate:electrodes:done] s9:it1-c1 {'window': {'v_low': 2.28, 'v_high': 2.3, 'stable': True, 'reduction_products': ['Li3PS4', 'LiCl', 'P4S7'], 'oxidation_products': ['Li3PS4', 'LiCl', 'P2S7']}, 'passivation': 'passivating', 'interface_
+    611 s [candidate:electrodes:done] ref:it2-c1 {'window': {'v_low': 2.0, 'v_high': 2.3, 'stable': True, 'reduction_products': ['Li2S', 'Li3PS4', 'Li3SbS3'], 'oxidation_products': ['Li3PS4', 'LiS4', 'Sb2S3']}, 'passivation': 'passivating', 'interfa
+    611 s [candidate:electrodes:done] it1-c2 {'window': {'v_low': 2.28, 'v_high': 2.3, 'stable': True, 'reduction_products': ['Li3PS4', 'LiI', 'P4S7'], 'oxidation_products': ['LiI', 'P2S5', 'P2S7']}, 'passivation': 'passivating', 'interface_reac
+    621 s [candidate:electrodes:done] ref:it2-c4 {'window': {'v_low': None, 'v_high': None, 'stable': False, 'reduction_products': [], 'oxidation_products': []}, 'passivation': 'non_passivating', 'interface_reaction_energy': None, 'reduced_confidenc
+    632 s [candidate:electrodes:done] ref:it1-c1 {'window': {'v_low': 2.28, 'v_high': 2.3, 'stable': True, 'reduction_products': ['Li3PS4', 'LiF', 'P4S7'], 'oxidation_products': ['Li3PS4', 'LiF', 'P2S7']}, 'passivation': 'passivating', 'interface_re
+    632 s [candidate:electrodes:done] ref:it1-c2 {'window': {'v_low': 2.28, 'v_high': 2.3, 'stable': True, 'reduction_products': ['Li3PS4', 'LiI', 'P4S7'], 'oxidation_products': ['LiI', 'P2S7']}, 'passivation': 'passivating', 'interface_reaction_ene
+Traceback (most recent call last):
+  File "D:\autolab\scripts\live_smoke.py", line 46, in <module>
+    main()
+  File "D:\autolab\scripts\live_smoke.py", line 34, in main
+    OSError: [Errno 22] Invalid argument

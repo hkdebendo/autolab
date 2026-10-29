@@ -208,10 +208,12 @@ def candidate_analyses(camp: Campaign) -> dict:
 
     client = getattr(camp.agent, "analyst", None)
     eligible = sorted((c for c in camp.passed() if not c.get("excluded_at")), key=rank_key)
-    todo = eligible[:config.CANDIDATE_ANALYSIS_MAX]
-    out = {"provider": getattr(client, "provider", None), "analysed": [], "failed": {}, "skipped": None}
+    reused = [c["id"] for c in eligible if c.get("analysis")]  # reviewed in an earlier run: not paid twice
+    todo = [c for c in eligible if not c.get("analysis")][:config.CANDIDATE_ANALYSIS_MAX]
+    out = {"provider": getattr(client, "provider", None), "analysed": [], "reused": reused, "failed": {},
+           "skipped": None}
     if client is None or not todo:
-        out["skipped"] = "no analyst model" if client is None else "no eligible candidate"
+        out["skipped"] = "no analyst model" if client is None else "no new eligible candidate"
         out["summary"] = {"skipped": out["skipped"]}
         return out
     comps = comparisons(eligible)
@@ -237,7 +239,8 @@ def candidate_analyses(camp: Campaign) -> dict:
             camp.emit("candidate_analyses", "done", c["id"], provider=client.provider, **analysis)
     if out["failed"]:
         out["stopped"] = f"{len(out['failed'])} analysis call(s) failed (no retry)"
-    out["summary"] = {"provider": client.provider, "analysed": len(out["analysed"]), "failed": list(out["failed"])}
+    out["summary"] = {"provider": client.provider, "analysed": len(out["analysed"]), "reused": len(reused),
+                      "failed": list(out["failed"])}
     return out
 
 
@@ -396,6 +399,8 @@ def render_candidate_analyses(out: dict, result: dict) -> list[str]:
     if out.get("skipped"):
         return lines + [f"Not run: {out['skipped']}.", ""]
     by_id = _pool(result)
+    if out.get("reused"):
+        lines += [f"Reviews kept from earlier runs: {', '.join(out['reused'])}.", ""]
     for cid in out["analysed"]:
         a = by_id[cid].get("analysis") or {}
         lines += [f"**{cid} {by_id[cid]['formula']}** (MD priority: {a.get('md_priority')}): {a.get('summary')}",

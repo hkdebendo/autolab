@@ -15,7 +15,7 @@ STAGE_FIELDS = {"window", "passivation", "passivation_reaction_energy", "passiva
                 "interfaces", "interface_reaction_energy", "interface_polysulfides", "electrodes_polysulfides",
                 "electrodes_reduced_confidence", "excluded_at", "exclusion_reason", "md_cached", "md_selected",
                 "D_cm2_per_s", "D_sem_cm2_per_s", "D_ratio_to_parent", "D_ratio_err", "md_verdict", "conduction",
-                "md_framework_intact", "novelty", "analysis"}
+                "md_framework_intact", "novelty"}  # reviews ("analysis") are kept: not paid twice
 
 
 def reply_cache():

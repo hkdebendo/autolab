@@ -321,7 +321,7 @@ def test_md_verdict_rule():
     assert (by["a"]["vs_parent"]["verdict"], by["a"]["conduction"]) == ("lower", "excluded")
     assert (by["b"]["vs_parent"]["verdict"], by["b"]["conduction"]) == ("tied", "passes")
     assert (by["c"]["vs_parent"]["verdict"], by["c"]["conduction"]) == ("higher", "excluded")
-    assert by["c"]["conduction_reason"] == ("framework moved: Cl diffuses at 40% of Li (limit 5%), seed 1, "
+    assert by["c"]["conduction_reason"] == ("framework moved: Cl diffuses at 40.0% of Li (limit 5%), seed 1, "
                                             "final MSD 5.4 A2")
     assert "conduction" not in by["mp-1"] and config.MD_EXCLUDED_VERDICTS == ("lower",)
 
@@ -353,3 +353,14 @@ def test_the_loop_runs_another_domain_unchanged(li3ps4):
     assert get_domain("electrolyte").name == "electrolyte"
     with pytest.raises(ValueError, match="unknown domain"):
         get_domain("cathode")
+
+
+def test_reviews_of_earlier_runs_are_kept_not_paid_twice(li3ps4):
+    calls = Calls()
+    old = evaluate_candidate("s9:it1-c1", PARENT, li3ps4, BR, fake_tools(calls), EventLog(), RelaxBudget(10))
+    old["analysis"] = review("medium")
+    brain = FakeLLM("meta", [proposal((PARENT, SUB_CL)), analysis(), md_selection("it1-c1")])
+    analyst = FakeLLM("baseten", [review()])
+    result, _ = run_agent(li3ps4, brain, fake_tools(calls), prior=[old], analyst=analyst)
+    st = result["stages"]["candidate_analyses"]
+    assert st["analysed"] == ["it1-c1"] and st["reused"] == ["s9:it1-c1"] and len(analyst.requests) == 1
