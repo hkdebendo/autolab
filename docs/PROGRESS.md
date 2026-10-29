@@ -8,3 +8,8 @@ Step 1 run launched 2026-10-29 ~07:20: 1 iteration, 3 candidates, --novelty, pri
 Fixed on the way: novelty parser (control was misread), unrelated search results as sources, cached MD applied to all eligible candidates, console encoding; stages rerun from cache (scripts/rerun_stages.py).
 Cost: Meta 0.27 $ (3 brain calls 0.06 $, novelty 0.21 $); Modal ~1.2 $ (55 relaxations T4, 2 MD runs A10G). Totals: Modal ~7.5 $ / 15 $, Meta ~0.4 $ / 20 $.
 Next: step 2, validation benchmark (4 good, 8 bad known compounds, blind).
+
+**Step 2 done (2026-10-29)** — blind benchmark results/2026-10-29_benchmark: good electrolytes passing the funnel 3/4 (2/4 with the Li-metal check), bad compounds rejected 8/8.
+Failures: Li6PS5Cl at the hull (0.080 eV/atom, ordered cell; MP 0.083), LGPS non-passivating (Li15Ge4, its known real weakness). Caveat: 6 of the 8 bad ones are stopped by the gap alone.
+Cost: 40 new relaxations on Modal T4 (~0.3 $); no LLM call. Totals: Modal ~7.8 $ / 15 $, Meta ~0.4 $ / 20 $.
+Next: step 3, reference run (2-3 iterations, 5 candidates).
