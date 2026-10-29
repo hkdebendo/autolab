@@ -157,6 +157,20 @@ MODAL_RELAX_CHUNK = 10  # structures per remote call
 
 # --- Kaggle (GPU worker driven from the PC, no secret on Kaggle) -------------------
 
+# Production: the whole agent loop runs on Modal (modal_app/agent_app.py); Render only shows it.
+MODAL_AGENT_APP = "autolab-agent"
+MODAL_DATA_VOLUME = "autolab-data"  # the whole .cache, uploaded once; live runs read and write it (never recompute)
+MODAL_KEYS_SECRET = "autolab-keys"  # created by the owner: MODEL_API_KEY, BASETEN_API_KEY, MP_API_KEY, JURY_ACCESS_CODE
+MODAL_LIVE_STORE = "autolab-live"  # modal.Dict: events of the live runs as they happen, lock, run counter
+LIVE_ITERATIONS = 1
+LIVE_CANDIDATES = 3
+LIVE_MAX_RELAXATIONS = 60
+LIVE_MD_SELECT_MAX = 1  # new MD candidates per live run (Modal budget; cached verdicts still apply to all)
+LIVE_MAX_RUNS = 6  # live runs allowed in production (1-4 $ each), counted in the store; then refused
+LIVE_RUN_TIMEOUT_S = 3 * 3600
+LIVE_GOAL_MAX_CHARS = 500
+LIVE_PRIOR = "results/2026-10-29_reference_run/result.json"  # candidates already evaluated, shown to the model
+
 KAGGLE_KERNEL = "adladeeba/autolab-gpu"  # notebook overwritten by each job (kaggle kernels push)
 KAGGLE_UMA_KERNEL = "adladeeba/autolab-uma-download"  # its output (run once from the UI with HF_TOKEN) holds
 # FAIRCHEM_CACHE_DIR with the uma-s-1p2 checkpoint; the GPU notebooks attach it as a kernel source
@@ -204,6 +218,7 @@ LLM_FALLBACK_PROVIDER = "baseten"  # used when the main provider fails
 LLM_TIMEOUT = 300  # s per call
 LLM_MAX_OUTPUT_TOKENS = 4000  # includes reasoning tokens
 LLM_COST_CAPS_USD = {"meta": 1.0, "baseten": 0.5, "fireworks": 0.5}  # per run and provider
+LLM_REPLY_CACHE = True  # runs keep model replies by their exact question: a known request replays for free
 
 # --- Agent loop (SPEC 6) -------------------------------------------------------
 

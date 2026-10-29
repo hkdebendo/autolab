@@ -134,3 +134,21 @@ def test_unknown_provider_and_missing_key(monkeypatch):
     monkeypatch.delenv("FIREWORKS_API_KEY", raising=False)
     with pytest.raises(config.MissingKeyError, match="FIREWORKS_API_KEY"):
         llm.LLMClient("fireworks")
+
+
+def test_reply_cache_answers_a_known_question_for_free(tmp_path):
+    from autolab.store.cache import JsonCache
+
+    cache = JsonCache(tmp_path)
+    fake = FakeOpenAI([chat_reply(VALID_PROPOSAL, "thinking", n_in=1000, n_out=2000)])
+    first = llm.LLMClient("baseten", tracker=llm.UsageTracker(), client=fake, cache=cache)
+    obj, replies = first.complete_json([{"role": "user", "content": "propose"}], "proposal")
+    assert replies[0].cost_usd > 0 and not replies[0].cached and len(fake.requests) == 1
+
+    tracker = llm.UsageTracker(max_calls=1)
+    again = llm.LLMClient("baseten", tracker=tracker, client=FakeOpenAI([]), cache=cache)
+    obj2, replies2 = again.complete_json([{"role": "user", "content": "propose"}], "proposal")
+    assert obj2 == obj and replies2[0].cached and replies2[0].cost_usd == 0 and replies2[0].reasoning == "thinking"
+    assert tracker.calls == 0 and tracker.cost_usd == 0  # no call, no cost
+    with pytest.raises(IndexError):  # another question is not in the cache: a real call (none prepared here)
+        again.complete_json([{"role": "user", "content": "something else"}], "proposal")
