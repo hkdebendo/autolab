@@ -259,3 +259,11 @@ def test_loop_limits_come_from_config(li3ps4):
         agent(li3ps4, FakeLLM("meta", [])).run(parents=[PARENT], n_iterations=config.MAX_ITERATIONS + 1)
     with pytest.raises(ValueError):
         agent(li3ps4, FakeLLM("meta", [])).run(parents=[PARENT], max_candidates=config.MAX_CANDIDATES_PER_ITERATION + 1)
+
+
+def test_the_same_substitution_however_written_is_one_key():
+    from autolab.agent.loop import _substitution_key
+
+    a = _substitution_key(PARENT, {"remove": "S", "add": "Se", "count": 2})
+    b = _substitution_key(PARENT, {"remove": "S", "add": "Se", "count": "2", "li_vacancies": 0, "note": "x"})
+    assert a == b and a != _substitution_key(PARENT, {"remove": "S", "add": "Se", "count": 2, "li_vacancies": 1})

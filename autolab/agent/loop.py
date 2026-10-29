@@ -38,7 +38,12 @@ def _parent_info(pid: str, s: Structure) -> dict:
 
 
 def _substitution_key(parent: str, sub: dict) -> str:
-    return json.dumps([parent, sub], sort_keys=True)
+    """The same substitution however it is written (no vacancy = 0 vacancies, count 2 = "2", extra fields ignored)."""
+    count = sub.get("count")
+    norm = {"remove": sub.get("remove"), "add": sub.get("add"),
+            "count": "all" if str(count).lower() == "all" else int(count) if str(count).isdigit() else count,
+            "li_vacancies": int(sub.get("li_vacancies") or 0)}
+    return json.dumps([parent, norm], sort_keys=True)
 
 
 class Agent:
