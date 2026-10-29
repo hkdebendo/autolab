@@ -169,6 +169,7 @@ LIVE_MD_SELECT_MAX = 1  # new MD candidates per live run (Modal budget; cached v
 LIVE_MAX_RUNS = 6  # live runs allowed in production (1-4 $ each), counted in the store; then refused
 LIVE_RUN_TIMEOUT_S = 3 * 3600
 LIVE_GOAL_MAX_CHARS = 500
+STOP_POLL_S = 5  # s between two reads of a stop request by a running research
 LIVE_PRIOR = "results/2026-10-29_reference_run/result.json"  # candidates already evaluated, shown to the model
 
 KAGGLE_KERNEL = "adladeeba/autolab-gpu"  # notebook overwritten by each job (kaggle kernels push)
@@ -249,6 +250,23 @@ NOVELTY_STOP_IF_CONTROL_FAILS = True  # control not found as published: the sear
 
 # Domain of the loop (autolab/domains): its funnel, its stages after the iterations, its prompts and thresholds.
 AGENT_DOMAIN = "electrolyte"
+
+# What AutoLab can really do (interface.md 11): the scope check of a request relies on this list, never on a guess.
+CAPABILITIES = {
+    "supported": {
+        "electrolyte": "Solid electrolytes for lithium-metal batteries: new sulfide compositions by substitution in known "
+                       "Li-P-S crystals (beta-Li3PS4, Li7P3S11), evaluated for thermodynamic stability, electronic band "
+                       "gap, electrochemical window, reaction with lithium metal and with a LiFePO4 cathode, lithium "
+                       "diffusion by molecular dynamics at 600 K, and prior publication.",
+    },
+    "planned": {
+        "cathode": "Cobalt-free cathode materials (voltage, capacity, stability): planned, not implemented yet.",
+    },
+    "not_computed": "ionic conductivity at room temperature (only the diffusion coefficient at 600 K, relative to the "
+                    "parent), DFT-level energies, synthesis routes, cost of the elements, experimental data",
+}
+FOLLOWUP_MAX_OUTPUT_TOKENS = 3000
+REPORT_MAX_OUTPUT_TOKENS = 6000
 
 # Stages after the iterations, electrolyte domain (SPEC 6.1, steps 6-7); decisions taken by the code from these rules.
 ELECTRODES_TOP = 20  # passed candidates (lowest E_hull per substitution first) that get window, passivation, interfaces

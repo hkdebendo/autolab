@@ -35,3 +35,7 @@ Soumission : mercredi 4 nov. 21h00 ET (jeudi 5 nov. 3h00 au Bénin). Dépôt : h
 - Protections: jury access code (set by the owner), one live run at a time, per-run caps, a total production cap.
 - Order: after step 3, build the production backend (autolab/ and modal_app/, by Claude), then hand the web part to Muse Code (docs/MUSE_CODE_TASKS.md, updated with the live API).
 - Replay visuals (owner, 2026-10-29): 3D animation of Li diffusion (Li positions recorded every 10 fs, framework shown static: only its MSD is recorded), MSD curves with the block fit and the verdict, 3D relaxed structures of every candidate, animated funnel diagram with Muse Spark reasoning and Muse Spark Open reviews. Claude writes an export script (cache -> light browser files, ~400 frames per run); Muse Code displays them in web/ (3Dmol.js or NGL).
+
+## Interface first (owner, 2026-10-29)
+
+The interface described in interface.md (conversational, history in Supabase PostgreSQL, live steps, stop button, follow-up questions, scope check, report with three finalists and a champion in the chat, PDF export, light/dark themes, tutorial) is built by Claude before steps 5-7. No users, no access code for now. Step 7 (cathodes) is postponed.

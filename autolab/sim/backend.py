@@ -95,7 +95,16 @@ class ModalBackend:
             for c in calls.values():
                 c.cancel(terminate_containers=True)
             raise
+        from autolab.agent import cancel
+
         while calls:
+            if cancel.requested():  # the user stopped the research: cancel what runs, report it, start nothing
+                for i, call in list(calls.items()):
+                    call.cancel(terminate_containers=True)
+                    self.errors[i] = "cancelled: stopped by the user"
+                    del calls[i]
+                    yield i, None
+                break
             for i, call in list(calls.items()):
                 try:
                     res = call.get(timeout=0)
