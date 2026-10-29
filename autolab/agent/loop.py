@@ -40,11 +40,12 @@ def _substitution_key(parent: str, sub: dict) -> str:
 class Agent:
     def __init__(self, brain, fallback=None, tools=None, events: EventLog | None = None,
                  budget: RelaxBudget | None = None, get_structure=None, domain: Domain | str | None = None,
-                 novelty_client=None, analyst=None):
+                 novelty_client=None, analyst=None, summarizer=None):
         self.domain = domain if isinstance(domain, Domain) else get_domain(domain or config.AGENT_DOMAIN)
         self.brain, self.fallback = brain, fallback
         self.novelty_client = novelty_client  # web search of the novelty stage, with its own cost cap
         self.analyst = analyst  # parallel candidate analyses (Muse Spark Open), with its own cost cap
+        self.summarizer = summarizer  # plain-language summaries (Muse Glimmer), in the background
         self.tools = tools or self.domain.make_tools()
         self.events = events or EventLog()
         self.budget = budget or RelaxBudget(config.MAX_RELAXATIONS_PER_RUN)
@@ -105,6 +106,7 @@ class Agent:
             "n_iterations": n_iterations, "max_candidates": max_candidates, "max_relaxations": self.budget.max_new,
             "brain": getattr(self.brain, "provider", None), "fallback": getattr(self.fallback, "provider", None),
             "analyst": getattr(self.analyst, "provider", None),
+            "summarizer": getattr(self.summarizer, "provider", None),
             "thresholds": {name: getattr(config, name) for name in d.thresholds}},
             "prior": prior, "iterations": [], "stages": {}, "stop_reason": "iterations done"}
         self.events.emit("loop", "start", {"goal": goal, "domain": d.name, "parents": parent_info,
@@ -168,6 +170,11 @@ class Agent:
             analysis = record["analysis"]["reply"]
             history.append({"iteration": it, "hypothesis": proposal["hypothesis"], "results": for_model,
                             "lessons": analysis["lessons"], "next_direction": analysis["next_direction"]})
+            self._summarize("iteration", f"iteration {it}", {
+                "iteration": it, "hypothesis": proposal["hypothesis"],
+                "candidates": [{k: c.get(k) for k in ("formula", "status", "rejected_at", "reason", "e_hull",
+                                                      "gap_optb88") if c.get(k) is not None} for c in record["candidates"]],
+                "lessons": analysis["lessons"], "next_direction": analysis["next_direction"]})
             if sim_stop:
                 result["stop_reason"] = f"relaxation budget: {sim_stop}"
                 break
@@ -183,10 +190,21 @@ class Agent:
         if stages:
             self.run_stages(Campaign(self, goal, prior + candidates), result)
         result["final_ranking"] = result["stages"].get("ranking", {}).get("ranking", result["funnel_ranking"])
+        if self.summarizer is not None:
+            pool = {c["id"]: c for c in prior + candidates}
+            rk = result["stages"].get("ranking", {})
+            self._summarize("whole run", "run", {
+                "goal": goal, "stop_reason": result["stop_reason"],
+                "finalists": [{k: pool[i].get(k) for k in ("formula", "e_hull", "gap_optb88", "md_verdict",
+                                                           "D_ratio_to_parent", "novelty")} for i in rk.get("finalists", [])],
+                "excluded": rk.get("excluded", {}),
+                "new_candidates": len(candidates), "passed_funnel": len(result["funnel_ranking"])})
+            result["summaries"] = self.summarizer.close(timeout=config.GLIMMER_WARMUP_MAX_S + 120)
         result["usage"] = {
             "llm": {c.provider: c.tracker.summary() for c in (self.brain, self.fallback) if c is not None},
             "novelty": self.novelty_client.tracker.summary() if self.novelty_client is not None else None,
             "analyst": self.analyst.tracker.summary() if self.analyst is not None else None,
+            "summaries": self.summarizer.client.tracker.summary() if self.summarizer is not None else None,
             "relaxations": {"new": self.budget.used, "limit": self.budget.max_new},
             "md": result["stages"].get("molecular_dynamics", {}).get("plan"),
             "events": len(self.events.events),
@@ -195,6 +213,10 @@ class Agent:
         self.events.emit("loop", "stop", {"reason": result["stop_reason"], "passed": result["funnel_ranking"],
                                           "final_ranking": result["final_ranking"]})
         return result
+
+    def _summarize(self, kind: str, label: str, data: dict) -> None:
+        if self.summarizer is not None and len(self.summarizer.futures) < config.SUMMARY_MAX_PER_RUN:
+            self.summarizer.submit(kind, label, data)
 
     def run_stages(self, campaign: Campaign, result: dict) -> None:
         """The domain's stages in order. A stage that fails or is stopped by a budget does not stop the next

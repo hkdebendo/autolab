@@ -41,6 +41,21 @@ def analyst_client(provider: str) -> LLMClient | None:
     return client(provider, config.LLM_COST_CAPS_USD[provider], config.CANDIDATE_ANALYSIS_MAX * config.JSON_MAX_RETRIES)
 
 
+def summarizer(events, provider: str = config.SUMMARY_PROVIDER):
+    """Muse Glimmer's background summaries, or None when its key or its deployment (GLIMMER_DEPLOYMENT) is missing."""
+    import os
+
+    from autolab.agent.summaries import Summarizer
+
+    if not provider or provider == "none":
+        return None
+    if provider == "fireworks" and not os.getenv("GLIMMER_DEPLOYMENT"):
+        print("GLIMMER_DEPLOYMENT missing: Muse Glimmer summaries disabled")
+        return None
+    c = client(provider, config.LLM_COST_CAPS_USD[provider], config.SUMMARY_MAX_PER_RUN * 40)  # 503 polls count
+    return Summarizer(c, events) if c is not None else None
+
+
 def load_prior(path: Path, tag: str) -> list[dict]:
     """Candidates of an earlier run (candidates.json, or result.json with its own earlier candidates), ids prefixed
     with `tag` to stay unique (ids already prefixed by an earlier run are kept); funnel results only."""

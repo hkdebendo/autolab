@@ -199,15 +199,22 @@ LLM_PROVIDERS: dict[str, dict] = {
         "model": "meta-models/muse-spark-open-1026",
         "api": "chat", "usd_per_m_input": 1.25, "usd_per_m_output": 4.25,
     },
-    # Muse Glimmer: not serverless on Fireworks (HTTP 404 "not deployed", 2026-10-28), so unused for now;
-    # kept for a possible short dedicated deployment later.
+    # Muse Glimmer: not serverless on Fireworks (supportsServerless=false, 2026-10-29): it runs on a dedicated
+    # deployment that scales to zero, named by GLIMMER_DEPLOYMENT ("accounts/<account>/deployments/<id>", not a
+    # secret). Billed per GPU-second (H200, 8 $/h), not per token: the token prices below are not used for it.
     "fireworks": {
         "base_url": "https://api.fireworks.ai/inference/v1", "key": "FIREWORKS_API_KEY",
-        "model": "accounts/fireworks/models/muse-glimmer-30b",
-        "api": "chat", "usd_per_m_input": 0.35, "usd_per_m_output": 1.50,
+        "model": os.getenv("GLIMMER_DEPLOYMENT", "accounts/fireworks/models/muse-glimmer-30b"),
+        "api": "chat", "usd_per_m_input": 0.0, "usd_per_m_output": 0.0,
     },
 }
-LLM_FAST_PROVIDER = "baseten"  # small tasks (formula checks, JSON conversion, iteration summaries)
+LLM_FAST_PROVIDER = "baseten"  # small tasks (formula checks, JSON conversion) until Glimmer takes them
+# Muse Glimmer (Fireworks) writes the plain-language summaries of each iteration and of the run, in the background.
+SUMMARY_PROVIDER = "fireworks"
+GLIMMER_WARMUP_MAX_S = 600  # wait at most this for a scaled-to-zero deployment to wake up (HTTP 503 meanwhile)
+GLIMMER_POLL_S = 20
+GLIMMER_MAX_OUTPUT_TOKENS = 400
+SUMMARY_MAX_PER_RUN = 4  # iteration summaries + the run summary
 # Parallel analyses of the candidates (SPEC 5.11): Muse Spark Open writes one short analysis per eligible candidate
 # after the electrodes; Muse Spark reads them before choosing the MD candidates.
 CANDIDATE_ANALYSIS_PROVIDER = "baseten"
