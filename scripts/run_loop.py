@@ -23,7 +23,7 @@ from autolab.agent.events import EventLog
 from autolab.agent.loop import Agent
 from autolab.agent.report import render
 from autolab.domains import get_domain
-from autolab.agent.runs import analyst_client, client, load_prior  # noqa: F401  (rerun_stages imports them)
+from autolab.agent.runs import analyst_client, client, load_prior, summarizer  # noqa: F401  (rerun_stages imports them)
 from autolab.sim.backend import RelaxBudget
 
 
@@ -62,6 +62,7 @@ def main() -> None:
     ap.add_argument("--prior", type=Path, help="candidates.json or result.json of an earlier run")
     ap.add_argument("--prior-tag", default="prev")
     ap.add_argument("--novelty", action="store_true", help="run the novelty web search (paid, Meta)")
+    ap.add_argument("--summarizer", default=config.SUMMARY_PROVIDER, help="'none' to disable Muse Glimmer's summaries")
     ap.add_argument("--analyst", default=config.CANDIDATE_ANALYSIS_PROVIDER,
                     help="provider of the parallel candidate analyses ('none' to disable)")
     ap.add_argument("--no-stages", action="store_true", help="iterations only")
@@ -93,9 +94,10 @@ def main() -> None:
     analyst = analyst_client(args.analyst)
 
     prior = load_prior(args.prior, args.prior_tag) if args.prior else []
-    agent = Agent(brain or fallback, fallback if brain else None, domain=get_domain(args.domain),
-                  events=EventLog(args.out / "events.jsonl", sink=show), budget=RelaxBudget(args.max_relaxations),
-                  novelty_client=novelty, analyst=analyst)
+    events = EventLog(args.out / "events.jsonl", sink=show)
+    agent = Agent(brain or fallback, fallback if brain else None, domain=get_domain(args.domain), events=events,
+                  budget=RelaxBudget(args.max_relaxations), novelty_client=novelty, analyst=analyst,
+                  summarizer=summarizer(events, args.summarizer))
     result = agent.run(args.goal, args.parents, args.iterations, args.candidates, prior=prior,
                        stages=not args.no_stages)
 

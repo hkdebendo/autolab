@@ -105,6 +105,10 @@ def render(result: dict, domain=None) -> str:
                           _short(a["reasoning"]), "", "</details>"]
         lines.append("")
 
+    if result.get("summaries"):
+        lines += ["## Summaries (Muse Glimmer)", ""]
+        for s in result["summaries"]:
+            lines += [f"**{s.get('label') or 'summary'}.** " + (s["text"] or f"not written ({s.get('error')})"), ""]
     if result.get("prior"):
         lines += [f"**Earlier runs.** {len(result['prior'])} candidates given to the model and to the stages: "
                   f"{', '.join(c['id'] for c in result['prior'])}.", ""]

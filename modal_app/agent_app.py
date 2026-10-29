@@ -10,7 +10,7 @@ Deploy:   modal deploy modal_app/agent_app.py      (after modal_app/uma_app.py)
   read its result, and the recorded reference run for the replay mode.
 
 Keys live only in the Modal secret config.MODAL_KEYS_SECRET, created by the owner (MODEL_API_KEY, BASETEN_API_KEY,
-MP_API_KEY, JURY_ACCESS_CODE). No warm container, short limits, one live run at a time, config.LIVE_MAX_RUNS in all.
+MP_API_KEY, JURY_ACCESS_CODE; FIREWORKS_API_KEY and GLIMMER_DEPLOYMENT for Muse Glimmer's summaries). No warm container, short limits, one live run at a time, config.LIVE_MAX_RUNS in all.
 """
 
 import modal
@@ -59,7 +59,7 @@ def run_agent(run_id: str, goal: str) -> dict:
     from autolab.agent.events import EventLog
     from autolab.agent.live import StoreSink, run_live
     from autolab.agent.loop import Agent
-    from autolab.agent.runs import analyst_client, client, load_prior
+    from autolab.agent.runs import analyst_client, client, load_prior, summarizer
     from autolab.sim.backend import RelaxBudget
 
     _alignn_models()
@@ -75,7 +75,8 @@ def run_agent(run_id: str, goal: str) -> dict:
         return Agent(brain or fallback, fallback if brain else None, events=events,
                      budget=RelaxBudget(config.LIVE_MAX_RELAXATIONS),
                      analyst=analyst_client(config.CANDIDATE_ANALYSIS_PROVIDER),
-                     novelty_client=client(config.NOVELTY_PROVIDER, config.NOVELTY_COST_CAP_USD))
+                     novelty_client=client(config.NOVELTY_PROVIDER, config.NOVELTY_COST_CAP_USD),
+                     summarizer=summarizer(events))
 
     try:
         result = run_live(run_id, goal, store, make_agent, prior)
