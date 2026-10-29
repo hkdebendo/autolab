@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AutoLab — solid electrolytes for lithium-metal batteries</title>
+<link rel="stylesheet" href="/static/styles.css">
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/3Dmol/2.0.4/3Dmol-min.js"></script>
+</head>
+<body>
+<header>
+  <div class="brand">AutoLab</div>
+  <div class="goal" id="goal">Solid electrolytes for lithium-metal batteries</div>
+  <div class="controls">
+    <div class="modes" role="tablist">
+      <button id="mode-replay" class="on" type="button">Replay</button>
+      <button id="mode-live" type="button">Live</button>
+    </div>
+    <label id="speed-label">Speed
+      <select id="speed">
+        <option value="1">1x</option>
+        <option value="10" selected>10x</option>
+        <option value="50">50x</option>
+      </select>
+    </label>
+    <button id="restart" type="button" title="Restart the replay">Restart</button>
+  </div>
+</header>
+
+<div class="layout">
+  <main>
+    <nav id="funnel" aria-label="Pipeline progress"></nav>
+
+    <section id="live-box" hidden>
+      <h2>Ask the agents (jury)</h2>
+      <p id="live-health" class="muted">Checking live mode…</p>
+      <form id="live-form">
+        <label>Request (natural language, at most 500 characters)
+          <textarea id="live-goal" rows="3" maxlength="500"
+            placeholder="e.g. Find new sulfide solid electrolytes for lithium-metal batteries by substitutions in known Li-P-S crystals."></textarea>
+        </label>
+        <label>Access code
+          <input id="live-code" type="password" autocomplete="off">
+        </label>
+        <button type="submit">Run live</button>
+      </form>
+      <p id="live-status" class="muted"></p>
+    </section>
+
+    <section id="md-box" hidden>
+      <h2>Lithium diffusion <span class="muted" id="md-sub"></span></h2>
+      <div class="md-controls">
+        <label>Candidate <select id="md-pick"></select></label>
+        <label>Seed <select id="md-seed"></select></label>
+        <button id="md-play" type="button">Pause</button>
+        <label class="slider">Frame <input id="md-frame" type="range" min="0" max="399" value="0"></label>
+        <label><input id="md-trails" type="checkbox" checked> trails</label>
+      </div>
+      <div class="md-viewers">
+        <figure><div id="md-cand" class="viewer"></div><figcaption id="md-cand-cap"></figcaption></figure>
+        <figure><div id="md-parent" class="viewer"></div><figcaption id="md-parent-cap"></figcaption></figure>
+      </div>
+      <div id="md-msd"></div>
+      <p id="md-stats"></p>
+    </section>
+
+    <section id="timeline" aria-live="polite"></section>
+
+    <section id="end" hidden>
+      <h2>Final ranking</h2>
+      <ol id="ranking"></ol>
+      <h3>Excluded</h3>
+      <ul id="excluded"></ul>
+      <h2>Novelty check</h2>
+      <div id="novelty"></div>
+      <h2>Run cost</h2>
+      <table id="usage"></table>
+      <p class="disclaimer">Candidates are computational predictions, not proven materials.</p>
+      <details id="report-box"><summary>Full report</summary><div id="report"></div></details>
+    </section>
+  </main>
+
+  <aside>
+    <h2>Candidates</h2>
+    <p class="muted">Click a row to see its 3D structure.</p>
+    <table id="candidates">
+      <thead><tr>
+        <th>Formula</th><th>E_hull</th><th>Gap</th><th>Window</th><th>Passivation</th><th>D/D(parent)</th><th>Status</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+  </aside>
+</div>
+
+<div id="struct-modal" hidden>
+  <div class="modal-card">
+    <button id="struct-close" type="button">Close</button>
+    <h2 id="struct-title"></h2>
+    <p id="struct-info" class="muted"></p>
+    <div id="struct-view" class="viewer"></div>
+  </div>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
