@@ -57,6 +57,7 @@ class Reply:
     web_searches: int = 0
     citations: list = field(default_factory=list)  # [{"url", "title", "start_index", "end_index"}] from the API
     sources_considered: list = field(default_factory=list)  # [{"url", "title"}] from web_search_call results
+    cached: bool = False  # answered from the reply cache: no call, no cost (cost_usd is then 0)
 
 
 def cost_usd(provider: str, input_tokens: int, output_tokens: int, web_searches: int = 0) -> float:
@@ -113,6 +114,14 @@ TRACKER = UsageTracker()  # default tracker of the current run
 _TRACKER_LOCK = threading.Lock()
 
 
+def _reply_key(provider: str, model: str, messages: list[dict], effort, max_tokens) -> str:
+    import hashlib
+    import json
+
+    payload = {"provider": provider, "model": model, "messages": messages, "effort": effort, "max_tokens": max_tokens}
+    return hashlib.sha1(json.dumps(payload, sort_keys=True, default=str).encode()).hexdigest()
+
+
 def _estimate_tokens(text: str) -> int:
     return max(1, len(text) // 4)
 
@@ -130,8 +139,11 @@ def _split_system(messages: list[dict]) -> tuple[str | None, list[dict]]:
 class LLMClient:
     """One provider behind the OpenAI SDK; `client` can be injected (tests)."""
 
-    def __init__(self, provider: str | None = None, tracker: UsageTracker | None = None, client=None):
+    def __init__(self, provider: str | None = None, tracker: UsageTracker | None = None, client=None, cache=None):
+        """`cache` (store.JsonCache, optional): replies kept by their exact question (model, messages, settings), so
+        that a question already asked is answered again for free, identically (replay of a known request)."""
         self.provider = provider or config.LLM_PROVIDER
+        self.cache = cache
         if self.provider not in config.LLM_PROVIDERS:
             raise ValueError(f"unknown LLM provider {self.provider!r} (expected one of {list(config.LLM_PROVIDERS)})")
         self.spec = config.LLM_PROVIDERS[self.provider]
@@ -155,12 +167,24 @@ class LLMClient:
         reasoning_effort: str | None = None,
         max_output_tokens: int = config.LLM_MAX_OUTPUT_TOKENS,
     ) -> Reply:
-        """Send messages, return text, reasoning and usage. Streams through the callbacks."""
+        """Send messages, return text, reasoning and usage. Streams through the callbacks. With a cache, a question
+        already asked is answered from it (no call, no cost)."""
+        key = None
+        if self.cache is not None:
+            key = _reply_key(self.provider, self.model, messages, reasoning_effort, max_output_tokens)
+            hit = self.cache.get(key)
+            if hit is not None:
+                reply = Reply(**{**hit, "cost_usd": 0.0, "seconds": 0.0, "cached": True})
+                log.info("llm %s: answered from the reply cache (no call)", self.provider)
+                return reply
         call = self._responses if self.spec["api"] == "responses" else self._chat_completions
         t0 = self._start()
         with self._errors():
             text, reasoning, usage = call(messages, stream, on_text, on_reasoning, reasoning_effort, max_output_tokens)
-        return self._finish(messages, text, reasoning, usage, t0)
+        reply = self._finish(messages, text, reasoning, usage, t0)
+        if key is not None:
+            self.cache.set(key, asdict(reply))
+        return reply
 
     def _start(self) -> float:
         with _TRACKER_LOCK:  # calls may run in parallel threads (candidate analyses)

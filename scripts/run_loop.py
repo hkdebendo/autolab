@@ -23,52 +23,14 @@ from autolab.agent.events import EventLog
 from autolab.agent.loop import Agent
 from autolab.agent.report import render
 from autolab.domains import get_domain
-from autolab.llm.client import LLMClient, UsageTracker
+from autolab.agent.runs import analyst_client, client, load_prior  # noqa: F401  (rerun_stages imports them)
 from autolab.sim.backend import RelaxBudget
-
-
-def client(provider: str, cap: float) -> LLMClient | None:
-    if not config.has_key(config.LLM_PROVIDERS[provider]["key"]):
-        print(f"{config.LLM_PROVIDERS[provider]['key']} missing: provider {provider} disabled")
-        return None
-    return LLMClient(provider, tracker=UsageTracker(max_cost_usd=cap))
-
-
-def analyst_client(provider: str) -> LLMClient | None:
-    """Client of the parallel candidate analyses, with room for one call per analysed candidate."""
-    if provider == "none" or not config.has_key(config.LLM_PROVIDERS[provider]["key"]):
-        return None
-    tracker = UsageTracker(max_calls=config.CANDIDATE_ANALYSIS_MAX * config.JSON_MAX_RETRIES,
-                           max_cost_usd=config.LLM_COST_CAPS_USD[provider])
-    return LLMClient(provider, tracker=tracker)
 
 
 def show(event: dict) -> None:
     data = {k: v for k, v in event["data"].items() if k not in ("energies_per_atom", "decomposition")}
     print(f"[{event['type']}:{event['step']}] {event['candidate_id'] or ''} {json.dumps(data, default=str)[:300]}",
           flush=True)
-
-
-def load_prior(path: Path, tag: str) -> list[dict]:
-    """Candidates of an earlier run (candidates.json, or result.json with its own earlier candidates), ids prefixed
-    with `tag` to stay unique (ids already prefixed by an earlier run are kept)."""
-    data = json.loads(path.read_text(encoding="utf-8"))
-    if "candidates" in data:
-        cands = data["candidates"]
-    else:
-        cands = data.get("prior", []) + [c for r in data["iterations"] for c in r["candidates"]]
-    out = []
-    for c in cands:  # funnel results only: the stages of this run decide again (from the caches)
-        c = {k: v for k, v in c.items() if k not in STAGE_FIELDS}
-        out.append(c if ":" in c["id"] else {**c, "id": f"{tag}:{c['id']}"})
-    return out
-
-
-STAGE_FIELDS = {"window", "passivation", "passivation_reaction_energy", "passivation_products", "metallic_products",
-                "interfaces", "interface_reaction_energy", "interface_polysulfides", "electrodes_polysulfides",
-                "electrodes_reduced_confidence", "excluded_at", "exclusion_reason", "md_cached", "md_selected",
-                "D_cm2_per_s", "D_sem_cm2_per_s", "D_ratio_to_parent", "D_ratio_err", "md_verdict", "conduction",
-                "md_framework_intact", "novelty"}
 
 
 def plan(args, brain_cap: float) -> None:

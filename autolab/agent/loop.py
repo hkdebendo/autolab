@@ -76,6 +76,7 @@ class Agent:
                 "output_tokens": sum(r.output_tokens for r in replies),
                 "cost_usd": round(sum(r.cost_usd for r in replies), 5),
                 "seconds": round(sum(r.seconds for r in replies), 1),
+                "cached": all(getattr(r, "cached", False) for r in replies),  # a known request: no cost
             }
             # the reply and a reasoning summary go into the event, so that events.jsonl alone replays the run
             self.events.emit("llm", step, {**{k: v for k, v in info.items() if k != "reasoning"}, "reply": obj,
