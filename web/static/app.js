@@ -556,7 +556,8 @@ async function startReplay() {
   resetRun();
   try {
     [S.events, S.result, S.index] = await Promise.all([
-      fetchJSON("/api/replay/events.jsonl"), fetchJSON("/api/replay/result.json"), fetchJSON("/api/replay/index.json")]);
+      fetchJSON("/api/replay/events.jsonl"), fetchJSON("/api/replay/result.json"),
+      fetchJSON("/api/replay/replay/index.json")]);
   } catch (e) {
     pushCard({ timestamp: null, candidate_id: null }, "Replay files missing",
       `<p>${bad("could not load the reference run")}</p>`, "bad");

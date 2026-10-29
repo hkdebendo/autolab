@@ -118,3 +118,19 @@ def test_relay_unreachable_503(monkeypatch):
     _patch_http(monkeypatch, _FakeResponse(), error=httpx.ConnectError("down"))
     response = TestClient(appmod.app).get("/api/live/health")
     assert response.status_code == 503
+
+
+def test_every_replay_url_of_the_page_is_served():
+    """The page fetches these paths: each must answer 200 (index.json lives in replay/)."""
+    import re
+
+    from fastapi.testclient import TestClient
+
+    from web.app import HERE, app
+
+    js = (HERE / "static" / "app.js").read_text(encoding="utf-8")
+    urls = sorted(set(re.findall(r'"(/api/replay/[^"$`]+)"', js)) - {"/api/replay/report.html"})
+    assert "/api/replay/replay/index.json" in urls
+    client = TestClient(app)
+    for url in urls:
+        assert client.get(url).status_code == 200, url
