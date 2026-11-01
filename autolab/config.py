@@ -290,7 +290,8 @@ MD_MAX_USD_PER_RUN = 7.0  # estimated Modal cost of all the MD launched in one r
 FEEDBACK_LOOP = True
 ITERATION_MD_SELECT_MAX = 1  # candidates of one iteration sent to MD (the model chooses)
 FINAL_MD_SELECT_MAX = 0  # new MD after the iterations with the feedback loop (cached verdicts still apply to all)
-FINAL_RANK_MD_ORDER = ("higher", "tied", "not_run")  # MD verdicts, best first; then lowest E_hull per substitution;
+FINAL_RANK_MD_ORDER = ("higher", "tied", "not_run")  # MD verdicts, best first, after the conductivity verdict
+# (CONDUCTIVITY_RANK_ORDER); then lowest E_hull per substitution;
 # excluded candidates (passivation, MD "lower", framework moved) come last and stay listed with their reason
 FINALISTS_MAX = 3  # best kept candidates sent to the novelty check
 
@@ -308,6 +309,11 @@ CONDUCTIVITY_EXTRA_RUNS = ((500, 40, 0), (700, 40, 0))  # (K, ps, seed) added fo
 # nanoporous beta-Li3PS4 0.16 (Liu 2013).
 CONDUCTIVITY_REFERENCE_MS_CM = {"Li7P3S11": (3.2, 17.0), "Li3PS4": (0.16, 0.16)}
 CONDUCTIVITY_TRUTH_FACTOR = 10.0
+# Ranking with the conductivity at 300 K (2026-11-01, owner): a candidate with its own Arrhenius fit is compared with
+# its parent's fit by their ranges (one standard error of the extrapolation): "lower" when its whole range is below
+# the parent's, "higher" when above, else "tied". The verdict comes first in the final ranking (best first); a
+# candidate without its own fit counts as "not_fitted", between "tied" and "lower".
+CONDUCTIVITY_RANK_ORDER = ("higher", "tied", "not_fitted", "lower")
 
 # --- Budget limits (CLAUDE.md) -----------------------------------------------
 

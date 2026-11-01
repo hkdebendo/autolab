@@ -117,11 +117,11 @@
         ]
       },
       "e_hull_error": {
-        "n": 23,
         "system": "Cl-Li-P-S",
         "mae_eV_per_atom": 0.0048,
-        "bias_eV_per_atom": -0.002,
-        "max_abs_eV_per_atom": 0.0126
+        "max_abs_eV_per_atom": 0.0126,
+        "n": 23,
+        "bias_eV_per_atom": -0.002
       },
       "md_framework": {
         "intact": true,
@@ -420,7 +420,8 @@
       "interface_reaction_energy": -0.138003,
       "decomposition_polysulfides": [],
       "passivation_reaction_energy": 2.37156,
-      "electrodes_reduced_confidence": true
+      "electrodes_reduced_confidence": true,
+      "conductivity_vs_parent": null
     },
     {
       "id": "s9:it1-c2",
@@ -537,11 +538,11 @@
         ]
       },
       "e_hull_error": {
-        "n": 36,
         "system": "Li-O-P-S",
         "mae_eV_per_atom": 0.005,
-        "bias_eV_per_atom": -0.0003,
-        "max_abs_eV_per_atom": 0.0166
+        "max_abs_eV_per_atom": 0.0166,
+        "n": 36,
+        "bias_eV_per_atom": -0.0003
       },
       "md_framework": {
         "intact": true,
@@ -842,7 +843,8 @@
       "interface_reaction_energy": -0.137598,
       "decomposition_polysulfides": [],
       "passivation_reaction_energy": 2.197189,
-      "electrodes_reduced_confidence": false
+      "electrodes_reduced_confidence": false,
+      "conductivity_vs_parent": null
     },
     {
       "id": "s9:it1-c3",
@@ -1017,11 +1019,11 @@
         ]
       },
       "e_hull_error": {
-        "n": 25,
         "system": "Li-P-S-Se",
         "mae_eV_per_atom": 0.0053,
-        "bias_eV_per_atom": -0.0022,
-        "max_abs_eV_per_atom": 0.0126
+        "max_abs_eV_per_atom": 0.0126,
+        "n": 25,
+        "bias_eV_per_atom": -0.0022
       },
       "md_framework": {
         "intact": true,
@@ -1387,6 +1389,16 @@
       "decomposition_polysulfides": [],
       "passivation_reaction_energy": 2.528672,
       "electrodes_reduced_confidence": true,
+      "conductivity_vs_parent": {
+        "verdict": "tied",
+        "ratio": 1.338,
+        "parent_sigma_mS_cm": 99.9369,
+        "parent_range_mS_cm": [
+          58.1355,
+          171.795
+        ],
+        "rule": "ranges of one standard error compared: overlap = tied"
+      },
       "novelty": "related"
     },
     {
@@ -1459,11 +1471,11 @@
       "rejected_at": null,
       "arrangements": 8,
       "e_hull_error": {
-        "n": 33,
         "system": "Li-Na-P-S",
         "mae_eV_per_atom": 0.0041,
-        "bias_eV_per_atom": -0.001,
-        "max_abs_eV_per_atom": 0.0126
+        "max_abs_eV_per_atom": 0.0126,
+        "n": 33,
+        "bias_eV_per_atom": -0.001
       },
       "substitution": {
         "add": "Na",
@@ -1868,11 +1880,11 @@
         ]
       },
       "e_hull_error": {
-        "n": 23,
         "system": "Cl-Li-P-S",
         "mae_eV_per_atom": 0.0048,
-        "bias_eV_per_atom": -0.002,
-        "max_abs_eV_per_atom": 0.0126
+        "max_abs_eV_per_atom": 0.0126,
+        "n": 23,
+        "bias_eV_per_atom": -0.002
       },
       "md_framework": {
         "intact": false,
@@ -2200,7 +2212,8 @@
       "skipped_references": [],
       "md_framework_intact": false,
       "e_hull_per_substitution": 0.6183,
-      "decomposition_polysulfides": []
+      "decomposition_polysulfides": [],
+      "conductivity_vs_parent": null
     },
     {
       "id": "s9:it2-c2",
@@ -2240,11 +2253,11 @@
       "rejected_at": null,
       "arrangements": 6,
       "e_hull_error": {
-        "n": 31,
         "system": "As-Li-P-S",
         "mae_eV_per_atom": 0.0044,
-        "bias_eV_per_atom": -0.001,
-        "max_abs_eV_per_atom": 0.0126
+        "max_abs_eV_per_atom": 0.0126,
+        "n": 31,
+        "bias_eV_per_atom": -0.001
       },
       "substitution": {
         "add": "As",
@@ -2603,11 +2616,11 @@
       "rejected_at": null,
       "arrangements": 3,
       "e_hull_error": {
-        "n": 30,
         "system": "Li-P-S-Sb",
         "mae_eV_per_atom": 0.0117,
-        "bias_eV_per_atom": 0.0022,
-        "max_abs_eV_per_atom": 0.1611
+        "max_abs_eV_per_atom": 0.1611,
+        "n": 30,
+        "bias_eV_per_atom": 0.0022
       },
       "substitution": {
         "add": "Sb",
@@ -2998,11 +3011,11 @@
       "rejected_at": null,
       "arrangements": 2,
       "e_hull_error": {
-        "n": 33,
         "system": "Li-Na-P-S",
         "mae_eV_per_atom": 0.0041,
-        "bias_eV_per_atom": -0.001,
-        "max_abs_eV_per_atom": 0.0126
+        "max_abs_eV_per_atom": 0.0126,
+        "n": 33,
+        "bias_eV_per_atom": -0.001
       },
       "substitution": {
         "add": "Na",
@@ -3397,11 +3410,11 @@
         ]
       },
       "e_hull_error": {
-        "n": 23,
         "system": "I-Li-P-S",
         "mae_eV_per_atom": 0.0047,
-        "bias_eV_per_atom": -0.002,
-        "max_abs_eV_per_atom": 0.0126
+        "max_abs_eV_per_atom": 0.0126,
+        "n": 23,
+        "bias_eV_per_atom": -0.002
       },
       "md_framework": {
         "intact": true,
@@ -3700,7 +3713,8 @@
       "interface_reaction_energy": -0.139139,
       "decomposition_polysulfides": [],
       "passivation_reaction_energy": 2.367935,
-      "electrodes_reduced_confidence": true
+      "electrodes_reduced_confidence": true,
+      "conductivity_vs_parent": null
     },
     {
       "id": "s1:it1-c1",
@@ -3816,11 +3830,11 @@
         ]
       },
       "e_hull_error": {
-        "n": 23,
         "system": "Br-Li-P-S",
         "mae_eV_per_atom": 0.0049,
-        "bias_eV_per_atom": -0.0016,
-        "max_abs_eV_per_atom": 0.0126
+        "max_abs_eV_per_atom": 0.0126,
+        "n": 23,
+        "bias_eV_per_atom": -0.0016
       },
       "md_framework": {
         "intact": true,
@@ -4119,7 +4133,8 @@
       "interface_reaction_energy": -0.138003,
       "decomposition_polysulfides": [],
       "passivation_reaction_energy": 2.368413,
-      "electrodes_reduced_confidence": true
+      "electrodes_reduced_confidence": true,
+      "conductivity_vs_parent": null
     },
     {
       "id": "s1:it1-c2",
@@ -4248,11 +4263,11 @@
         ]
       },
       "e_hull_error": {
-        "n": 25,
         "system": "Li-P-S-Se",
         "mae_eV_per_atom": 0.0053,
-        "bias_eV_per_atom": -0.0022,
-        "max_abs_eV_per_atom": 0.0126
+        "max_abs_eV_per_atom": 0.0126,
+        "n": 25,
+        "bias_eV_per_atom": -0.0022
       },
       "md_framework": {
         "intact": true,
@@ -4556,6 +4571,16 @@
       "decomposition_polysulfides": [],
       "passivation_reaction_energy": 2.309405,
       "electrodes_reduced_confidence": false,
+      "conductivity_vs_parent": {
+        "verdict": "tied",
+        "ratio": 0.083,
+        "parent_sigma_mS_cm": 1.1763,
+        "parent_range_mS_cm": [
+          0.4325,
+          3.1991
+        ],
+        "rule": "ranges of one standard error compared: overlap = tied"
+      },
       "novelty": "related"
     },
     {
@@ -4594,11 +4619,11 @@
       "rejected_at": null,
       "arrangements": 8,
       "e_hull_error": {
-        "n": 36,
         "system": "Li-O-P-S",
         "mae_eV_per_atom": 0.005,
-        "bias_eV_per_atom": -0.0003,
-        "max_abs_eV_per_atom": 0.0166
+        "max_abs_eV_per_atom": 0.0166,
+        "n": 36,
+        "bias_eV_per_atom": -0.0003
       },
       "substitution": {
         "add": "O",
@@ -5000,11 +5025,11 @@
       "rejected_at": null,
       "arrangements": 7,
       "e_hull_error": {
-        "n": 23,
         "system": "F-Li-P-S",
         "mae_eV_per_atom": 0.0056,
-        "bias_eV_per_atom": -0.0016,
-        "max_abs_eV_per_atom": 0.0159
+        "max_abs_eV_per_atom": 0.0159,
+        "n": 23,
+        "bias_eV_per_atom": -0.0016
       },
       "substitution": {
         "add": "F",
@@ -5347,11 +5372,11 @@
         ]
       },
       "e_hull_error": {
-        "n": 23,
         "system": "I-Li-P-S",
         "mae_eV_per_atom": 0.0047,
-        "bias_eV_per_atom": -0.002,
-        "max_abs_eV_per_atom": 0.0126
+        "max_abs_eV_per_atom": 0.0126,
+        "n": 23,
+        "bias_eV_per_atom": -0.002
       },
       "md_framework": {
         "intact": true,
@@ -5678,7 +5703,8 @@
       "skipped_references": [],
       "md_framework_intact": true,
       "e_hull_per_substitution": 0.4888,
-      "decomposition_polysulfides": []
+      "decomposition_polysulfides": [],
+      "conductivity_vs_parent": null
     },
     {
       "id": "ref:it1-c3",
@@ -5767,11 +5793,11 @@
       "rejected_at": null,
       "arrangements": 1,
       "e_hull_error": {
-        "n": 31,
         "system": "As-Li-P-S",
         "mae_eV_per_atom": 0.0044,
-        "bias_eV_per_atom": -0.001,
-        "max_abs_eV_per_atom": 0.0126
+        "max_abs_eV_per_atom": 0.0126,
+        "n": 31,
+        "bias_eV_per_atom": -0.001
       },
       "substitution": {
         "add": "As",
@@ -6120,11 +6146,11 @@
       "rejected_at": null,
       "arrangements": 8,
       "e_hull_error": {
-        "n": 34,
         "system": "Li-Mg-P-S",
         "mae_eV_per_atom": 0.0054,
-        "bias_eV_per_atom": -0.0011,
-        "max_abs_eV_per_atom": 0.0209
+        "max_abs_eV_per_atom": 0.0209,
+        "n": 34,
+        "bias_eV_per_atom": -0.0011
       },
       "substitution": {
         "add": "Mg",
@@ -6478,11 +6504,11 @@
       "rejected_at": null,
       "arrangements": 7,
       "e_hull_error": {
-        "n": 33,
         "system": "Li-Na-P-S",
         "mae_eV_per_atom": 0.0041,
-        "bias_eV_per_atom": -0.001,
-        "max_abs_eV_per_atom": 0.0126
+        "max_abs_eV_per_atom": 0.0126,
+        "n": 33,
+        "bias_eV_per_atom": -0.001
       },
       "substitution": {
         "add": "Na",
@@ -6848,11 +6874,11 @@
       "rejected_at": null,
       "arrangements": 1,
       "e_hull_error": {
-        "n": 30,
         "system": "Li-P-S-Sb",
         "mae_eV_per_atom": 0.0117,
-        "bias_eV_per_atom": 0.0022,
-        "max_abs_eV_per_atom": 0.1611
+        "max_abs_eV_per_atom": 0.1611,
+        "n": 30,
+        "bias_eV_per_atom": 0.0022
       },
       "substitution": {
         "add": "Sb",
@@ -7259,11 +7285,11 @@
         ]
       },
       "e_hull_error": {
-        "n": 25,
         "system": "Li-P-S-Se",
         "mae_eV_per_atom": 0.0053,
-        "bias_eV_per_atom": -0.0022,
-        "max_abs_eV_per_atom": 0.0126
+        "max_abs_eV_per_atom": 0.0126,
+        "n": 25,
+        "bias_eV_per_atom": -0.0022
       },
       "md_framework": {
         "intact": true,
@@ -7567,6 +7593,16 @@
       "decomposition_polysulfides": [],
       "passivation_reaction_energy": 2.306084,
       "electrodes_reduced_confidence": false,
+      "conductivity_vs_parent": {
+        "verdict": "tied",
+        "ratio": 4.81,
+        "parent_sigma_mS_cm": 1.1763,
+        "parent_range_mS_cm": [
+          0.4325,
+          3.1991
+        ],
+        "rule": "ranges of one standard error compared: overlap = tied"
+      },
       "novelty": "related"
     },
     {
@@ -7656,11 +7692,11 @@
       "rejected_at": null,
       "arrangements": 3,
       "e_hull_error": {
-        "n": 31,
         "system": "As-Li-P-S",
         "mae_eV_per_atom": 0.0044,
-        "bias_eV_per_atom": -0.001,
-        "max_abs_eV_per_atom": 0.0126
+        "max_abs_eV_per_atom": 0.0126,
+        "n": 31,
+        "bias_eV_per_atom": -0.001
       },
       "substitution": {
         "add": "As",
@@ -8009,11 +8045,11 @@
       "rejected_at": null,
       "arrangements": 8,
       "e_hull_error": {
-        "n": 34,
         "system": "Li-Mg-P-S",
         "mae_eV_per_atom": 0.0054,
-        "bias_eV_per_atom": -0.0011,
-        "max_abs_eV_per_atom": 0.0209
+        "max_abs_eV_per_atom": 0.0209,
+        "n": 34,
+        "bias_eV_per_atom": -0.0011
       },
       "substitution": {
         "add": "Mg",
@@ -8407,15 +8443,15 @@
       },
       "meta (rerun)": {
         "calls": 1,
-        "input_tokens": 4606,
-        "output_tokens": 5867,
-        "cost_usd": 0.03069,
+        "input_tokens": 4785,
+        "output_tokens": 4674,
+        "cost_usd": 0.02585,
         "by_provider": {
           "meta": {
             "calls": 1,
-            "input_tokens": 4606,
-            "output_tokens": 5867,
-            "cost_usd": 0.03069
+            "input_tokens": 4785,
+            "output_tokens": 4674,
+            "cost_usd": 0.02585
           }
         }
       }
@@ -8458,99 +8494,6 @@
   },
   "domain": "electrolyte",
   "stages": {
-    "ranking": {
-      "kept": [
-        "s1:it1-c2",
-        "ref:it2-c2",
-        "s9:it1-c4",
-        "s9:it2-c5",
-        "s1:it1-c1",
-        "s9:it1-c2",
-        "s9:it1-c1",
-        "ref:it1-c2",
-        "it2-c1",
-        "it3-c3",
-        "ref:it1-c3",
-        "ref:it2-c3",
-        "it3-c2",
-        "it3-c1",
-        "ref:it2-c1",
-        "ref:it1-c1",
-        "s9:it2-c2",
-        "s1:it1-c3",
-        "it2-c2",
-        "s9:it2-c3"
-      ],
-      "status": "done",
-      "ranking": [
-        "s1:it1-c2",
-        "ref:it2-c2",
-        "s9:it1-c4",
-        "s9:it2-c5",
-        "s1:it1-c1",
-        "s9:it1-c2",
-        "s9:it1-c1",
-        "ref:it1-c2",
-        "it2-c1",
-        "it3-c3",
-        "ref:it1-c3",
-        "ref:it2-c3",
-        "it3-c2",
-        "it3-c1",
-        "ref:it2-c1",
-        "ref:it1-c1",
-        "s9:it2-c2",
-        "s1:it1-c3",
-        "it2-c2",
-        "s9:it2-c3",
-        "it1-c1",
-        "s9:it2-c1",
-        "it1-c2",
-        "ref:it1-c5",
-        "s9:it2-c4",
-        "it2-c3",
-        "ref:it1-c4",
-        "s9:it1-c5",
-        "ref:it2-c4",
-        "it1-c3"
-      ],
-      "summary": {
-        "excluded": [
-          "it1-c1",
-          "s9:it2-c1",
-          "it1-c2",
-          "ref:it1-c5",
-          "s9:it2-c4",
-          "it2-c3",
-          "ref:it1-c4",
-          "s9:it1-c5",
-          "ref:it2-c4",
-          "it1-c3"
-        ],
-        "finalists": [
-          "s1:it1-c2",
-          "ref:it2-c2",
-          "s9:it1-c4"
-        ]
-      },
-      "excluded": {
-        "it1-c1": "molecular_dynamics: framework moved: Cl diffuses at 17.7% of Li (limit 5%), seed 0, final MSD 4.8 A2",
-        "it1-c2": "molecular_dynamics: framework moved: O diffuses at 5.3% of Li (limit 5%), seed 1, final MSD 3.0 A2",
-        "it1-c3": "electrodes: non_passivating against Li metal (metallic products Na, reaction 2.440 eV/atom)",
-        "it2-c3": "electrodes: non_passivating against Li metal (metallic products LiMg, reaction 2.271 eV/atom)",
-        "s9:it1-c5": "electrodes: non_passivating against Li metal (metallic products Na, reaction 2.365 eV/atom)",
-        "s9:it2-c1": "molecular_dynamics: framework moved: Cl diffuses at 39.8% of Li (limit 5%), seed 0, final MSD 5.4 A2",
-        "s9:it2-c4": "electrodes: non_passivating against Li metal (metallic products Na, reaction 2.204 eV/atom)",
-        "ref:it1-c4": "electrodes: non_passivating against Li metal (metallic products LiMg, reaction 2.287 eV/atom)",
-        "ref:it1-c5": "electrodes: non_passivating against Li metal (metallic products Na, reaction 2.112 eV/atom)",
-        "ref:it2-c4": "electrodes: non_passivating against Li metal (metallic products LiMg, reaction 2.507 eV/atom)"
-      },
-      "finalists": [
-        "s1:it1-c2",
-        "ref:it2-c2",
-        "s9:it1-c4"
-      ]
-    },
     "electrodes": {
       "status": "done",
       "stopped": null,
@@ -9805,6 +9748,99 @@
         }
       }
     },
+    "ranking": {
+      "status": "done",
+      "ranking": [
+        "s1:it1-c2",
+        "ref:it2-c2",
+        "s9:it1-c4",
+        "s9:it2-c5",
+        "s1:it1-c1",
+        "s9:it1-c2",
+        "s9:it1-c1",
+        "ref:it1-c2",
+        "it2-c1",
+        "it3-c3",
+        "ref:it1-c3",
+        "ref:it2-c3",
+        "it3-c2",
+        "it3-c1",
+        "ref:it2-c1",
+        "ref:it1-c1",
+        "s9:it2-c2",
+        "s1:it1-c3",
+        "it2-c2",
+        "s9:it2-c3",
+        "it1-c1",
+        "s9:it2-c1",
+        "it1-c2",
+        "ref:it1-c5",
+        "s9:it2-c4",
+        "it2-c3",
+        "ref:it1-c4",
+        "s9:it1-c5",
+        "ref:it2-c4",
+        "it1-c3"
+      ],
+      "kept": [
+        "s1:it1-c2",
+        "ref:it2-c2",
+        "s9:it1-c4",
+        "s9:it2-c5",
+        "s1:it1-c1",
+        "s9:it1-c2",
+        "s9:it1-c1",
+        "ref:it1-c2",
+        "it2-c1",
+        "it3-c3",
+        "ref:it1-c3",
+        "ref:it2-c3",
+        "it3-c2",
+        "it3-c1",
+        "ref:it2-c1",
+        "ref:it1-c1",
+        "s9:it2-c2",
+        "s1:it1-c3",
+        "it2-c2",
+        "s9:it2-c3"
+      ],
+      "finalists": [
+        "s1:it1-c2",
+        "ref:it2-c2",
+        "s9:it1-c4"
+      ],
+      "excluded": {
+        "it1-c1": "molecular_dynamics: framework moved: Cl diffuses at 17.7% of Li (limit 5%), seed 0, final MSD 4.8 A2",
+        "s9:it2-c1": "molecular_dynamics: framework moved: Cl diffuses at 39.8% of Li (limit 5%), seed 0, final MSD 5.4 A2",
+        "it1-c2": "molecular_dynamics: framework moved: O diffuses at 5.3% of Li (limit 5%), seed 1, final MSD 3.0 A2",
+        "ref:it1-c5": "electrodes: non_passivating against Li metal (metallic products Na, reaction 2.112 eV/atom)",
+        "s9:it2-c4": "electrodes: non_passivating against Li metal (metallic products Na, reaction 2.204 eV/atom)",
+        "it2-c3": "electrodes: non_passivating against Li metal (metallic products LiMg, reaction 2.271 eV/atom)",
+        "ref:it1-c4": "electrodes: non_passivating against Li metal (metallic products LiMg, reaction 2.287 eV/atom)",
+        "s9:it1-c5": "electrodes: non_passivating against Li metal (metallic products Na, reaction 2.365 eV/atom)",
+        "ref:it2-c4": "electrodes: non_passivating against Li metal (metallic products LiMg, reaction 2.507 eV/atom)",
+        "it1-c3": "electrodes: non_passivating against Li metal (metallic products Na, reaction 2.440 eV/atom)"
+      },
+      "summary": {
+        "finalists": [
+          "s1:it1-c2",
+          "ref:it2-c2",
+          "s9:it1-c4"
+        ],
+        "excluded": [
+          "it1-c1",
+          "s9:it2-c1",
+          "it1-c2",
+          "ref:it1-c5",
+          "s9:it2-c4",
+          "it2-c3",
+          "ref:it1-c4",
+          "s9:it1-c5",
+          "ref:it2-c4",
+          "it1-c3"
+        ]
+      }
+    },
     "novelty": {
       "status": "done",
       "control": {
@@ -10079,6 +10115,11 @@
           ],
           "ionic_conductivity_method": "own Arrhenius fit (500, 600, 700 K)",
           "activation_energy_eV": 0.421,
+          "ionic_conductivity_vs_parent": "tied",
+          "parent_ionic_conductivity_range_mS_cm": [
+            0.432,
+            3.199
+          ],
           "confidence_flags": [],
           "novelty": "close family already studied",
           "novelty_summary": "Se has been introduced as an anion dopant for the Li7P3S11-type sulfide electrolyte to enhance conductivity and moisture stability, and SnSe2-doped 70Li2S-(30-x)P2S5-xSnSe2 glass-ceramic electrolytes based on Li7P3S11 have been prepared by ball-milling and annealing. In the Li-P-Se system, Li7PSe6 has been successfully synthesized in the argyrodite structure, while \u201cLi3PSe4\u201d was noted as unconfirmed experimentally. A computational review notes Li4P2Se6 and Li7PSe6 as reported phases and describes Li4PSe3 constructed by replacing S in Li3PS4 with Se. This search found no exact Li6P2SeS7 report.",
@@ -10197,6 +10238,11 @@
           ],
           "ionic_conductivity_method": "own Arrhenius fit (500, 600, 700 K)",
           "activation_energy_eV": 0.236,
+          "ionic_conductivity_vs_parent": "tied",
+          "parent_ionic_conductivity_range_mS_cm": [
+            0.432,
+            3.199
+          ],
           "confidence_flags": [],
           "novelty": "close family already studied",
           "novelty_summary": "This search did not return the exact Li12P4SeS15 composition, but a computational phase-stability study lists Li3PSe4 as a predicted stable phase derived from ICSD-Li3PS4, the full-Se analogue of Se-substituted Li3PS4. Se-for-S anion doping in the closely related thiophosphate Li7P3S11 is reported experimentally as a series Li7P3S11-xSex (x=0-0.15), with Se substitution at S sites improving conductivity and moisture stability. The same Li3PS4 parent with a chemically similar anion dopant is reported as O-doped \u03b2-Li3PS4, e.g. Li3PS3.8O0.2 with ionic conductivity 1.13 mS cm-1 and suppressed H2S generation.",
@@ -10315,6 +10361,11 @@
           ],
           "ionic_conductivity_method": "own Arrhenius fit (500, 600, 700 K)",
           "activation_energy_eV": 0.12,
+          "ionic_conductivity_vs_parent": "tied",
+          "parent_ionic_conductivity_range_mS_cm": [
+            58.136,
+            171.795
+          ],
           "confidence_flags": [
             "window via a polysulfide"
           ],
@@ -10343,15 +10394,15 @@
       ],
       "excluded": {
         "it1-c1": "molecular_dynamics: framework moved: Cl diffuses at 17.7% of Li (limit 5%), seed 0, final MSD 4.8 A2",
-        "it1-c2": "molecular_dynamics: framework moved: O diffuses at 5.3% of Li (limit 5%), seed 1, final MSD 3.0 A2",
-        "it1-c3": "electrodes: non_passivating against Li metal (metallic products Na, reaction 2.440 eV/atom)",
-        "it2-c3": "electrodes: non_passivating against Li metal (metallic products LiMg, reaction 2.271 eV/atom)",
-        "s9:it1-c5": "electrodes: non_passivating against Li metal (metallic products Na, reaction 2.365 eV/atom)",
         "s9:it2-c1": "molecular_dynamics: framework moved: Cl diffuses at 39.8% of Li (limit 5%), seed 0, final MSD 5.4 A2",
-        "s9:it2-c4": "electrodes: non_passivating against Li metal (metallic products Na, reaction 2.204 eV/atom)",
-        "ref:it1-c4": "electrodes: non_passivating against Li metal (metallic products LiMg, reaction 2.287 eV/atom)",
+        "it1-c2": "molecular_dynamics: framework moved: O diffuses at 5.3% of Li (limit 5%), seed 1, final MSD 3.0 A2",
         "ref:it1-c5": "electrodes: non_passivating against Li metal (metallic products Na, reaction 2.112 eV/atom)",
-        "ref:it2-c4": "electrodes: non_passivating against Li metal (metallic products LiMg, reaction 2.507 eV/atom)"
+        "s9:it2-c4": "electrodes: non_passivating against Li metal (metallic products Na, reaction 2.204 eV/atom)",
+        "it2-c3": "electrodes: non_passivating against Li metal (metallic products LiMg, reaction 2.271 eV/atom)",
+        "ref:it1-c4": "electrodes: non_passivating against Li metal (metallic products LiMg, reaction 2.287 eV/atom)",
+        "s9:it1-c5": "electrodes: non_passivating against Li metal (metallic products Na, reaction 2.365 eV/atom)",
+        "ref:it2-c4": "electrodes: non_passivating against Li metal (metallic products LiMg, reaction 2.507 eV/atom)",
+        "it1-c3": "electrodes: non_passivating against Li metal (metallic products Na, reaction 2.440 eV/atom)"
       },
       "methods": [
         {
@@ -10401,55 +10452,56 @@
       ],
       "not_computed": "measured ionic conductivity (room-temperature values are extrapolated estimates from molecular dynamics at 500-700 K, with their range), DFT calculations (UMA energies carry an error bar measured against DFT on known compounds), synthesis routes, cost of the elements, experimental data",
       "narrative": {
-        "executive_summary": "The goal was sulfide electrolytes derived from Li7P3S11 or beta-Li3PS4 that conduct lithium at least as fast as the parent and stay stable against lithium metal. The champion is Li6P2SeS7 derived from Li3PS4 with space group Pmc2_1. Its energy above the hull is -0.007 eV/atom with error 0.005 eV/atom from a mean difference on 25 known compounds of Li-P-S-Se. Its band gap is 2.485 eV and it is passivating against lithium metal with a stable window from 1.8 V to 2.24 V. Its diffusion coefficient at 600 K is 3.9e-06 cm\u00b2/s with error 9.6e-07 cm\u00b2/s, a ratio to the parent of 0.657 with error 0.211 and verdict tied. Its ionic conductivity at 300 K is an extrapolated estimate of order 0.1 mS/cm, namely 0.098 mS/cm with range 0.012 mS/cm to 0.8 mS/cm by own Arrhenius fit (500, 600, 700 K) with activation energy 0.421 eV, not a measurement. It shows interface reaction energy of -0.145 eV/atom with LiFePO4. Candidates that let framework anions move or that were non-passivating against lithium metal were excluded. Measured conductivity, DFT checks, synthesis routes, cost and experimental data were not computed.",
+        "executive_summary": "The champion is Li6P2SeS7 derived from Li3PS4 by Se substitution. Its energy above the hull is -0.007 eV/atom with error 0.005 eV/atom. Its band gap is 2.485 eV by optB88 and 3.102 eV by MBJ. Its electrochemical window is stable from 1.8 V to 2.24 V and it is passivating against lithium metal. Its diffusion coefficient at 600 K is 3.9e-06 cm2/s with error 9.6e-07 cm2/s, tied with the parent within uncertainty. Its ionic conductivity at 300 K is an extrapolated estimate of 0.098 mS/cm within range [0.012, 0.8] mS/cm by own Arrhenius fit (500, 600, 700 K) with activation energy 0.421 eV, tied with the parent range [0.432, 3.199] mS/cm. Failed candidates taught two lessons: Cl- and O-substituted variants moved in molecular dynamics with framework diffusion above the 5% limit, and Na- and LiMg-forming variants were non-passivating against lithium metal. Measured ionic conductivity, DFT checks, synthesis routes, cost and experimental data were not computed.",
         "champion_reasons": [
-          "Its energy above the hull is -0.007 eV/atom with error 0.005 eV/atom, compared with -0.004 eV/atom with error 0.005 eV/atom for Li12P4SeS15 and 0.015 eV/atom with error 0.005 eV/atom for Li7P3SeS10.",
-          "Its energy per modified site is -0.115 eV per modified site, compared with -0.113 eV per modified site for Li12P4SeS15 and 0.323 eV per modified site for Li7P3SeS10.",
-          "Its stable window from 1.8 V to 2.24 V is wider than 2.28 V to 2.3 V for Li7P3SeS10, stays robust with maximum shift 0.02 V, and it has no confidence flag while Li7P3SeS10 has a window via a polysulfide flag."
+          "Energy above the hull of -0.007 eV/atom with error 0.005 eV/atom is lower than -0.004 eV/atom with error 0.005 eV/atom for Li12P4SeS15 and 0.015 eV/atom with error 0.005 eV/atom for Li7P3SeS10.",
+          "Energy per modified site of -0.115 eV is more stabilizing than -0.113 eV for Li12P4SeS15 and 0.323 eV for Li7P3SeS10.",
+          "Electrochemical window from 1.8 V to 2.24 V is stable with no confidence flags, while Li7P3SeS10 has a window from 2.28 V to 2.3 V with a window via a polysulfide flag."
         ],
         "tradeoffs": [
-          "Its extrapolated conductivity estimate of 0.098 mS/cm with range 0.012 mS/cm to 0.8 mS/cm is orders lower than 5.658 mS/cm with range 1.456 mS/cm to 21.978 mS/cm for Li12P4SeS15 and 133.677 mS/cm with range 49.547 mS/cm to 360.658 mS/cm for Li7P3SeS10.",
-          "Its stable window from 1.8 V to 2.24 V is narrow and its interface reaction energy of -0.145 eV/atom with LiFePO4 indicates cathode reactivity, similar to -0.145 eV/atom for Li12P4SeS15 and -0.143 eV/atom for Li7P3SeS10.",
-          "Its diffusion ratio to the parent of 0.657 with error 0.211 is tied rather than faster, below 0.82 with error 0.251 for Li12P4SeS15 and 1.069 with error 0.23 for Li7P3SeS10, and its band gap of 2.485 eV is below 2.594 eV for Li12P4SeS15.",
-          "Its novelty is close family already studied, so it is a modification of known selenide-substituted sulfides rather than a new structure type."
+          "Electrochemical window from 1.8 V to 2.24 V is narrow and does not cover typical cathode voltages.",
+          "Interface reaction energy with LiFePO4 is -0.145 eV/atom, indicating cathode reactivity.",
+          "Ionic conductivity at 300 K is an extrapolated estimate of 0.098 mS/cm within range [0.012, 0.8] mS/cm, so the range spans almost two orders of magnitude.",
+          "Novelty is close family already studied, with Se doping of sulfide electrolytes reported before and no exact Li6P2SeS7 report found."
         ],
         "uncertainties": [
-          "Diffusion was sampled at 600 K with error 9.6e-07 cm\u00b2/s and ratio error 0.211, and conductivity at 300 K is extrapolated from 500, 600, 700 K with wide range 0.012 mS/cm to 0.8 mS/cm.",
-          "Stability relies on computed energies with error 0.005 eV/atom from 25 known compounds, and DFT checks were not computed.",
-          "Window confidence is limited by polysulfides including SeS7, with sensitivity tested to 0.025 eV/atom and maximum shift 0.02 V within limit 0.1 V."
+          "Energy above the hull carries UMA-vs-DFT error of 0.005 eV/atom from mean difference on 25 known compounds of Li-P-S-Se.",
+          "Diffusion coefficient at 600 K is 3.9e-06 cm2/s with error 9.6e-07 cm2/s from high-temperature dynamics, and the 300 K conductivity range [0.012, 0.8] mS/cm is extrapolated from 500, 600 and 700 K.",
+          "Window stability allows a maximum shift of 0.02 V under a shift of 0.025 eV/atom and lists polysulfides LiS4, P2S7 and SeS7, which limits confidence.",
+          "Diffusion verdict at 600 K is tied with the parent within uncertainty, so no faster or slower claim can be made."
         ],
         "validation": [
           {
-            "text": "Confirm the Pmc2_1 structure and phase purity by powder X-ray diffraction with Rietveld refinement.",
+            "text": "Check phase purity and lattice parameters a 6.265 A, b 8.146 A, c 13.146 A in space group Pmc2_1 by powder X-ray diffraction.",
             "basis": "documented"
           },
           {
-            "text": "Measure room-temperature ionic and electronic conductivity by impedance spectroscopy with blocking and non-blocking electrodes.",
+            "text": "Measure ionic conductivity and activation energy by temperature-dependent impedance spectroscopy, since the 300 K value is only an extrapolated estimate of 0.098 mS/cm within [0.012, 0.8] mS/cm.",
             "basis": "documented"
           },
           {
-            "text": "Recheck the energy above the hull of -0.007 eV/atom with error 0.005 eV/atom and the band gap of 2.485 eV with DFT.",
+            "text": "Test stability during cycling against lithium metal to confirm passivating behavior and analyze interphase products Li2Se, Li3PS4 and P.",
             "basis": "documented"
           },
           {
-            "text": "Test stability and cycling against lithium metal by symmetric-cell and plating-stripping experiments.",
+            "text": "Recalculate energy above the hull and band gap with DFT to confirm the UMA result of -0.007 eV/atom with error 0.005 eV/atom and gaps of 2.485 eV and 3.102 eV.",
             "basis": "documented"
           }
         ],
         "synthesis": [
           {
-            "text": "Ball milling then annealing under inert atmosphere could be tried as used for sulfide electrolytes, but success is not guaranteed.",
+            "text": "Ball milling of sulfide and selenide precursors followed by annealing under inert atmosphere could be tried for this sulfide electrolyte family, but success is not guaranteed.",
             "basis": "documented"
           },
           {
-            "text": "Sealed-tube solid-state reaction with controlled selenium content could be explored, but success is not guaranteed.",
+            "text": "Sealed-tube solid-state reaction with controlled Se content to target Li6P2SeS7 could be tried, but success is not guaranteed.",
             "basis": "hypothesis"
           }
         ],
         "limitations": [
-          "Measured ionic conductivity was not computed and the 300 K values are only extrapolated estimates.",
-          "DFT verification, synthesis routes, element cost and experimental data were not computed and remain needed.",
-          "Moisture stability, long-term cycling and mechanical behavior were not studied.",
+          "Measured ionic conductivity was not computed and the 300 K value is only an extrapolated estimate.",
+          "DFT calculations, synthesis routes, cost of the elements and experimental data were not computed.",
+          "Moisture stability, mechanical behavior and long-term cycling were not studied and still need validation.",
           "The candidates are computational predictions, not proven materials."
         ]
       },
@@ -11267,11 +11319,11 @@
             ]
           },
           "e_hull_error": {
-            "n": 23,
             "system": "Cl-Li-P-S",
             "mae_eV_per_atom": 0.0048,
-            "bias_eV_per_atom": -0.002,
-            "max_abs_eV_per_atom": 0.0126
+            "max_abs_eV_per_atom": 0.0126,
+            "n": 23,
+            "bias_eV_per_atom": -0.002
           },
           "md_framework": {
             "intact": false,
@@ -11682,11 +11734,11 @@
             ]
           },
           "e_hull_error": {
-            "n": 36,
             "system": "Li-O-P-S",
             "mae_eV_per_atom": 0.005,
-            "bias_eV_per_atom": -0.0003,
-            "max_abs_eV_per_atom": 0.0166
+            "max_abs_eV_per_atom": 0.0166,
+            "n": 36,
+            "bias_eV_per_atom": -0.0003
           },
           "md_framework": {
             "intact": false,
@@ -12124,11 +12176,11 @@
           "rejected_at": null,
           "arrangements": 5,
           "e_hull_error": {
-            "n": 33,
             "system": "Li-Na-P-S",
             "mae_eV_per_atom": 0.0041,
-            "bias_eV_per_atom": -0.001,
-            "max_abs_eV_per_atom": 0.0126
+            "max_abs_eV_per_atom": 0.0126,
+            "n": 33,
+            "bias_eV_per_atom": -0.001
           },
           "substitution": {
             "add": "Na",
@@ -13189,11 +13241,11 @@
             ]
           },
           "e_hull_error": {
-            "n": 25,
             "system": "Li-P-S-Se",
             "mae_eV_per_atom": 0.0053,
-            "bias_eV_per_atom": -0.0022,
-            "max_abs_eV_per_atom": 0.0126
+            "max_abs_eV_per_atom": 0.0126,
+            "n": 25,
+            "bias_eV_per_atom": -0.0022
           },
           "md_framework": {
             "intact": true,
@@ -13640,11 +13692,11 @@
           "rejected_at": null,
           "arrangements": 3,
           "e_hull_error": {
-            "n": 31,
             "system": "As-Li-P-S",
             "mae_eV_per_atom": 0.0044,
-            "bias_eV_per_atom": -0.001,
-            "max_abs_eV_per_atom": 0.0126
+            "max_abs_eV_per_atom": 0.0126,
+            "n": 31,
+            "bias_eV_per_atom": -0.001
           },
           "substitution": {
             "add": "As",
@@ -14056,11 +14108,11 @@
           "rejected_at": null,
           "arrangements": 8,
           "e_hull_error": {
-            "n": 34,
             "system": "Li-Mg-P-S",
             "mae_eV_per_atom": 0.0054,
-            "bias_eV_per_atom": -0.0011,
-            "max_abs_eV_per_atom": 0.0209
+            "max_abs_eV_per_atom": 0.0209,
+            "n": 34,
+            "bias_eV_per_atom": -0.0011
           },
           "substitution": {
             "add": "Mg",
@@ -15020,11 +15072,11 @@
           "rejected_at": null,
           "arrangements": 8,
           "e_hull_error": {
-            "n": 25,
             "system": "Li-P-S-Se",
             "mae_eV_per_atom": 0.0053,
-            "bias_eV_per_atom": -0.0022,
-            "max_abs_eV_per_atom": 0.0126
+            "max_abs_eV_per_atom": 0.0126,
+            "n": 25,
+            "bias_eV_per_atom": -0.0022
           },
           "substitution": {
             "add": "Se",
@@ -15396,11 +15448,11 @@
           "rejected_at": null,
           "arrangements": 1,
           "e_hull_error": {
-            "n": 31,
             "system": "As-Li-P-S",
             "mae_eV_per_atom": 0.0044,
-            "bias_eV_per_atom": -0.001,
-            "max_abs_eV_per_atom": 0.0126
+            "max_abs_eV_per_atom": 0.0126,
+            "n": 31,
+            "bias_eV_per_atom": -0.001
           },
           "substitution": {
             "add": "As",
@@ -15806,11 +15858,11 @@
             ]
           },
           "e_hull_error": {
-            "n": 23,
             "system": "Br-Li-P-S",
             "mae_eV_per_atom": 0.0049,
-            "bias_eV_per_atom": -0.0016,
-            "max_abs_eV_per_atom": 0.0126
+            "max_abs_eV_per_atom": 0.0126,
+            "n": 23,
+            "bias_eV_per_atom": -0.0016
           },
           "md_framework": {
             "intact": true,

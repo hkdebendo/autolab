@@ -66,7 +66,7 @@ Finalists over the whole campaign (all candidates evaluated since Oct 28), all "
 | Li12P4SeS15 | −0.004 ± 0.005 | tied (0.82 ± 0.25) | 5.7 (1.5–22) | beta-Li3PS4: 1.2 |
 | Li7P3SeS10 | +0.015 ± 0.005 | tied (1.07 ± 0.23) | 134 (50–360) | Li7P3S11: 100 |
 
-The champion, chosen on its 600 K diffusion, is the slowest at room temperature (higher activation energy, 0.42 eV): the ranking does not yet use the extrapolated conductivity.
+The champion has the lowest central conductivity at room temperature (activation energy 0.42 eV), but its range overlaps its parent's: every finalist is **tied** with its parent at 300 K as at 600 K. The ranking uses this verdict first: a candidate counts as slower or faster than its parent only when the two ranges do not overlap.
 
 ## Validation: truth tests and benchmarks
 
@@ -97,7 +97,7 @@ Every module has a truth test against known results (`tests/`, `SPEC.md` section
 | Limit | What was done | What remains |
 |---|---|---|
 | No room-temperature conductivity | Arrhenius fits (500–700 K) and Nernst-Einstein, calibrated on the two parents | an extrapolated estimate (range ×2–8), ideal crystal (no grain boundaries), ~6–7 × above experiment on the parents |
-| No candidate faster than its parent | MD inside each round, failures fed back | still none faster at 600 K; one (Li12P4SeS15) possibly faster at 300 K, not significant |
+| No candidate faster than its parent | MD inside each round, failures fed back; room-temperature conductivity compared with the parent's by ranges, first criterion of the ranking | still none faster, at 600 K or at 300 K (all tied) |
 | Energies from a learned potential, not DFT | UMA-vs-DFT error bar on every E_hull, measured on known compounds of the same system | no DFT recheck of the finalists |
 | "Reduced confidence" on almost every window | window recomputed with polysulfide energies shifted by ±0.025 eV/atom; flag kept only if a limit moves > 0.1 V (11 of 20 windows robust) | the flag stays for the Li7P3S11 family (its 2.28–2.30 V window depends on P2S7) |
 | Benchmark lacked hard negatives | 5 stable insulators that conduct Li poorly, absolute diffusion test | small sample; LiI rejected weakly |

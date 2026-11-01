@@ -376,10 +376,15 @@ def molecular_dynamics(camp: Campaign) -> dict:
 
 
 def ranking(camp: Campaign) -> dict:
+    """Kept candidates first; then the verdict of the conductivity at 300 K against the parent (when the candidate
+    has its own Arrhenius fit), the MD verdict at 600 K, and the lowest E_hull per substitution."""
     order = {v: i for i, v in enumerate(config.FINAL_RANK_MD_ORDER)}
+    rt_order = {v: i for i, v in enumerate(config.CONDUCTIVITY_RANK_ORDER)}
 
     def key(c):
-        return (bool(c.get("excluded_at")), order.get(c.get("md_verdict") or "not_run", len(order)), *rank_key(c))
+        rt = (c.get("conductivity_vs_parent") or {}).get("verdict") or "not_fitted"
+        return (bool(c.get("excluded_at")), rt_order.get(rt, len(rt_order)),
+                order.get(c.get("md_verdict") or "not_run", len(order)), *rank_key(c))
 
     ranked = sorted(camp.passed(), key=key)
     errors = {}
@@ -406,13 +411,31 @@ def conductivity(camp: Campaign) -> dict:
         reason = "no simulated candidate" if tool else "no conductivity tool"
         return {"skipped": reason, "summary": {"skipped": reason}}
     res = tool(simulated)
+    by_id = camp.by_id
     for cid, r in res["candidates"].items():
-        camp.by_id[cid]["conductivity"] = _rounded(r)
+        c = by_id[cid]
+        c["conductivity"] = _rounded(r)
+        c["conductivity_vs_parent"] = conductivity_verdict(r, res["parents"].get(c["parent"]))
     out = {"parents": _rounded(res["parents"]), "candidates": list(res["candidates"]),
            "temperature_K": config.CONDUCTIVITY_T_K}
     out["summary"] = {"computed": len(res["candidates"]), "parents": {k: round(v["sigma_mS_cm"], 3)
                                                                        for k, v in res["parents"].items()}}
     return out
+
+
+def conductivity_verdict(cand: dict, parent: dict | None) -> dict | None:
+    """Candidate vs parent conductivity at 300 K by their ranges: "lower" (whole range below the parent's), "higher"
+    (above) or "tied" (overlap). Only for a candidate with its own Arrhenius fit (else None: its estimate borrows
+    the parent's activation energy and cannot be told apart from it)."""
+    if not parent or not str(cand.get("method", "")).startswith("own Arrhenius"):
+        return None
+    lo, hi = cand["sigma_low_mS_cm"], cand["sigma_high_mS_cm"]
+    plo, phi = parent["sigma_low_mS_cm"], parent["sigma_high_mS_cm"]
+    verdict = "lower" if hi < plo else "higher" if lo > phi else "tied"
+    return {"verdict": verdict, "ratio": round(cand["sigma_mS_cm"] / parent["sigma_mS_cm"], 3),
+            "parent_sigma_mS_cm": round(parent["sigma_mS_cm"], 4),
+            "parent_range_mS_cm": [round(plo, 4), round(phi, 4)],
+            "rule": "ranges of one standard error compared: overlap = tied"}
 
 
 def render_conductivity(out: dict, result: dict) -> list[str]:
@@ -423,13 +446,20 @@ def render_conductivity(out: dict, result: dict) -> list[str]:
     lines += ["Arrhenius fit of the diffusion coefficients of the molecular dynamics (runs up to "
               f"{config.CONDUCTIVITY_FIT_T_MAX_K} K), extrapolated to {config.CONDUCTIVITY_T_K} K, then the "
               "Nernst-Einstein relation (tracer diffusion, Haven ratio 1). The range is one standard error of the "
-              "extrapolation: an order of magnitude, not a measurement.", "",
-              "| Structure | σ at 300 K (mS/cm) | Range (mS/cm) | Activation energy (eV) | Method |", "|---|---|---|---|---|"]
-    rows = [(f"parent {pid}", r) for pid, r in out["parents"].items()]
-    rows += [(f"{cid} {by_id[cid]['formula']}", by_id[cid]["conductivity"]) for cid in out["candidates"]]
-    for name, r in rows:
+              "extrapolation: an order of magnitude, not a measurement. A candidate with its own fit is \"lower\" or "
+              "\"higher\" than its parent only when the two ranges do not overlap; this verdict comes first in the "
+              "final ranking.", "",
+              "| Structure | σ at 300 K (mS/cm) | Range (mS/cm) | Activation energy (eV) | Against its parent | "
+              "Method |", "|---|---|---|---|---|---|"]
+    rows = [(f"parent {pid}", r, None) for pid, r in out["parents"].items()]
+    rows += [(f"{cid} {by_id[cid]['formula']}", by_id[cid]["conductivity"], by_id[cid].get("conductivity_vs_parent"))
+             for cid in out["candidates"]]
+    for name, r, v in rows:
+        vs = "—" if name.startswith("parent") else (
+            f"{v['verdict']} (ratio {v['ratio']:.2g}, parent {v['parent_range_mS_cm'][0]:.2g}–"
+            f"{v['parent_range_mS_cm'][1]:.2g})" if v else "not compared (no own fit)")
         lines.append(f"| {name} | {r['sigma_mS_cm']:.3g} | {r['sigma_low_mS_cm']:.2g}–{r['sigma_high_mS_cm']:.2g} | "
-                     f"{r['Ea_eV']:.2f} ± {r['Ea_err_eV']:.2f} | {r['method']} |")
+                     f"{r['Ea_eV']:.2f} ± {r['Ea_err_eV']:.2f} | {vs} | {r['method']} |")
     return lines + [""]
 
 
@@ -628,7 +658,8 @@ def render_md(out: dict, result: dict) -> list[str]:
 def render_ranking(out: dict, result: dict) -> list[str]:
     by_id = _pool(result)
     lines = ["## Final ranking", "",
-             f"Order: MD verdict ({' > '.join(config.FINAL_RANK_MD_ORDER)}), then lowest E_hull per substitution; "
+             f"Order: conductivity at 300 K against the parent ({' > '.join(config.CONDUCTIVITY_RANK_ORDER)}), then MD "
+             f"verdict at 600 K ({' > '.join(config.FINAL_RANK_MD_ORDER)}), then lowest E_hull per substitution; "
              "excluded candidates last, with their reason. Candidates are computational predictions, not proven "
              "materials. E_hull ± its error bar: mean absolute UMA-vs-DFT (Materials Project) difference on the known "
              "compounds of the same chemical system.", ""]
@@ -645,6 +676,11 @@ def render_ranking(out: dict, result: dict) -> list[str]:
         star = " **finalist**" if cid in out["finalists"] else ""
         err = c.get("e_hull_error")
         pm = f" ± {err['mae_eV_per_atom']:.3f}" if err else ""
+        rt = c.get("conductivity_vs_parent")
+        cond = c.get("conductivity")
+        if cond:
+            ratio += (f"; σ(300 K) {cond['sigma_mS_cm']:.2g} mS/cm ({cond['sigma_low_mS_cm']:.2g}–"
+                      f"{cond['sigma_high_mS_cm']:.2g}), " + (f"{rt['verdict']} with its parent" if rt else "not compared"))
         lines.append(f"{i}. {cid} {c['formula']}{star}: E_hull per substitution {c['e_hull_per_substitution']:.3f} eV, "
                      f"E_hull {c['e_hull']:.3f}{pm} eV/atom, gap {_v(c.get('gap_optb88'))} eV, MD {md}{ratio}"
                      f"{'; ' + '; '.join(flags) if flags else ''}{tail}")
@@ -685,7 +721,8 @@ Rules:
 - validation: experiments or calculations to confirm it (e.g. XRD, impedance spectroscopy, DFT checks, cycling against Li metal), each with "basis": "documented" (standard practice) or "hypothesis".
 - synthesis: possible routes, each with "basis": "documented" only for well-established routes for this family of sulfide electrolytes (e.g. ball milling then annealing under inert atmosphere), else "hypothesis"; never present a route as guaranteed.
 - limitations: properties not studied and validations still needed. The candidates are computational predictions, not proven materials.
-- The ionic conductivity at 300 K is an extrapolated estimate with a range and a method (own fit, or the parent's activation energy assumed): give it as an order of magnitude with its range, never as a measurement.
+- The ionic conductivity at 300 K is an extrapolated estimate with a range and a method (own fit, or the parent's activation energy assumed): always quote it with its range, never the central value alone, and never as a measurement.
+- Compare it with the parent only through ionic_conductivity_vs_parent: "tied" means the two ranges overlap, so never write that the candidate is faster or slower, nor a factor between the central values; "lower" or "higher" may be said (the ranges do not overlap). The same rule holds for the diffusion verdict at 600 K.
 - Write readable prose: name quantities in words (energy above the hull, band gap, diffusion coefficient), never field names such as e_hull or gap_optb88; numbers as given (already rounded), with units written normally (eV/atom, cm²/s).
 - Do not name AI models or providers. Plain English, short sentences.
 Reply with JSON only, exactly this shape: {template}"""
@@ -731,6 +768,9 @@ def _finalist_row(c: dict, novelty_by_id: dict) -> dict:
                                                if c.get("conductivity") else None),
             "ionic_conductivity_method": ((c.get("conductivity") or {}).get("method") or "not computed"),
             "activation_energy_eV": (c.get("conductivity") or {}).get("Ea_eV"),
+            "ionic_conductivity_vs_parent": ((c.get("conductivity_vs_parent") or {}).get("verdict")
+                                             or "not compared (no own Arrhenius fit)"),
+            "parent_ionic_conductivity_range_mS_cm": (c.get("conductivity_vs_parent") or {}).get("parent_range_mS_cm"),
             "confidence_flags": [f for f, on in (("stability via a polysulfide", c.get("reduced_confidence")),
                                                  ("window via a polysulfide", c.get("electrodes_reduced_confidence")),
                                                  ("S-S bonds", c.get("ss_bonds"))) if on],
@@ -817,6 +857,10 @@ def render_report(out: dict, result: dict) -> list[str]:
               ("D / D(parent)", None, lambda r: (f"{r['D_ratio_to_parent']:.2f} ± {r['D_ratio_error']:.2f}"
                                                  if r.get("D_ratio_to_parent") is not None else "not simulated")),
               ("Diffusion verdict", "diffusion_verdict", None),
+              ("σ at 300 K against the parent", None, lambda r: r.get("ionic_conductivity_vs_parent") + (
+                  f" (parent {r['parent_ionic_conductivity_range_mS_cm'][0]:.2g}–"
+                  f"{r['parent_ionic_conductivity_range_mS_cm'][1]:.2g} mS/cm)"
+                  if r.get("parent_ionic_conductivity_range_mS_cm") else "")),
               ("Ionic conductivity at 300 K (mS/cm, estimate)", None, lambda r: (
                   f"{r['ionic_conductivity_300K_mS_cm']:.3g} (range {r['ionic_conductivity_range_mS_cm'][0]:.2g}–"
                   f"{r['ionic_conductivity_range_mS_cm'][1]:.2g}; {r['ionic_conductivity_method']})"
@@ -878,8 +922,8 @@ def make_domain() -> Domain:
                 Stage("candidate_analyses", candidate_analyses, render_candidate_analyses),
                 Stage("md_selection", md_selection, render_md_selection),
                 Stage("molecular_dynamics", molecular_dynamics, render_md),
-                Stage("ranking", ranking, render_ranking),
                 Stage("conductivity", conductivity, render_conductivity),
+                Stage("ranking", ranking, render_ranking),
                 Stage("novelty", novelty, render_novelty),
                 Stage("report", report, render_report)),
         thresholds=THRESHOLDS, render_candidates=candidate_table)

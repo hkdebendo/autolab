@@ -65,3 +65,33 @@ def test_runs_above_the_fit_limit_are_left_out(monkeypatch):
     monkeypatch.setattr("autolab.agent.dynamics.md_cached_result", cached)
     agent_cond.cached_points({"id": "x"}, temps=(600, 1000))
     assert set(seen) == {600} and config.CONDUCTIVITY_FIT_T_MAX_K < 1000
+
+
+def test_verdict_against_the_parent_uses_the_ranges():
+    from autolab.domains.electrolyte import conductivity_verdict
+
+    parent = {"sigma_mS_cm": 1.2, "sigma_low_mS_cm": 0.43, "sigma_high_mS_cm": 3.2}
+    own = lambda s, lo, hi: {"sigma_mS_cm": s, "sigma_low_mS_cm": lo, "sigma_high_mS_cm": hi,
+                             "method": "own Arrhenius fit (500, 600, 700 K)"}
+    tied = conductivity_verdict(own(0.10, 0.012, 0.8), parent)  # 12x below in the centre, ranges overlap
+    assert tied["verdict"] == "tied" and tied["ratio"] == pytest.approx(0.10 / 1.2, abs=1e-3)
+    assert conductivity_verdict(own(0.05, 0.01, 0.3), parent)["verdict"] == "lower"
+    assert conductivity_verdict(own(20, 5, 60), parent)["verdict"] == "higher"
+    borrowed = {**own(0.5, 0.1, 2), "method": "D at 600 K with the parent's activation energy (assumed)"}
+    assert conductivity_verdict(borrowed, parent) is None and conductivity_verdict(own(1, 0.5, 2), None) is None
+
+
+def test_ranking_puts_the_room_temperature_verdict_first():
+    from types import SimpleNamespace
+
+    from autolab.domains import Campaign
+    from autolab.domains.electrolyte import ranking
+
+    def cand(cid, rt, md, eh):
+        return {"id": cid, "formula": "X", "status": "passed", "e_hull": eh, "e_hull_per_substitution": eh,
+                "md_verdict": md, "conductivity_vs_parent": {"verdict": rt} if rt else None}
+
+    cands = [cand("slow", "lower", "tied", 0.0), cand("best", "higher", "tied", 0.03),
+             cand("plain", None, "tied", 0.01), cand("even", "tied", "tied", 0.02)]
+    camp = Campaign(SimpleNamespace(tools=SimpleNamespace()), "g", cands)
+    assert ranking(camp)["ranking"] == ["best", "even", "plain", "slow"]

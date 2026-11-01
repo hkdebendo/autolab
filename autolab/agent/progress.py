@@ -54,12 +54,13 @@ ELECTROLYTE_STEPS = (
          "Lithium motion is simulated at 600 K and compared with the parent crystal; a candidate clearly slower than its "
          "parent, or whose framework falls apart, is excluded, and the failure is sent back to guide the next round.",
          stage="molecular_dynamics"),
-    Step("ranking", "Ranking the candidates",
-         "Candidates are ordered by their diffusion verdict, then by their stability cost per substitution.",
-         stage="ranking"),
     Step("conductivity", "Ionic conductivity at room temperature (estimate)",
          "The diffusion coefficients measured at several temperatures are extrapolated to 300 K (Arrhenius law) and "
          "converted to a conductivity in mS/cm, with its range.", stage="conductivity"),
+    Step("ranking", "Ranking the candidates",
+         "Candidates are ordered by their room-temperature conductivity against their parent (when fitted), their "
+         "diffusion verdict, then their stability cost per substitution.",
+         stage="ranking"),
     Step("literature", "Literature check",
          "A web search tells whether each finalist, or its close family, is already published; a known electrolyte is "
          "checked first as a control.", stage="novelty"),

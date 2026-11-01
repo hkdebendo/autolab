@@ -63,3 +63,5 @@ Cache synced to the Modal volume (44 new files: 18 MD runs, error bars, MP energ
 Totals (estimates, 2026-11-01): Modal ~36 $ / 40 $, Meta ~1.2 $ / 20 $, Baseten ~0.9 $, Fireworks (Glimmer) ~2-3 $ / 10 $.
 
 **README rewritten (2026-11-01)** for the jury (video + GitHub, no Render deployment): closed loop, real research round by round, finalists, truth tests (failures kept), blind benchmark with hard negatives, limits addressed and remaining, costs, how to reproduce. Failed research 92ad57062d4a deleted at the owner's request. web/app.py reads AUTOLAB_API_URL from .env (local runs showed no conversation without it).
+
+**Conductivity in the ranking (2026-11-01, points 1 and 3)** — verdict against the parent by overlapping ranges, first criterion of the ranking; report rules: ranges only, no faster/slower claim when tied. Reference research rerun from the conductivity (finalists unchanged, all tied at 300 K; report 0.026 $ Meta) and updated in the conversation. 180 tests pass. Point 2 (feed sigma(300 K) back to the agent in each round, ~11 $ per research) waits for the owner.
