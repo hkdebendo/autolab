@@ -269,8 +269,9 @@ CAPABILITIES = {
     "planned": {
         "cathode": "Cobalt-free cathode materials (voltage, capacity, stability): planned, not implemented yet.",
     },
-    "not_computed": "ionic conductivity at room temperature (only the diffusion coefficient at 600 K, relative to the "
-                    "parent), DFT-level energies, synthesis routes, cost of the elements, experimental data",
+    "not_computed": "measured ionic conductivity (room-temperature values are extrapolated estimates from molecular "
+                    "dynamics at 500-700 K, with their range), DFT calculations (UMA energies carry an error bar measured "
+                    "against DFT on known compounds), synthesis routes, cost of the elements, experimental data",
 }
 FOLLOWUP_MAX_OUTPUT_TOKENS = 3000
 REPORT_MAX_OUTPUT_TOKENS = 6000
@@ -292,6 +293,21 @@ FINAL_MD_SELECT_MAX = 0  # new MD after the iterations with the feedback loop (c
 FINAL_RANK_MD_ORDER = ("higher", "tied", "not_run")  # MD verdicts, best first; then lowest E_hull per substitution;
 # excluded candidates (passivation, MD "lower", framework moved) come last and stay listed with their reason
 FINALISTS_MAX = 3  # best kept candidates sent to the novelty check
+
+# Ionic conductivity at room temperature (2026-11-01, limit "only D at 600 K"): Arrhenius fit of the MD diffusion
+# coefficients, extrapolated to CONDUCTIVITY_T_K, then Nernst-Einstein (analysis/conductivity.py). Runs above
+# CONDUCTIVITY_FIT_T_MAX_K are left out of the fit (beta -> alpha transition of Li3PS4 at ~746 K; 1000 K runs).
+CONDUCTIVITY_T_K = 300
+CONDUCTIVITY_FIT_T_MAX_K = 750
+CONDUCTIVITY_SCAN_T_K = (500, 550, 600, 650, 700)  # temperatures looked up in the MD cache
+CONDUCTIVITY_SCAN_PS = (20, 30, 40, 60)  # run lengths looked up in the MD cache
+CONDUCTIVITY_SCAN_SEEDS = (0, 1, 2)
+CONDUCTIVITY_EXTRA_RUNS = ((500, 40, 0), (700, 40, 0))  # (K, ps, seed) added for the finalists by scripts/conductivity.py
+# Truth test, fixed before the runs: Li7P3S11 above beta-Li3PS4, each within CONDUCTIVITY_TRUTH_FACTOR of its
+# experimental room-temperature conductivity (mS/cm): Li7P3S11 glass-ceramic 3.2 (Yamane 2007) to 17 (Seino 2014);
+# nanoporous beta-Li3PS4 0.16 (Liu 2013).
+CONDUCTIVITY_REFERENCE_MS_CM = {"Li7P3S11": (3.2, 17.0), "Li3PS4": (0.16, 0.16)}
+CONDUCTIVITY_TRUTH_FACTOR = 10.0
 
 # --- Budget limits (CLAUDE.md) -----------------------------------------------
 
@@ -315,6 +331,22 @@ BENCHMARK_BAD = {  # expected to be rejected: electronic conductors or unstable
     "mp-38200": "Li2PS3 (unstable, 0.121 eV/atom above the MP hull)",
     "mp-1222635": "Li2PS3 (unstable, 0.126 eV/atom above the MP hull, metallic)",
 }
+# Hard negatives (2026-11-01, limit "the benchmark lacks bad compounds that are hard to reject"): stable insulators,
+# poor Li conductors at room temperature (below 1e-6 S/cm, against ~1.6e-4 for beta-Li3PS4): the hull and the gap
+# let them pass, only the Li-diffusion test can reject them. Li4P2S6 has no stable phase in MP (only the two Li2PS3
+# above). The lowest-energy MP polymorph of each.
+BENCHMARK_HARD = {
+    "mp-1153": "Li2S (stable insulator, poor Li conductor)",
+    "mp-22905": "LiCl (stable insulator, poor Li conductor)",
+    "mp-570935": "LiI (stable insulator, poor Li conductor)",
+    "mp-13725": "Li3PO4 (stable insulator, poor Li conductor)",
+    "mp-1222529": "Li4GeS4 (stable insulator, poor Li conductor)",
+}
+# Absolute diffusion test of the benchmark: every compound still passing goes to MD at the screening settings and is
+# rejected when its D is lower than that of beta-Li3PS4 by more than MD_TIE_SIGMA combined errors (or no Li hop,
+# or its framework moves); not launched above BENCHMARK_MD_MAX_USD estimated.
+BENCHMARK_MD_REFERENCE = "mp-985583"  # beta-Li3PS4, the slower calibration parent (0.16 mS/cm in experiment)
+BENCHMARK_MD_MAX_USD = 10.0
 
 MAX_ITERATIONS = 3
 MAX_CANDIDATES_PER_ITERATION = 5

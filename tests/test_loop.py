@@ -96,7 +96,8 @@ def fake_tools(calls: Calls, passivation=None, polysulfides=None, verdicts=None,
     return ElectrolyteTools(relax=fake_relax(), hull_entries=fake_hull, bandgap=fake_gap(), known=lambda f: [],
                             window_passivation=window_passivation, interface=interface,
                             interface_calibration=calibration, md_cached=lambda c: False, md_plan=md_plan,
-                            md_screen=md_screen, novelty=novelty, ehull_error=lambda f: None, not_run=[])
+                            md_screen=md_screen, novelty=novelty, ehull_error=lambda f: None,
+                            conductivity=lambda cands: {"parents": {}, "candidates": {}}, not_run=[])
 
 
 def review(priority="high"):
@@ -143,7 +144,7 @@ def test_complete_loop_passes_data_from_step_to_step(li3ps4):
     st = result["stages"]
     assert [c["status"] for c in result["iterations"][0]["candidates"]] == ["passed"] * 3
     assert {k: v["status"] for k, v in st.items()} == {
-        "electrodes": "done", "candidate_analyses": "done", "md_selection": "done", "report": "done", "molecular_dynamics": "done", "ranking": "done",
+        "electrodes": "done", "candidate_analyses": "done", "md_selection": "done", "report": "done", "molecular_dynamics": "done", "ranking": "done", "conductivity": "done",
         "novelty": "done"}
     # electrodes: the non-passivating candidate is excluded, the FeS2 reaction lowers the confidence
     assert st["electrodes"]["excluded"] == ["it1-c1"]
@@ -200,7 +201,7 @@ def test_complete_loop_passes_data_from_step_to_step(li3ps4):
     # final report: numbers from the code, narrative from the model, every item labelled documented or hypothesis
     rep = st["report"]
     assert rep["champion"] == "it1-c3" and rep["finalists"][0]["formula"] == "Li11P4S15Br"
-    assert rep["finalists"][0]["ionic_conductivity"] == "not computed" and rep["finalists"][0]["space_group"]
+    assert rep["finalists"][0]["ionic_conductivity_method"] == "not computed" and rep["finalists"][0]["space_group"]
     assert rep["completeness"] == "partial"  # one finalist only
     assert [x["basis"] for x in rep["narrative"]["synthesis"]] == ["documented", "hypothesis"]
     assert "Meta FAIR UMA" in str(rep["methods"]) and brain.requests[3]["schema"] == "report"

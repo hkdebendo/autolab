@@ -104,6 +104,12 @@ def _md_screen(cands: list[dict], plan: dict) -> list[dict]:
     return md_verdicts(md_screen(jobs, backend=backend, max_runs=len(jobs) * config.MD_SCREEN_SEEDS))
 
 
+def _conductivity(cands: list[dict]) -> dict:
+    from autolab.agent.conductivity import candidates_conductivity
+
+    return candidates_conductivity(cands)
+
+
 def _ehull_error(formula: str) -> dict | None:
     from autolab.analysis.uma_errors import ehull_uncertainty
 
@@ -129,6 +135,7 @@ class ElectrolyteTools(Tools):
     md_screen: Callable = _md_screen  # (candidates, plan) -> md_verdicts rows (parents included)
     novelty: Callable = _novelty  # (candidates, client) -> novelty_check dict
     ehull_error: Callable = _ehull_error  # (formula) -> UMA-vs-DFT error bar of its system (analysis.uma_errors)
+    conductivity: Callable = _conductivity  # (candidates) -> conductivity at 300 K from the cached MD (no computation)
 
 
 # --- stages -------------------------------------------------------------------
@@ -389,6 +396,43 @@ def ranking(camp: Campaign) -> dict:
     return out
 
 
+def conductivity(camp: Campaign) -> dict:
+    """Ionic conductivity at 300 K of the simulated candidates and their parents, from the MD runs in the cache:
+    Arrhenius fit extrapolated to 300 K, then Nernst-Einstein (agent/conductivity.py). Never computes: candidates
+    with one temperature get an estimate with their parent's activation energy, labelled so."""
+    tool = getattr(camp.tools, "conductivity", None)
+    simulated = [c for c in camp.passed() if c.get("md_verdict")]
+    if tool is None or not simulated:
+        reason = "no simulated candidate" if tool else "no conductivity tool"
+        return {"skipped": reason, "summary": {"skipped": reason}}
+    res = tool(simulated)
+    for cid, r in res["candidates"].items():
+        camp.by_id[cid]["conductivity"] = _rounded(r)
+    out = {"parents": _rounded(res["parents"]), "candidates": list(res["candidates"]),
+           "temperature_K": config.CONDUCTIVITY_T_K}
+    out["summary"] = {"computed": len(res["candidates"]), "parents": {k: round(v["sigma_mS_cm"], 3)
+                                                                       for k, v in res["parents"].items()}}
+    return out
+
+
+def render_conductivity(out: dict, result: dict) -> list[str]:
+    lines = [f"## Ionic conductivity at {config.CONDUCTIVITY_T_K} K (estimate)", ""]
+    if out.get("skipped"):
+        return lines + [f"Not computed: {out['skipped']}.", ""]
+    by_id = _pool(result)
+    lines += ["Arrhenius fit of the diffusion coefficients of the molecular dynamics (runs up to "
+              f"{config.CONDUCTIVITY_FIT_T_MAX_K} K), extrapolated to {config.CONDUCTIVITY_T_K} K, then the "
+              "Nernst-Einstein relation (tracer diffusion, Haven ratio 1). The range is one standard error of the "
+              "extrapolation: an order of magnitude, not a measurement.", "",
+              "| Structure | σ at 300 K (mS/cm) | Range (mS/cm) | Activation energy (eV) | Method |", "|---|---|---|---|---|"]
+    rows = [(f"parent {pid}", r) for pid, r in out["parents"].items()]
+    rows += [(f"{cid} {by_id[cid]['formula']}", by_id[cid]["conductivity"]) for cid in out["candidates"]]
+    for name, r in rows:
+        lines.append(f"| {name} | {r['sigma_mS_cm']:.3g} | {r['sigma_low_mS_cm']:.2g}–{r['sigma_high_mS_cm']:.2g} | "
+                     f"{r['Ea_eV']:.2f} ± {r['Ea_err_eV']:.2f} | {r['method']} |")
+    return lines + [""]
+
+
 def novelty(camp: Campaign) -> dict:
     finalists = camp.outputs.get("ranking", {}).get("finalists") or []
     client = getattr(camp.agent, "novelty_client", None)
@@ -617,6 +661,9 @@ METHODS = [
     ("Error-driven loop", "the slow tests (reaction with lithium metal, lithium diffusion) run in each round; their "
                           "failures, with the measured numbers, go back to the proposing model, which explains them "
                           "as hypotheses and corrects its next proposals"),
+    ("Ionic conductivity at 300 K", "Arrhenius fit of the diffusion coefficients (molecular dynamics at several "
+                                    "temperatures), extrapolated to 300 K, Nernst-Einstein relation; an estimate with "
+                                    "its range (calibrated: Li7P3S11 and beta-Li3PS4 against experiment)"),
     ("Literature check", "Meta Muse Spark with web search; a known electrolyte (LGPS) checked first as a control"),
     ("Plain-language summaries", "Meta Muse Glimmer"),
 ]
@@ -630,6 +677,7 @@ Rules:
 - validation: experiments or calculations to confirm it (e.g. XRD, impedance spectroscopy, DFT checks, cycling against Li metal), each with "basis": "documented" (standard practice) or "hypothesis".
 - synthesis: possible routes, each with "basis": "documented" only for well-established routes for this family of sulfide electrolytes (e.g. ball milling then annealing under inert atmosphere), else "hypothesis"; never present a route as guaranteed.
 - limitations: properties not studied and validations still needed. The candidates are computational predictions, not proven materials.
+- The ionic conductivity at 300 K is an extrapolated estimate with a range and a method (own fit, or the parent's activation energy assumed): give it as an order of magnitude with its range, never as a measurement.
 - Write readable prose: name quantities in words (energy above the hull, band gap, diffusion coefficient), never field names such as e_hull or gap_optb88; numbers as given (already rounded), with units written normally (eV/atom, cm²/s).
 - Do not name AI models or providers. Plain English, short sentences.
 Reply with JSON only, exactly this shape: {template}"""
@@ -670,7 +718,11 @@ def _finalist_row(c: dict, novelty_by_id: dict) -> dict:
             "D_600K_cm2_per_s": c.get("D_cm2_per_s"), "D_error_cm2_per_s": c.get("D_sem_cm2_per_s"),
             "D_ratio_to_parent": c.get("D_ratio_to_parent"), "D_ratio_error": c.get("D_ratio_err"),
             "diffusion_verdict": c.get("md_verdict") or "not simulated",
-            "ionic_conductivity": "not computed",
+            "ionic_conductivity_300K_mS_cm": (c.get("conductivity") or {}).get("sigma_mS_cm"),
+            "ionic_conductivity_range_mS_cm": ([c["conductivity"]["sigma_low_mS_cm"], c["conductivity"]["sigma_high_mS_cm"]]
+                                               if c.get("conductivity") else None),
+            "ionic_conductivity_method": ((c.get("conductivity") or {}).get("method") or "not computed"),
+            "activation_energy_eV": (c.get("conductivity") or {}).get("Ea_eV"),
             "confidence_flags": [f for f, on in (("stability via a polysulfide", c.get("reduced_confidence")),
                                                  ("window via a polysulfide", c.get("electrodes_reduced_confidence")),
                                                  ("S-S bonds", c.get("ss_bonds"))) if on],
@@ -756,7 +808,11 @@ def render_report(out: dict, result: dict) -> list[str]:
               ("D at 600 K (cm²/s)", "D_600K_cm2_per_s", ".2e"),
               ("D / D(parent)", None, lambda r: (f"{r['D_ratio_to_parent']:.2f} ± {r['D_ratio_error']:.2f}"
                                                  if r.get("D_ratio_to_parent") is not None else "not simulated")),
-              ("Diffusion verdict", "diffusion_verdict", None), ("Ionic conductivity", "ionic_conductivity", None),
+              ("Diffusion verdict", "diffusion_verdict", None),
+              ("Ionic conductivity at 300 K (mS/cm, estimate)", None, lambda r: (
+                  f"{r['ionic_conductivity_300K_mS_cm']:.3g} (range {r['ionic_conductivity_range_mS_cm'][0]:.2g}–"
+                  f"{r['ionic_conductivity_range_mS_cm'][1]:.2g}; {r['ionic_conductivity_method']})"
+                  if r.get("ionic_conductivity_300K_mS_cm") is not None else "not computed")),
               ("Literature", "novelty", None),
               ("Confidence flags", None, lambda r: ", ".join(r["confidence_flags"]) or "none")]
     for label, key, f in fields:
@@ -815,6 +871,7 @@ def make_domain() -> Domain:
                 Stage("md_selection", md_selection, render_md_selection),
                 Stage("molecular_dynamics", molecular_dynamics, render_md),
                 Stage("ranking", ranking, render_ranking),
+                Stage("conductivity", conductivity, render_conductivity),
                 Stage("novelty", novelty, render_novelty),
                 Stage("report", report, render_report)),
         thresholds=THRESHOLDS, render_candidates=candidate_table)
