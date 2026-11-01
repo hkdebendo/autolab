@@ -13,6 +13,19 @@ from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 HERE = Path(__file__).resolve().parent
+
+
+def _env_file_value(name: str) -> str | None:
+    """A setting from the project's .env (local runs: no Render dashboard), without any extra package."""
+    env = HERE.parent / ".env"
+    if not env.exists():
+        return None
+    for line in env.read_text(encoding="utf-8").splitlines():
+        key, sep, value = line.partition("=")
+        if sep and key.strip() == name:
+            return value.split("#")[0].strip() or None
+    return None
+
 TIMEOUT_S = 120.0  # a new request waits for the scope check; a follow-up for its answer
 METHODS = ["GET", "POST", "PATCH", "DELETE"]
 
@@ -30,7 +43,7 @@ def page(cid: str | None = None) -> FileResponse:
 @app.api_route("/api/{path:path}", methods=METHODS)
 async def relay(path: str, request: Request) -> Response:
     """Forward one call to the AutoLab service, passing the status code and the body through."""
-    base = os.environ.get("AUTOLAB_API_URL")
+    base = os.environ.get("AUTOLAB_API_URL") or _env_file_value("AUTOLAB_API_URL")
     if not base:
         return JSONResponse({"detail": "the AutoLab service is not configured"}, status_code=503)
     body = await request.body()

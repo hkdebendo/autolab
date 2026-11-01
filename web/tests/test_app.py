@@ -23,8 +23,16 @@ def test_the_page_opens_at_home_and_at_a_conversation_address():
 
 def test_the_api_is_unavailable_until_the_service_is_configured(monkeypatch):
     monkeypatch.delenv("AUTOLAB_API_URL", raising=False)
+    monkeypatch.setattr(webapp, "_env_file_value", lambda name: None)  # no .env either
     r = client.get("/api/conversations")
     assert r.status_code == 503 and "not configured" in r.json()["detail"]
+
+
+def test_the_service_address_can_come_from_the_env_file(tmp_path, monkeypatch):
+    (tmp_path / ".env").write_text("MP_API_KEY=x\nAUTOLAB_API_URL=https://svc.example  # comment\n", encoding="utf-8")
+    monkeypatch.setattr(webapp, "HERE", tmp_path / "web")
+    assert webapp._env_file_value("AUTOLAB_API_URL") == "https://svc.example"
+    assert webapp._env_file_value("MISSING") is None
 
 
 def test_the_relay_passes_method_body_query_and_status_through(monkeypatch):
