@@ -57,6 +57,9 @@ def main() -> None:
     for c in candidates:  # forget what the rerun stages had decided
         if c.get("excluded_at") in rerun:
             c.pop("excluded_at"), c.pop("exclusion_reason", None)
+        if "electrodes" in rerun:  # computed again (e.g. the window sensitivity), not reused
+            for k in ("electrodes_done", "window_polysulfides", "window_robust"):
+                c.pop(k, None)
         if "molecular_dynamics" in rerun:
             for k in ("D_cm2_per_s", "D_sem_cm2_per_s", "D_ratio_to_parent", "D_ratio_err", "md_verdict",
                       "conduction", "md_framework_intact"):
@@ -81,8 +84,11 @@ def main() -> None:
     fallback = client(args.fallback, config.LLM_COST_CAPS_USD[args.fallback]) if args.fallback != args.brain else None
     agent = Agent(brain or fallback, fallback if brain else None, domain=domain, events=events, budget=RelaxBudget(args.max_relaxations),
                   novelty_client=novelty, analyst=analyst_client(args.analyst), get_structure=lambda pid: None)
+    # error-driven runs chose their MD candidates in each iteration: no new MD choice after them
+    feedback_run = any(r.get("feedback") is not None and "stages" in r for r in result["iterations"])
+    settings = {"md_select_max": config.FINAL_MD_SELECT_MAX} if feedback_run else {}
     campaign = Campaign(agent, result["goal"], candidates,
-                        {k: v for k, v in result["stages"].items() if k not in rerun})
+                        {k: v for k, v in result["stages"].items() if k not in rerun}, settings=settings)
     result["stages"] = {k: v for k, v in result["stages"].items() if k not in rerun}
 
     class Only:  # the domain with the rerun stages only

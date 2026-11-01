@@ -129,3 +129,21 @@ def test_legacy_runs_are_read_and_missing_ones_run_on_the_new_gpu(tmp_path, monk
     assert len(fn.spawned) == config.MD_SCREEN_SEEDS and fn.options["gpu"] == "H100"
     assert [r["md_gpu"] for r in rows] == ["A10G", "A10G", "H100"]
     assert rows[2]["vs_parent"] is not None  # H100 candidate compared with its A10G parent
+
+
+def test_a_failed_modal_run_is_not_retried_one_by_one(tmp_path, monkeypatch):
+    from autolab.agent.dynamics import md_screen
+
+    monkeypatch.setattr(config, "CACHE_DIR", tmp_path)
+
+    class Failing(FakeFn):
+        def spawn(self, atoms, precision, temperature_K, n_steps, seed=0):
+            call = FakeCall(RuntimeError("function timeout"), 0)
+            self.spawned.append((temperature_K, n_steps, seed, call))
+            return call
+
+    fn = Failing()
+    with pytest.raises(RuntimeError, match="not retried"):
+        md_screen([{"id": "x", "formula": "LiCl", "kind": "parent", "atoms": licl(5.1)}],
+                  backend=_backend("H100", fn, monkeypatch))
+    assert len(fn.spawned) == config.MD_SCREEN_SEEDS  # one batch only, no single re-run

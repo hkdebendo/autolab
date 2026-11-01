@@ -62,8 +62,9 @@ def _gapmodel_models() -> None:
             zipfile.ZipFile(z).extractall(f"{root}/{name}")
 
 
+# nonpreemptible: a preempted research container lost its unsaved results and left the research stuck (2026-11-01)
 @app.function(cpu=2.0, memory=6144, volumes={DATA: data}, secrets=[keys], timeout=config.LIVE_RUN_TIMEOUT_S,
-              max_containers=1)
+              max_containers=1, nonpreemptible=True)
 def run_research(cid: str) -> dict | None:
     from autolab.agent.events import EventLog
     from autolab.agent.loop import Agent
@@ -91,7 +92,8 @@ def run_research(cid: str) -> dict | None:
                 svc.store.add_artifact(cid_, e["file"], kind.rstrip("s"), f"runs/{cid_}/{e['file']}", e)
 
     try:
-        result = svc.run(cid, make_agent, prior=load_prior(f"{REFERENCE}/result.json", "ref"), export=export)
+        result = svc.run(cid, make_agent, prior=load_prior(f"{REFERENCE}/result.json", "ref"), export=export,
+                         checkpoint=data.commit)  # caches saved after each step, not only at the end
         return {"conversation": cid, "final_ranking": (result or {}).get("final_ranking")}
     finally:
         data.commit()  # new cache entries and the 3D files stay for the next researches

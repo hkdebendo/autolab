@@ -118,3 +118,23 @@ def test_requests_are_checked():
     with pytest.raises(ValueError):
         svc.start(" ")
     assert svc.view("nope") is None and svc.post("nope", "x") is None and svc.cancel("nope") is None
+
+
+def test_a_restarted_worker_reports_the_research_instead_of_leaving_it_running(li3ps4, monkeypatch):
+    monkeypatch.setattr(config, "LIVE_ITERATIONS", 1)
+    svc, store = service(Model([scope()]))
+    cid = svc.start("electrolytes")["conversation"]["id"]
+    brain = FakeLLM("meta", [proposal((PARENT, SUB_CL)), analysis(), md_selection("it1-c1"), report_reply()])
+    commits = []
+
+    def make_agent(events, should_stop):
+        return Agent(brain, tools=fake_tools(Calls()), events=events, budget=RelaxBudget(20),
+                     get_structure=lambda pid: li3ps4, should_stop=should_stop)
+
+    svc.run(cid, make_agent, prior=[], checkpoint=lambda: commits.append(1))
+    assert store.get(cid)["status"] == "done" and len(commits) >= 3  # caches saved along the way
+    store.update(cid, status="running")  # as if the cloud restarted the worker in the middle
+    assert svc.run(cid, make_agent, prior=[]) is None
+    conv = store.get(cid)
+    assert conv["status"] == "error" and "restarted by the cloud provider" in conv["error"]
+    assert "new research with the same request" in store.messages(cid)[-1]["content"]

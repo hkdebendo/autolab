@@ -125,7 +125,8 @@ def md_screen(jobs: list[dict], temperature_K: float = config.MD_SCREEN_TEMPERAT
         run_md_runs([{"atoms": job["atoms"], "temperature_K": temperature_K, "n_steps": n_steps, "seed": s,
                       "gpu": job.get("md_gpu") or gpu} for job in jobs for s in range(seeds)], backend=backend, gpu=gpu)
         cancel.check()  # stopped: the missing runs must not be computed one by one below
-        run = partial(run_md, backend=backend)
+        on_modal = hasattr(backend, "md_batch_iter") or (backend is None and config.SIM_BACKEND == "modal")
+        run = partial(_cached_only if on_modal else run_md, backend=backend)
     out = []
     for job in jobs:
         t0 = time.perf_counter()
@@ -148,6 +149,21 @@ def md_screen(jobs: list[dict], temperature_K: float = config.MD_SCREEN_TEMPERAT
         if on_done:
             on_done(row)
     return out
+
+
+def _cached_only(atoms, temperature_K, n_steps, seed=0, backend=None, gpu=None) -> dict:
+    """After a Modal batch, a run still missing has failed (error or time limit): it is never recomputed here
+    (no hidden retry, CLAUDE.md); the MD step stops with the reason."""
+    from autolab.sim.backend import _as_atoms_dict, md_gpu, md_settings, run_md
+    from autolab.sim.serialize import atoms_key
+    from autolab.store.cache import JsonCache
+
+    key = atoms_key(_as_atoms_dict(atoms), **md_settings(temperature_K, n_steps, seed, gpu=gpu or md_gpu(backend)))
+    if JsonCache(config.CACHE_DIR / "md").get(key) is None:
+        errors = getattr(backend, "errors", None) or {}
+        raise RuntimeError(f"MD run failed on Modal and was not retried (seed {seed}, {temperature_K} K)"
+                           + (f": {next(iter(errors.values()))}" if errors else ""))
+    return run_md(atoms, temperature_K, n_steps, seed=seed, backend=backend, gpu=gpu)
 
 
 def _moved_reason(framework: dict) -> str:

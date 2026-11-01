@@ -177,13 +177,19 @@ class Service:
 
     # --- the research itself (worker) ----------------------------------------------------------------------------
 
-    def run(self, cid: str, make_agent: Callable, prior: list[dict], export: Callable | None = None) -> dict | None:
+    def run(self, cid: str, make_agent: Callable, prior: list[dict], export: Callable | None = None,
+            checkpoint: Callable[[], None] | None = None) -> dict | None:
         """Run the research of a conversation: events stored as they happen, a stop request honoured, the result,
-        the report and a summary stored at the end. `make_agent(events, should_stop)` builds the Agent."""
+        the report and a summary stored at the end. `make_agent(events, should_stop)` builds the Agent.
+        `checkpoint()` (e.g. a volume commit) runs after each finished step, so that a lost worker loses no result."""
         from autolab.agent.events import EventLog
         from autolab.agent.loop import INTERRUPTED
 
         conv = self.store.get(cid)
+        if conv is not None and conv["status"] == "running":  # the worker was restarted (e.g. preempted): said, not hidden
+            self.store.update(cid, status="error", error=RESTARTED)
+            self.store.add_message(cid, "assistant", "notice", RESTARTED_NOTICE)
+            return None
         if conv is None or conv["status"] not in ("queued", "stopping"):
             return None
         if conv["status"] == "stopping":  # stopped before it started
@@ -195,6 +201,10 @@ class Service:
         def sink(event: dict) -> None:
             self.store.append_event(cid, seq["n"], event)
             seq["n"] += 1
+            if checkpoint is not None and (event["type"], event["step"]) in CHECKPOINT_EVENTS or (
+                    checkpoint is not None and event["type"] == "stage" and event["data"].get("status") == "done"):
+                with contextlib.suppress(Exception):  # a failed commit must not stop the research
+                    checkpoint()
 
         events = EventLog(sink=sink)
         events.emit("loop", "scope", {k: v for k, v in (conv.get("scope") or {}).items() if k != "reply"})
@@ -234,6 +244,12 @@ class Service:
         if rep and rep.get("status") in ("done", "stopped") and stage and stage.render:
             self.store.add_message(cid, "assistant", "report", "\n".join(stage.render(rep, result)),
                                    data={"champion": rep.get("champion"), "completeness": rep.get("completeness")})
+
+
+RESTARTED = "the computing machine of the research was restarted by the cloud provider"
+RESTARTED_NOTICE = ("The research stopped: its computing machine was restarted by the cloud provider. The steps already "
+                    "done are kept above; a new research with the same request reuses every saved result.")
+CHECKPOINT_EVENTS = {("loop", "feedback"), ("loop", "iteration"), ("loop", "stop")}
 
 
 def code_summary(result: dict) -> str:
