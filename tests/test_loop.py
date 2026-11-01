@@ -96,7 +96,7 @@ def fake_tools(calls: Calls, passivation=None, polysulfides=None, verdicts=None,
     return ElectrolyteTools(relax=fake_relax(), hull_entries=fake_hull, bandgap=fake_gap(), known=lambda f: [],
                             window_passivation=window_passivation, interface=interface,
                             interface_calibration=calibration, md_cached=lambda c: False, md_plan=md_plan,
-                            md_screen=md_screen, novelty=novelty, not_run=[])
+                            md_screen=md_screen, novelty=novelty, ehull_error=lambda f: None, not_run=[])
 
 
 def review(priority="high"):

@@ -141,7 +141,9 @@ def anion_balance(entries: list, tol: float = 1e-6) -> list[str]:
 
 def polysulfide_products(decomp: dict) -> list[str]:
     """Decomposition products that are compounds with S-S bonds (e.g. LiS4), where UMA is least reliable:
-    LiS4 is 0.178 eV/atom above the hull with raw UMA, -0.174 with UMA + MP2020, 0 in MP."""
+    raw UMA puts LiS4 0.178 eV/atom above the hull (MP: on it); with the MP2020 corrections its decomposition energy is
+    -0.174 eV/atom against -0.162 in MP, and UMA + MP2020 stays within 0.0124 eV/atom of MP on 9 known polysulfides
+    (results/2026-11-01_uma_error_bars). The flag is kept as a caution."""
     from autolab.chem.checks import has_ss_bonds
 
     out = []

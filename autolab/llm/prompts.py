@@ -53,7 +53,8 @@ You receive the results of the candidates evaluated in this iteration. Fields:
 - arrangements / converged: random arrangements relaxed and how many converged; energy_spread_meV: energy difference between the best and worst arrangement.
 - gap_optb88: band gap used by the filter (eV); gap_mbj: closer to experiment; gap_low_confidence: the two models disagree on insulating.
 - ss_bonds: true = S-S chains present, UMA less reliable for this candidate.
-- reduced_confidence: true when the decomposition goes through a polysulfide (decomposition_polysulfides, e.g. LiS4): UMA is least reliable there (LiS4 is off by about 0.17 eV/atom from MP), so its E_hull is uncertain.
+- reduced_confidence: true when the decomposition goes through a polysulfide (decomposition_polysulfides, e.g. LiS4): UMA is least reliable there without corrections (with the MP2020 corrections used here it stays within 0.012 eV/atom of DFT on 9 known polysulfides), so its E_hull is a little less certain.
+- e_hull_error (when given): mean absolute UMA-vs-DFT difference on the known compounds of the same chemical system, in eV/atom: the error bar of e_hull.
 - comparisons: statements computed by the code over all candidates so far (same substitution on different parents, same parent with a different added element, rankings on one parent). Whenever a lesson compares candidates, base it only on these statements and quote their numbers; never compare values yourself.
 - slow_tests: the slower tests run by the code in this iteration on some passed candidates, with their measurements:
   - "contact with Li metal": a candidate whose reaction with Li metal gives a metallic product and releases at least 0.1 eV/atom (non_passivating) is excluded (measured: products, reaction energy).

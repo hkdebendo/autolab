@@ -13,7 +13,7 @@ from pymatgen.analysis.phase_diagram import PhaseDiagram
 from pymatgen.core import Composition
 
 from autolab import config
-from autolab.analysis.electrodes import cathode_interface, electrochemical_window, passivation
+from autolab.analysis.electrodes import cathode_interface, electrochemical_window, passivation, window_sensitivity
 from autolab.analysis.stability import energy_source, uma_entry
 
 
@@ -68,6 +68,8 @@ def window_and_passivation(c: dict, entries_fn: Callable = _default_entries, get
     # Decomposition of the electrolyte (natural, beyond each limit of the window): polysulfides lower the confidence
     win["polysulfide_products"] = polysulfides_among(
         set(win["natural_products"]) | set(win["reduction_products"]) | set(win["oxidation_products"]), entries)
+    # ... but only when the limits depend on them: polysulfide energies shifted by their measured UMA error
+    win["sensitivity"] = window_sensitivity(target, entries, base=win) if win["polysulfide_products"] else None
     return {"id": c["id"], "formula": target.composition.reduced_formula, "window": win, "passivation": pas,
             "skipped_references": skipped}
 

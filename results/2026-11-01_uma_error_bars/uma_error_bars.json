@@ -1,0 +1,3333 @@
+[
+ {
+  "system": "Al-Li-P-S",
+  "available": false,
+  "rows": [],
+  "reason": "references not all relaxed by UMA in the cache (21 new relaxations requested, 0 left (MAX_RELAXATIONS_PER_RUN))",
+  "method": "decomposition energy of each known compound against the other phases, UMA + MP2020 vs MP"
+ },
+ {
+  "system": "As-Li-P-S",
+  "available": true,
+  "rows": [
+   {
+    "formula": "As16S17",
+    "id": "mp-1247873",
+    "mp": 0.018,
+    "uma": 0.0146,
+    "diff": -0.0034,
+    "polysulfide": false
+   },
+   {
+    "formula": "As2P2S7",
+    "id": "mp-540883",
+    "mp": -0.0351,
+    "uma": -0.0364,
+    "diff": -0.0013,
+    "polysulfide": false
+   },
+   {
+    "formula": "As2S3",
+    "id": "mp-1189572",
+    "mp": -0.0239,
+    "uma": -0.021,
+    "diff": 0.0029,
+    "polysulfide": false
+   },
+   {
+    "formula": "As4S3",
+    "id": "mp-27543",
+    "mp": 0.0035,
+    "uma": 0.0096,
+    "diff": 0.0061,
+    "polysulfide": false
+   },
+   {
+    "formula": "As4S5",
+    "id": "mp-502",
+    "mp": 0.0028,
+    "uma": 0.0001,
+    "diff": -0.0027,
+    "polysulfide": false
+   },
+   {
+    "formula": "As8S9",
+    "id": "mp-31070",
+    "mp": 0.0018,
+    "uma": 0.0018,
+    "diff": 0.0,
+    "polysulfide": false
+   },
+   {
+    "formula": "AsS",
+    "id": "mp-542810",
+    "mp": -0.0091,
+    "uma": -0.0104,
+    "diff": -0.0012,
+    "polysulfide": false
+   },
+   {
+    "formula": "AsS2",
+    "id": "mp-1191613",
+    "mp": -0.0456,
+    "uma": -0.0492,
+    "diff": -0.0036,
+    "polysulfide": true
+   },
+   {
+    "formula": "Li27As10",
+    "id": "mp-676620",
+    "mp": 0.0255,
+    "uma": 0.0211,
+    "diff": -0.0044,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2S",
+    "id": "mp-1153",
+    "mp": -1.2484,
+    "uma": -1.2552,
+    "diff": -0.0068,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3As",
+    "id": "mp-757",
+    "mp": -0.0939,
+    "uma": -0.0905,
+    "diff": 0.0034,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3AsS3",
+    "id": "mp-28471",
+    "mp": -0.0083,
+    "uma": -0.0096,
+    "diff": -0.0013,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3P",
+    "id": "mp-736",
+    "mp": -0.4349,
+    "uma": -0.4405,
+    "diff": -0.0056,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3P7",
+    "id": "mp-28336",
+    "mp": -0.0326,
+    "uma": -0.031,
+    "diff": 0.0016,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3PS4",
+    "id": "mp-985583",
+    "mp": -0.0417,
+    "uma": -0.0331,
+    "diff": 0.0087,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li7P3S11",
+    "id": "mp-641703",
+    "mp": 0.0199,
+    "uma": 0.01,
+    "diff": -0.0099,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li7PS6",
+    "id": "mp-1211324",
+    "mp": 0.0325,
+    "uma": 0.0269,
+    "diff": -0.0056,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiAs",
+    "id": "mp-7943",
+    "mp": -0.0117,
+    "uma": -0.0066,
+    "diff": 0.0051,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiAsS2",
+    "id": "mp-555874",
+    "mp": -0.013,
+    "uma": -0.0094,
+    "diff": 0.0036,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiP",
+    "id": "mp-9588",
+    "mp": -0.0139,
+    "uma": -0.0121,
+    "diff": 0.0018,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiP5",
+    "id": "mp-2412",
+    "mp": 0.0104,
+    "uma": 0.023,
+    "diff": 0.0126,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiP7",
+    "id": "mp-27687",
+    "mp": -0.0054,
+    "uma": -0.0127,
+    "diff": -0.0072,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiS4",
+    "id": "mp-995393",
+    "mp": -0.1618,
+    "uma": -0.1742,
+    "diff": -0.0124,
+    "polysulfide": true
+   },
+   {
+    "formula": "P2S3",
+    "id": "mp-29014",
+    "mp": 0.01,
+    "uma": 0.0056,
+    "diff": -0.0043,
+    "polysulfide": false
+   },
+   {
+    "formula": "P2S5",
+    "id": "mp-541788",
+    "mp": -0.0033,
+    "uma": -0.0051,
+    "diff": -0.0018,
+    "polysulfide": false
+   },
+   {
+    "formula": "P2S7",
+    "id": "mp-1199938",
+    "mp": -0.1081,
+    "uma": -0.1117,
+    "diff": -0.0036,
+    "polysulfide": true
+   },
+   {
+    "formula": "P4S3",
+    "id": "mp-1468",
+    "mp": -0.0216,
+    "uma": -0.0195,
+    "diff": 0.0021,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4S5",
+    "id": "mp-690",
+    "mp": 0.0043,
+    "uma": 0.0011,
+    "diff": -0.0032,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4S7",
+    "id": "mp-2650",
+    "mp": -0.0125,
+    "uma": -0.0113,
+    "diff": 0.0012,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4S9",
+    "id": "mp-542630",
+    "mp": -0.0038,
+    "uma": -0.0006,
+    "diff": 0.0033,
+    "polysulfide": false
+   },
+   {
+    "formula": "PS",
+    "id": "mp-612",
+    "mp": 0.0201,
+    "uma": 0.0153,
+    "diff": -0.0048,
+    "polysulfide": false
+   }
+  ],
+  "reason": null,
+  "method": "decomposition energy of each known compound against the other phases, UMA + MP2020 vs MP",
+  "compounds": {
+   "n": 31,
+   "mae": 0.0044,
+   "rmse": 0.0054,
+   "max_abs": 0.0126,
+   "bias": -0.001
+  },
+  "polysulfides": {
+   "n": 3,
+   "mae": 0.0065,
+   "rmse": 0.0077,
+   "max_abs": 0.0124,
+   "bias": -0.0065
+  }
+ },
+ {
+  "system": "Br-Li-P-S",
+  "available": true,
+  "rows": [
+   {
+    "formula": "Li2S",
+    "id": "mp-1153",
+    "mp": -1.2484,
+    "uma": -1.2552,
+    "diff": -0.0068,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3P",
+    "id": "mp-736",
+    "mp": -0.4349,
+    "uma": -0.4405,
+    "diff": -0.0056,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3P7",
+    "id": "mp-28336",
+    "mp": -0.0326,
+    "uma": -0.031,
+    "diff": 0.0016,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3PS4",
+    "id": "mp-985583",
+    "mp": -0.0417,
+    "uma": -0.0331,
+    "diff": 0.0087,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li7P3S11",
+    "id": "mp-641703",
+    "mp": 0.0199,
+    "uma": 0.01,
+    "diff": -0.0099,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li7PS6",
+    "id": "mp-1211324",
+    "mp": 0.0325,
+    "uma": 0.0269,
+    "diff": -0.0056,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiBr",
+    "id": "mp-976280",
+    "mp": -1.8359,
+    "uma": -1.8414,
+    "diff": -0.0055,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiP",
+    "id": "mp-9588",
+    "mp": -0.0139,
+    "uma": -0.0121,
+    "diff": 0.0018,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiP5",
+    "id": "mp-2412",
+    "mp": 0.0104,
+    "uma": 0.023,
+    "diff": 0.0126,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiP7",
+    "id": "mp-27687",
+    "mp": -0.0054,
+    "uma": -0.0127,
+    "diff": -0.0072,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiS4",
+    "id": "mp-995393",
+    "mp": -0.1618,
+    "uma": -0.1742,
+    "diff": -0.0124,
+    "polysulfide": true
+   },
+   {
+    "formula": "P2S3",
+    "id": "mp-29014",
+    "mp": 0.01,
+    "uma": 0.0056,
+    "diff": -0.0043,
+    "polysulfide": false
+   },
+   {
+    "formula": "P2S5",
+    "id": "mp-541788",
+    "mp": -0.0033,
+    "uma": -0.0051,
+    "diff": -0.0018,
+    "polysulfide": false
+   },
+   {
+    "formula": "P2S7",
+    "id": "mp-1199938",
+    "mp": -0.1081,
+    "uma": -0.1117,
+    "diff": -0.0036,
+    "polysulfide": true
+   },
+   {
+    "formula": "P4S3",
+    "id": "mp-1468",
+    "mp": -0.0216,
+    "uma": -0.0195,
+    "diff": 0.0021,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4S5",
+    "id": "mp-690",
+    "mp": 0.0043,
+    "uma": 0.0011,
+    "diff": -0.0032,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4S7",
+    "id": "mp-2650",
+    "mp": -0.0125,
+    "uma": -0.0113,
+    "diff": 0.0012,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4S9",
+    "id": "mp-542630",
+    "mp": -0.0038,
+    "uma": -0.0006,
+    "diff": 0.0033,
+    "polysulfide": false
+   },
+   {
+    "formula": "PBr3",
+    "id": "mp-27257",
+    "mp": -0.0845,
+    "uma": -0.083,
+    "diff": 0.0015,
+    "polysulfide": false
+   },
+   {
+    "formula": "PBr5",
+    "id": "mp-22874",
+    "mp": -0.0385,
+    "uma": -0.0366,
+    "diff": 0.0019,
+    "polysulfide": false
+   },
+   {
+    "formula": "PBr7",
+    "id": "mp-647343",
+    "mp": -0.1345,
+    "uma": -0.1385,
+    "diff": -0.0039,
+    "polysulfide": false
+   },
+   {
+    "formula": "PS",
+    "id": "mp-612",
+    "mp": 0.0201,
+    "uma": 0.0153,
+    "diff": -0.0048,
+    "polysulfide": false
+   },
+   {
+    "formula": "SBr",
+    "id": "mp-28099",
+    "mp": -0.312,
+    "uma": -0.3086,
+    "diff": 0.0035,
+    "polysulfide": true
+   }
+  ],
+  "reason": null,
+  "method": "decomposition energy of each known compound against the other phases, UMA + MP2020 vs MP",
+  "compounds": {
+   "n": 23,
+   "mae": 0.0049,
+   "rmse": 0.0059,
+   "max_abs": 0.0126,
+   "bias": -0.0016
+  },
+  "polysulfides": {
+   "n": 3,
+   "mae": 0.0065,
+   "rmse": 0.0077,
+   "max_abs": 0.0124,
+   "bias": -0.0042
+  }
+ },
+ {
+  "system": "Cl-Li-P-S",
+  "available": true,
+  "rows": [
+   {
+    "formula": "Li2S",
+    "id": "mp-1153",
+    "mp": -1.2484,
+    "uma": -1.2552,
+    "diff": -0.0068,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3P",
+    "id": "mp-736",
+    "mp": -0.4349,
+    "uma": -0.4405,
+    "diff": -0.0056,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3P7",
+    "id": "mp-28336",
+    "mp": -0.0326,
+    "uma": -0.031,
+    "diff": 0.0016,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3PS4",
+    "id": "mp-985583",
+    "mp": -0.0417,
+    "uma": -0.0331,
+    "diff": 0.0087,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li5P(S2Cl)2",
+    "id": "mp-1040450",
+    "mp": 0.0151,
+    "uma": 0.0151,
+    "diff": 0.0,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li7P3S11",
+    "id": "mp-641703",
+    "mp": 0.0199,
+    "uma": 0.01,
+    "diff": -0.0099,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li7PS6",
+    "id": "mp-1211324",
+    "mp": 0.0325,
+    "uma": 0.0269,
+    "diff": -0.0056,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiCl",
+    "id": "mp-22905",
+    "mp": -2.1369,
+    "uma": -2.1477,
+    "diff": -0.0107,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiP",
+    "id": "mp-9588",
+    "mp": -0.0139,
+    "uma": -0.0121,
+    "diff": 0.0018,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiP5",
+    "id": "mp-2412",
+    "mp": 0.0104,
+    "uma": 0.023,
+    "diff": 0.0126,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiP7",
+    "id": "mp-27687",
+    "mp": -0.0054,
+    "uma": -0.0127,
+    "diff": -0.0072,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiS4",
+    "id": "mp-995393",
+    "mp": -0.1618,
+    "uma": -0.1742,
+    "diff": -0.0124,
+    "polysulfide": true
+   },
+   {
+    "formula": "P2S3",
+    "id": "mp-29014",
+    "mp": 0.01,
+    "uma": 0.0056,
+    "diff": -0.0043,
+    "polysulfide": false
+   },
+   {
+    "formula": "P2S5",
+    "id": "mp-541788",
+    "mp": -0.0033,
+    "uma": -0.0051,
+    "diff": -0.0018,
+    "polysulfide": false
+   },
+   {
+    "formula": "P2S7",
+    "id": "mp-1199938",
+    "mp": -0.1081,
+    "uma": -0.1117,
+    "diff": -0.0036,
+    "polysulfide": true
+   },
+   {
+    "formula": "P4S3",
+    "id": "mp-1468",
+    "mp": -0.0216,
+    "uma": -0.0195,
+    "diff": 0.0021,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4S5",
+    "id": "mp-690",
+    "mp": 0.0043,
+    "uma": 0.0011,
+    "diff": -0.0032,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4S7",
+    "id": "mp-2650",
+    "mp": -0.0125,
+    "uma": -0.0113,
+    "diff": 0.0012,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4S9",
+    "id": "mp-542630",
+    "mp": -0.0038,
+    "uma": -0.0006,
+    "diff": 0.0033,
+    "polysulfide": false
+   },
+   {
+    "formula": "PCl3",
+    "id": "mp-23230",
+    "mp": -0.1843,
+    "uma": -0.1838,
+    "diff": 0.0005,
+    "polysulfide": false
+   },
+   {
+    "formula": "PCl5",
+    "id": "mp-569410",
+    "mp": -0.3114,
+    "uma": -0.3132,
+    "diff": -0.0018,
+    "polysulfide": false
+   },
+   {
+    "formula": "PS",
+    "id": "mp-612",
+    "mp": 0.0201,
+    "uma": 0.0153,
+    "diff": -0.0048,
+    "polysulfide": false
+   },
+   {
+    "formula": "SCl",
+    "id": "mp-28096",
+    "mp": -0.474,
+    "uma": -0.4737,
+    "diff": 0.0003,
+    "polysulfide": true
+   }
+  ],
+  "reason": null,
+  "method": "decomposition energy of each known compound against the other phases, UMA + MP2020 vs MP",
+  "compounds": {
+   "n": 23,
+   "mae": 0.0048,
+   "rmse": 0.0061,
+   "max_abs": 0.0126,
+   "bias": -0.002
+  },
+  "polysulfides": {
+   "n": 3,
+   "mae": 0.0054,
+   "rmse": 0.0075,
+   "max_abs": 0.0124,
+   "bias": -0.0052
+  }
+ },
+ {
+  "system": "F-Li-P-S",
+  "available": true,
+  "rows": [
+   {
+    "formula": "Li2S",
+    "id": "mp-1153",
+    "mp": -1.2484,
+    "uma": -1.2552,
+    "diff": -0.0068,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3P",
+    "id": "mp-736",
+    "mp": -0.4349,
+    "uma": -0.4405,
+    "diff": -0.0056,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3P7",
+    "id": "mp-28336",
+    "mp": -0.0326,
+    "uma": -0.031,
+    "diff": 0.0016,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3PS4",
+    "id": "mp-985583",
+    "mp": -0.0417,
+    "uma": -0.0331,
+    "diff": 0.0087,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li7P3S11",
+    "id": "mp-641703",
+    "mp": 0.0199,
+    "uma": 0.01,
+    "diff": -0.0099,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li7PS6",
+    "id": "mp-1211324",
+    "mp": 0.0325,
+    "uma": 0.0269,
+    "diff": -0.0056,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiF",
+    "id": "mp-1138",
+    "mp": -3.1644,
+    "uma": -3.1803,
+    "diff": -0.0159,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiP",
+    "id": "mp-9588",
+    "mp": -0.0139,
+    "uma": -0.0121,
+    "diff": 0.0018,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiP5",
+    "id": "mp-2412",
+    "mp": 0.0104,
+    "uma": 0.023,
+    "diff": 0.0126,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiP7",
+    "id": "mp-27687",
+    "mp": -0.0054,
+    "uma": -0.0127,
+    "diff": -0.0072,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiPF6",
+    "id": "mp-9143",
+    "mp": -0.0583,
+    "uma": -0.0509,
+    "diff": 0.0074,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiS4",
+    "id": "mp-995393",
+    "mp": -0.1618,
+    "uma": -0.1742,
+    "diff": -0.0124,
+    "polysulfide": true
+   },
+   {
+    "formula": "P2S3",
+    "id": "mp-29014",
+    "mp": 0.01,
+    "uma": 0.0056,
+    "diff": -0.0043,
+    "polysulfide": false
+   },
+   {
+    "formula": "P2S5",
+    "id": "mp-541788",
+    "mp": -0.0033,
+    "uma": -0.0051,
+    "diff": -0.0018,
+    "polysulfide": false
+   },
+   {
+    "formula": "P2S7",
+    "id": "mp-1199938",
+    "mp": -0.1081,
+    "uma": -0.1117,
+    "diff": -0.0036,
+    "polysulfide": true
+   },
+   {
+    "formula": "P4S3",
+    "id": "mp-1468",
+    "mp": -0.0216,
+    "uma": -0.0195,
+    "diff": 0.0021,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4S5",
+    "id": "mp-690",
+    "mp": 0.0043,
+    "uma": 0.0011,
+    "diff": -0.0032,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4S7",
+    "id": "mp-2650",
+    "mp": -0.0125,
+    "uma": -0.0113,
+    "diff": 0.0012,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4S9",
+    "id": "mp-542630",
+    "mp": -0.0038,
+    "uma": -0.0006,
+    "diff": 0.0033,
+    "polysulfide": false
+   },
+   {
+    "formula": "PF5",
+    "id": "mp-8511",
+    "mp": -2.9195,
+    "uma": -2.9167,
+    "diff": 0.0028,
+    "polysulfide": false
+   },
+   {
+    "formula": "PS",
+    "id": "mp-612",
+    "mp": 0.0201,
+    "uma": 0.0153,
+    "diff": -0.0048,
+    "polysulfide": false
+   },
+   {
+    "formula": "SF4",
+    "id": "mp-1203812",
+    "mp": -0.0325,
+    "uma": -0.0348,
+    "diff": -0.0023,
+    "polysulfide": false
+   },
+   {
+    "formula": "SF6",
+    "id": "mp-975",
+    "mp": -0.6777,
+    "uma": -0.6736,
+    "diff": 0.0041,
+    "polysulfide": false
+   }
+  ],
+  "reason": null,
+  "method": "decomposition energy of each known compound against the other phases, UMA + MP2020 vs MP",
+  "compounds": {
+   "n": 23,
+   "mae": 0.0056,
+   "rmse": 0.0068,
+   "max_abs": 0.0159,
+   "bias": -0.0016
+  },
+  "polysulfides": {
+   "n": 2,
+   "mae": 0.008,
+   "rmse": 0.0091,
+   "max_abs": 0.0124,
+   "bias": -0.008
+  }
+ },
+ {
+  "system": "Ge-Li-P-S",
+  "available": true,
+  "rows": [
+   {
+    "formula": "GeP",
+    "id": "mp-1095275",
+    "mp": 0.004,
+    "uma": -0.0048,
+    "diff": -0.0088,
+    "polysulfide": false
+   },
+   {
+    "formula": "GeP3",
+    "id": "mp-7542",
+    "mp": 0.0292,
+    "uma": 0.0403,
+    "diff": 0.0111,
+    "polysulfide": false
+   },
+   {
+    "formula": "GeS",
+    "id": "mp-2242",
+    "mp": -0.0037,
+    "uma": -0.011,
+    "diff": -0.0074,
+    "polysulfide": false
+   },
+   {
+    "formula": "GeS2",
+    "id": "mp-572892",
+    "mp": -0.3296,
+    "uma": -0.3296,
+    "diff": -0.0001,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li10Ge(PS6)2",
+    "id": "mp-696138",
+    "mp": 0.0187,
+    "uma": 0.0193,
+    "diff": 0.0006,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li11Ge6",
+    "id": "mp-29631",
+    "mp": 0.0149,
+    "uma": 0.0084,
+    "diff": -0.0065,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li15Ge4",
+    "id": "mp-1777",
+    "mp": -0.0256,
+    "uma": -0.0229,
+    "diff": 0.0027,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2S",
+    "id": "mp-1153",
+    "mp": -1.2484,
+    "uma": -1.2552,
+    "diff": -0.0068,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3Ge",
+    "id": "mp-867342",
+    "mp": 0.0085,
+    "uma": 0.0025,
+    "diff": -0.006,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3P",
+    "id": "mp-736",
+    "mp": -0.4349,
+    "uma": -0.4405,
+    "diff": -0.0056,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3P7",
+    "id": "mp-28336",
+    "mp": -0.0326,
+    "uma": -0.031,
+    "diff": 0.0016,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3PS4",
+    "id": "mp-985583",
+    "mp": -0.0417,
+    "uma": -0.0331,
+    "diff": 0.0087,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li4GeS4",
+    "id": "mp-1222529",
+    "mp": -0.0605,
+    "uma": -0.0555,
+    "diff": 0.0049,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li5GeP3",
+    "id": "mp-674531",
+    "mp": 0.01,
+    "uma": -0.0006,
+    "diff": -0.0106,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li7Ge2",
+    "id": "mp-29630",
+    "mp": 0.0113,
+    "uma": 0.0084,
+    "diff": -0.0028,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li7P3S11",
+    "id": "mp-641703",
+    "mp": 0.0199,
+    "uma": 0.01,
+    "diff": -0.0099,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li7PS6",
+    "id": "mp-1211324",
+    "mp": 0.0325,
+    "uma": 0.0269,
+    "diff": -0.0056,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li9Ge4",
+    "id": "mp-2362521",
+    "mp": -0.0262,
+    "uma": -0.0201,
+    "diff": 0.0061,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiGe",
+    "id": "mp-9918",
+    "mp": -0.0295,
+    "uma": -0.0381,
+    "diff": -0.0086,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiP",
+    "id": "mp-9588",
+    "mp": -0.0139,
+    "uma": -0.0121,
+    "diff": 0.0018,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiP5",
+    "id": "mp-2412",
+    "mp": 0.0104,
+    "uma": 0.023,
+    "diff": 0.0126,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiP7",
+    "id": "mp-27687",
+    "mp": -0.0054,
+    "uma": -0.0127,
+    "diff": -0.0072,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiS4",
+    "id": "mp-995393",
+    "mp": -0.1618,
+    "uma": -0.1742,
+    "diff": -0.0124,
+    "polysulfide": true
+   },
+   {
+    "formula": "P2S3",
+    "id": "mp-29014",
+    "mp": 0.01,
+    "uma": 0.0056,
+    "diff": -0.0043,
+    "polysulfide": false
+   },
+   {
+    "formula": "P2S5",
+    "id": "mp-541788",
+    "mp": -0.0033,
+    "uma": -0.0051,
+    "diff": -0.0018,
+    "polysulfide": false
+   },
+   {
+    "formula": "P2S7",
+    "id": "mp-1199938",
+    "mp": -0.1081,
+    "uma": -0.1117,
+    "diff": -0.0036,
+    "polysulfide": true
+   },
+   {
+    "formula": "P4S3",
+    "id": "mp-1468",
+    "mp": -0.0216,
+    "uma": -0.0195,
+    "diff": 0.0021,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4S5",
+    "id": "mp-690",
+    "mp": 0.0043,
+    "uma": 0.0011,
+    "diff": -0.0032,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4S7",
+    "id": "mp-2650",
+    "mp": -0.0125,
+    "uma": -0.0113,
+    "diff": 0.0012,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4S9",
+    "id": "mp-542630",
+    "mp": -0.0038,
+    "uma": -0.0006,
+    "diff": 0.0033,
+    "polysulfide": false
+   },
+   {
+    "formula": "PS",
+    "id": "mp-612",
+    "mp": 0.0201,
+    "uma": 0.0153,
+    "diff": -0.0048,
+    "polysulfide": false
+   }
+  ],
+  "reason": null,
+  "method": "decomposition energy of each known compound against the other phases, UMA + MP2020 vs MP",
+  "compounds": {
+   "n": 31,
+   "mae": 0.0056,
+   "rmse": 0.0066,
+   "max_abs": 0.0126,
+   "bias": -0.0019
+  },
+  "polysulfides": {
+   "n": 2,
+   "mae": 0.008,
+   "rmse": 0.0091,
+   "max_abs": 0.0124,
+   "bias": -0.008
+  }
+ },
+ {
+  "system": "Ge-Li",
+  "available": true,
+  "rows": [
+   {
+    "formula": "Li11Ge6",
+    "id": "mp-29631",
+    "mp": 0.0149,
+    "uma": 0.0084,
+    "diff": -0.0065,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li15Ge4",
+    "id": "mp-1777",
+    "mp": -0.0256,
+    "uma": -0.0229,
+    "diff": 0.0027,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3Ge",
+    "id": "mp-867342",
+    "mp": 0.0085,
+    "uma": 0.0025,
+    "diff": -0.006,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li7Ge2",
+    "id": "mp-29630",
+    "mp": 0.0113,
+    "uma": 0.0084,
+    "diff": -0.0028,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li9Ge4",
+    "id": "mp-2362521",
+    "mp": -0.0262,
+    "uma": -0.0201,
+    "diff": 0.0061,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiGe",
+    "id": "mp-9918",
+    "mp": -0.0295,
+    "uma": -0.0381,
+    "diff": -0.0086,
+    "polysulfide": false
+   }
+  ],
+  "reason": null,
+  "method": "decomposition energy of each known compound against the other phases, UMA + MP2020 vs MP",
+  "compounds": {
+   "n": 6,
+   "mae": 0.0054,
+   "rmse": 0.0058,
+   "max_abs": 0.0086,
+   "bias": -0.0025
+  },
+  "polysulfides": {
+   "n": 0,
+   "mae": null,
+   "rmse": null,
+   "max_abs": null,
+   "bias": null
+  }
+ },
+ {
+  "system": "I-Li-P-S",
+  "available": true,
+  "rows": [
+   {
+    "formula": "Li2S",
+    "id": "mp-1153",
+    "mp": -1.2484,
+    "uma": -1.2552,
+    "diff": -0.0068,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3P",
+    "id": "mp-736",
+    "mp": -0.4349,
+    "uma": -0.4405,
+    "diff": -0.0056,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3P7",
+    "id": "mp-28336",
+    "mp": -0.0326,
+    "uma": -0.031,
+    "diff": 0.0016,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3PS4",
+    "id": "mp-985583",
+    "mp": -0.0417,
+    "uma": -0.0331,
+    "diff": 0.0087,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li6PS5I",
+    "id": "mp-950995",
+    "mp": 0.0021,
+    "uma": -0.0025,
+    "diff": -0.0046,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li7P3S11",
+    "id": "mp-641703",
+    "mp": 0.0199,
+    "uma": 0.01,
+    "diff": -0.0099,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li7PS6",
+    "id": "mp-1211324",
+    "mp": 0.0325,
+    "uma": 0.0269,
+    "diff": -0.0056,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiI",
+    "id": "mp-570935",
+    "mp": -1.4223,
+    "uma": -1.427,
+    "diff": -0.0047,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiP",
+    "id": "mp-9588",
+    "mp": -0.0139,
+    "uma": -0.0121,
+    "diff": 0.0018,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiP5",
+    "id": "mp-2412",
+    "mp": 0.0104,
+    "uma": 0.023,
+    "diff": 0.0126,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiP7",
+    "id": "mp-27687",
+    "mp": -0.0054,
+    "uma": -0.0127,
+    "diff": -0.0072,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiS4",
+    "id": "mp-995393",
+    "mp": -0.1618,
+    "uma": -0.1742,
+    "diff": -0.0124,
+    "polysulfide": true
+   },
+   {
+    "formula": "P2S3",
+    "id": "mp-29014",
+    "mp": 0.01,
+    "uma": 0.0056,
+    "diff": -0.0043,
+    "polysulfide": false
+   },
+   {
+    "formula": "P2S5",
+    "id": "mp-541788",
+    "mp": -0.0033,
+    "uma": -0.0051,
+    "diff": -0.0018,
+    "polysulfide": false
+   },
+   {
+    "formula": "P2S7",
+    "id": "mp-1199938",
+    "mp": -0.1081,
+    "uma": -0.1117,
+    "diff": -0.0036,
+    "polysulfide": true
+   },
+   {
+    "formula": "P4S3",
+    "id": "mp-1468",
+    "mp": -0.0216,
+    "uma": -0.0195,
+    "diff": 0.0021,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4S3I2",
+    "id": "mp-541352",
+    "mp": -0.0197,
+    "uma": -0.0225,
+    "diff": -0.0028,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4S5",
+    "id": "mp-690",
+    "mp": 0.0043,
+    "uma": 0.0011,
+    "diff": -0.0032,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4S7",
+    "id": "mp-2650",
+    "mp": -0.0125,
+    "uma": -0.0113,
+    "diff": 0.0012,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4S9",
+    "id": "mp-542630",
+    "mp": -0.0038,
+    "uma": -0.0006,
+    "diff": 0.0033,
+    "polysulfide": false
+   },
+   {
+    "formula": "PI2",
+    "id": "mp-29443",
+    "mp": -0.0099,
+    "uma": -0.01,
+    "diff": -0.0002,
+    "polysulfide": false
+   },
+   {
+    "formula": "PI3",
+    "id": "mp-27529",
+    "mp": -0.1067,
+    "uma": -0.1066,
+    "diff": 0.0001,
+    "polysulfide": false
+   },
+   {
+    "formula": "PS",
+    "id": "mp-612",
+    "mp": 0.0201,
+    "uma": 0.0153,
+    "diff": -0.0048,
+    "polysulfide": false
+   }
+  ],
+  "reason": null,
+  "method": "decomposition energy of each known compound against the other phases, UMA + MP2020 vs MP",
+  "compounds": {
+   "n": 23,
+   "mae": 0.0047,
+   "rmse": 0.0059,
+   "max_abs": 0.0126,
+   "bias": -0.002
+  },
+  "polysulfides": {
+   "n": 2,
+   "mae": 0.008,
+   "rmse": 0.0091,
+   "max_abs": 0.0124,
+   "bias": -0.008
+  }
+ },
+ {
+  "system": "Li-Mg-P-S",
+  "available": true,
+  "rows": [
+   {
+    "formula": "Li2Mg",
+    "id": "mp-976843",
+    "mp": 0.0059,
+    "uma": 0.0048,
+    "diff": -0.0011,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2S",
+    "id": "mp-1153",
+    "mp": -1.2484,
+    "uma": -1.2552,
+    "diff": -0.0068,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3Mg",
+    "id": "mp-976139",
+    "mp": -0.0019,
+    "uma": 0.0034,
+    "diff": 0.0054,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3Mg5",
+    "id": "mp-1206428",
+    "mp": 0.026,
+    "uma": 0.025,
+    "diff": -0.0011,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3P",
+    "id": "mp-736",
+    "mp": -0.4349,
+    "uma": -0.4405,
+    "diff": -0.0056,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3P7",
+    "id": "mp-28336",
+    "mp": -0.0326,
+    "uma": -0.031,
+    "diff": 0.0016,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3PS4",
+    "id": "mp-985583",
+    "mp": -0.0417,
+    "uma": -0.0331,
+    "diff": 0.0087,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li4Mg",
+    "id": "mp-1222419",
+    "mp": 0.0157,
+    "uma": 0.0232,
+    "diff": 0.0074,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li5Mg",
+    "id": "mp-977122",
+    "mp": -0.0,
+    "uma": 0.0053,
+    "diff": 0.0053,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li7P3S11",
+    "id": "mp-641703",
+    "mp": 0.0199,
+    "uma": 0.01,
+    "diff": -0.0099,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li7PS6",
+    "id": "mp-1211324",
+    "mp": 0.0325,
+    "uma": 0.0269,
+    "diff": -0.0056,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiMg",
+    "id": "mp-1185380",
+    "mp": -0.012,
+    "uma": -0.0226,
+    "diff": -0.0105,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiMg15",
+    "id": "mp-1023493",
+    "mp": 0.011,
+    "uma": 0.0044,
+    "diff": -0.0066,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiMg2",
+    "id": "mp-865939",
+    "mp": -0.0073,
+    "uma": -0.0076,
+    "diff": -0.0003,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiMg3",
+    "id": "mp-1094603",
+    "mp": 0.0216,
+    "uma": 0.0089,
+    "diff": -0.0127,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiMg5",
+    "id": "mp-1094609",
+    "mp": -0.0114,
+    "uma": 0.0095,
+    "diff": 0.0209,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiMg7",
+    "id": "mp-1016274",
+    "mp": 0.0166,
+    "uma": 0.0112,
+    "diff": -0.0054,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiMgP",
+    "id": "mp-36111",
+    "mp": -0.0821,
+    "uma": -0.0857,
+    "diff": -0.0036,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiP",
+    "id": "mp-9588",
+    "mp": -0.0139,
+    "uma": -0.0121,
+    "diff": 0.0018,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiP5",
+    "id": "mp-2412",
+    "mp": 0.0104,
+    "uma": 0.023,
+    "diff": 0.0126,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiP7",
+    "id": "mp-27687",
+    "mp": -0.0054,
+    "uma": -0.0127,
+    "diff": -0.0072,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiS4",
+    "id": "mp-995393",
+    "mp": -0.1618,
+    "uma": -0.1742,
+    "diff": -0.0124,
+    "polysulfide": true
+   },
+   {
+    "formula": "Mg3P2",
+    "id": "mp-2514",
+    "mp": -0.5136,
+    "uma": -0.5112,
+    "diff": 0.0025,
+    "polysulfide": false
+   },
+   {
+    "formula": "MgP4",
+    "id": "mp-384",
+    "mp": -0.0839,
+    "uma": -0.0871,
+    "diff": -0.0033,
+    "polysulfide": false
+   },
+   {
+    "formula": "MgPS3",
+    "id": "mp-675651",
+    "mp": -0.0832,
+    "uma": -0.0824,
+    "diff": 0.0008,
+    "polysulfide": false
+   },
+   {
+    "formula": "MgS",
+    "id": "mp-1315",
+    "mp": -1.6776,
+    "uma": -1.6779,
+    "diff": -0.0003,
+    "polysulfide": false
+   },
+   {
+    "formula": "P2S3",
+    "id": "mp-29014",
+    "mp": 0.01,
+    "uma": 0.0056,
+    "diff": -0.0043,
+    "polysulfide": false
+   },
+   {
+    "formula": "P2S5",
+    "id": "mp-541788",
+    "mp": -0.0033,
+    "uma": -0.0051,
+    "diff": -0.0018,
+    "polysulfide": false
+   },
+   {
+    "formula": "P2S7",
+    "id": "mp-1199938",
+    "mp": -0.1081,
+    "uma": -0.1117,
+    "diff": -0.0036,
+    "polysulfide": true
+   },
+   {
+    "formula": "P4S3",
+    "id": "mp-1468",
+    "mp": -0.0216,
+    "uma": -0.0195,
+    "diff": 0.0021,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4S5",
+    "id": "mp-690",
+    "mp": 0.0043,
+    "uma": 0.0011,
+    "diff": -0.0032,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4S7",
+    "id": "mp-2650",
+    "mp": -0.0125,
+    "uma": -0.0113,
+    "diff": 0.0012,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4S9",
+    "id": "mp-542630",
+    "mp": -0.0038,
+    "uma": -0.0006,
+    "diff": 0.0033,
+    "polysulfide": false
+   },
+   {
+    "formula": "PS",
+    "id": "mp-612",
+    "mp": 0.0201,
+    "uma": 0.0153,
+    "diff": -0.0048,
+    "polysulfide": false
+   }
+  ],
+  "reason": null,
+  "method": "decomposition energy of each known compound against the other phases, UMA + MP2020 vs MP",
+  "compounds": {
+   "n": 34,
+   "mae": 0.0054,
+   "rmse": 0.007,
+   "max_abs": 0.0209,
+   "bias": -0.0011
+  },
+  "polysulfides": {
+   "n": 2,
+   "mae": 0.008,
+   "rmse": 0.0091,
+   "max_abs": 0.0124,
+   "bias": -0.008
+  }
+ },
+ {
+  "system": "Li-Na-P-S",
+  "available": true,
+  "rows": [
+   {
+    "formula": "Li2S",
+    "id": "mp-1153",
+    "mp": -1.2484,
+    "uma": -1.2552,
+    "diff": -0.0068,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3P",
+    "id": "mp-736",
+    "mp": -0.4349,
+    "uma": -0.4405,
+    "diff": -0.0056,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3P7",
+    "id": "mp-28336",
+    "mp": -0.0326,
+    "uma": -0.031,
+    "diff": 0.0016,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3PS4",
+    "id": "mp-985583",
+    "mp": -0.0417,
+    "uma": -0.0331,
+    "diff": 0.0087,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li7P3S11",
+    "id": "mp-641703",
+    "mp": 0.0199,
+    "uma": 0.01,
+    "diff": -0.0099,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li7PS6",
+    "id": "mp-1211324",
+    "mp": 0.0325,
+    "uma": 0.0269,
+    "diff": -0.0056,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiP",
+    "id": "mp-9588",
+    "mp": -0.0139,
+    "uma": -0.0121,
+    "diff": 0.0018,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiP5",
+    "id": "mp-2412",
+    "mp": 0.0104,
+    "uma": 0.023,
+    "diff": 0.0126,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiP7",
+    "id": "mp-27687",
+    "mp": -0.0054,
+    "uma": -0.0127,
+    "diff": -0.0072,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiS4",
+    "id": "mp-995393",
+    "mp": -0.1618,
+    "uma": -0.1742,
+    "diff": -0.0124,
+    "polysulfide": true
+   },
+   {
+    "formula": "Na2PS3",
+    "id": "mp-1101885",
+    "mp": -0.0448,
+    "uma": -0.0449,
+    "diff": -0.0002,
+    "polysulfide": false
+   },
+   {
+    "formula": "Na2S",
+    "id": "mp-648",
+    "mp": -0.5125,
+    "uma": -0.5161,
+    "diff": -0.0036,
+    "polysulfide": false
+   },
+   {
+    "formula": "Na2S5",
+    "id": "mp-28127",
+    "mp": -0.0668,
+    "uma": -0.0686,
+    "diff": -0.0018,
+    "polysulfide": true
+   },
+   {
+    "formula": "Na3P",
+    "id": "mp-1598",
+    "mp": -0.1415,
+    "uma": -0.1485,
+    "diff": -0.007,
+    "polysulfide": false
+   },
+   {
+    "formula": "Na3P11",
+    "id": "mp-473",
+    "mp": -0.0309,
+    "uma": -0.0332,
+    "diff": -0.0024,
+    "polysulfide": false
+   },
+   {
+    "formula": "Na3PS4",
+    "id": "mp-28782",
+    "mp": -0.0381,
+    "uma": -0.0384,
+    "diff": -0.0003,
+    "polysulfide": false
+   },
+   {
+    "formula": "NaLi3",
+    "id": "mp-973316",
+    "mp": 0.0495,
+    "uma": 0.0488,
+    "diff": -0.0008,
+    "polysulfide": false
+   },
+   {
+    "formula": "NaLiS",
+    "id": "mp-8452",
+    "mp": -0.0062,
+    "uma": -0.0069,
+    "diff": -0.0008,
+    "polysulfide": false
+   },
+   {
+    "formula": "NaP",
+    "id": "mp-7440",
+    "mp": -0.093,
+    "uma": -0.0849,
+    "diff": 0.0081,
+    "polysulfide": false
+   },
+   {
+    "formula": "NaP15",
+    "id": "mp-1194653",
+    "mp": 0.0034,
+    "uma": 0.0031,
+    "diff": -0.0003,
+    "polysulfide": false
+   },
+   {
+    "formula": "NaP5",
+    "id": "mp-31086",
+    "mp": 0.0162,
+    "uma": 0.0264,
+    "diff": 0.0101,
+    "polysulfide": false
+   },
+   {
+    "formula": "NaP7",
+    "id": "mp-1195785",
+    "mp": -0.0114,
+    "uma": -0.0139,
+    "diff": -0.0025,
+    "polysulfide": false
+   },
+   {
+    "formula": "NaPS3",
+    "id": "mp-1189520",
+    "mp": -0.0086,
+    "uma": -0.0094,
+    "diff": -0.0008,
+    "polysulfide": false
+   },
+   {
+    "formula": "NaS",
+    "id": "mp-2400",
+    "mp": -0.0043,
+    "uma": -0.0038,
+    "diff": 0.0006,
+    "polysulfide": true
+   },
+   {
+    "formula": "NaS2",
+    "id": "mp-12180",
+    "mp": -0.014,
+    "uma": -0.0128,
+    "diff": 0.0011,
+    "polysulfide": true
+   },
+   {
+    "formula": "P2S3",
+    "id": "mp-29014",
+    "mp": 0.01,
+    "uma": 0.0056,
+    "diff": -0.0043,
+    "polysulfide": false
+   },
+   {
+    "formula": "P2S5",
+    "id": "mp-541788",
+    "mp": -0.0033,
+    "uma": -0.0051,
+    "diff": -0.0018,
+    "polysulfide": false
+   },
+   {
+    "formula": "P2S7",
+    "id": "mp-1199938",
+    "mp": -0.1081,
+    "uma": -0.1117,
+    "diff": -0.0036,
+    "polysulfide": true
+   },
+   {
+    "formula": "P4S3",
+    "id": "mp-1468",
+    "mp": -0.0216,
+    "uma": -0.0195,
+    "diff": 0.0021,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4S5",
+    "id": "mp-690",
+    "mp": 0.0043,
+    "uma": 0.0011,
+    "diff": -0.0032,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4S7",
+    "id": "mp-2650",
+    "mp": -0.0125,
+    "uma": -0.0113,
+    "diff": 0.0012,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4S9",
+    "id": "mp-542630",
+    "mp": -0.0038,
+    "uma": -0.0006,
+    "diff": 0.0033,
+    "polysulfide": false
+   },
+   {
+    "formula": "PS",
+    "id": "mp-612",
+    "mp": 0.0201,
+    "uma": 0.0153,
+    "diff": -0.0048,
+    "polysulfide": false
+   }
+  ],
+  "reason": null,
+  "method": "decomposition energy of each known compound against the other phases, UMA + MP2020 vs MP",
+  "compounds": {
+   "n": 33,
+   "mae": 0.0041,
+   "rmse": 0.0055,
+   "max_abs": 0.0126,
+   "bias": -0.001
+  },
+  "polysulfides": {
+   "n": 5,
+   "mae": 0.0039,
+   "rmse": 0.0059,
+   "max_abs": 0.0124,
+   "bias": -0.0032
+  }
+ },
+ {
+  "system": "Li-O-P-S",
+  "available": true,
+  "rows": [
+   {
+    "formula": "Li2O",
+    "id": "mp-1960",
+    "mp": -0.9615,
+    "uma": -0.9781,
+    "diff": -0.0166,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2O2",
+    "id": "mp-841",
+    "mp": -0.0789,
+    "uma": -0.078,
+    "diff": 0.0009,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2S",
+    "id": "mp-1153",
+    "mp": -1.2484,
+    "uma": -1.2552,
+    "diff": -0.0068,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2S2O7",
+    "id": "mp-1020013",
+    "mp": -0.0516,
+    "uma": -0.0508,
+    "diff": 0.0007,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2SO4",
+    "id": "mp-4556",
+    "mp": -0.2227,
+    "uma": -0.2231,
+    "diff": -0.0004,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3P",
+    "id": "mp-736",
+    "mp": -0.4349,
+    "uma": -0.4405,
+    "diff": -0.0056,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3P7",
+    "id": "mp-28336",
+    "mp": -0.0326,
+    "uma": -0.031,
+    "diff": 0.0016,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3PO4",
+    "id": "mp-13725",
+    "mp": -0.1376,
+    "uma": -0.1374,
+    "diff": 0.0002,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3PS4",
+    "id": "mp-985583",
+    "mp": -0.0417,
+    "uma": -0.0331,
+    "diff": 0.0087,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li4P2O7",
+    "id": "mp-28450",
+    "mp": -0.0097,
+    "uma": -0.0105,
+    "diff": -0.0008,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li7P3S11",
+    "id": "mp-641703",
+    "mp": 0.0199,
+    "uma": 0.01,
+    "diff": -0.0099,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li7PS6",
+    "id": "mp-1211324",
+    "mp": 0.0325,
+    "uma": 0.0269,
+    "diff": -0.0056,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiO8",
+    "id": "mp-1235059",
+    "mp": -0.0604,
+    "uma": -0.0452,
+    "diff": 0.0152,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiP",
+    "id": "mp-9588",
+    "mp": -0.0139,
+    "uma": -0.0121,
+    "diff": 0.0018,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiP5",
+    "id": "mp-2412",
+    "mp": 0.0104,
+    "uma": 0.023,
+    "diff": 0.0126,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiP7",
+    "id": "mp-27687",
+    "mp": -0.0054,
+    "uma": -0.0127,
+    "diff": -0.0072,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiPO3",
+    "id": "mp-29195",
+    "mp": -0.0661,
+    "uma": -0.0631,
+    "diff": 0.003,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiS4",
+    "id": "mp-995393",
+    "mp": -0.1618,
+    "uma": -0.1742,
+    "diff": -0.0124,
+    "polysulfide": true
+   },
+   {
+    "formula": "P2O5",
+    "id": "mp-2173",
+    "mp": -0.2494,
+    "uma": -0.2548,
+    "diff": -0.0054,
+    "polysulfide": false
+   },
+   {
+    "formula": "P2S2O3",
+    "id": "mp-3667",
+    "mp": -0.0022,
+    "uma": 0.0018,
+    "diff": 0.0039,
+    "polysulfide": false
+   },
+   {
+    "formula": "P2S3",
+    "id": "mp-29014",
+    "mp": 0.01,
+    "uma": 0.0056,
+    "diff": -0.0043,
+    "polysulfide": false
+   },
+   {
+    "formula": "P2S5",
+    "id": "mp-541788",
+    "mp": -0.0033,
+    "uma": -0.0051,
+    "diff": -0.0018,
+    "polysulfide": false
+   },
+   {
+    "formula": "P2S7",
+    "id": "mp-1199938",
+    "mp": -0.1081,
+    "uma": -0.1117,
+    "diff": -0.0036,
+    "polysulfide": true
+   },
+   {
+    "formula": "P2SO3",
+    "id": "mp-29006",
+    "mp": 0.028,
+    "uma": 0.0296,
+    "diff": 0.0015,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4(S2O)3",
+    "id": "mp-29204",
+    "mp": -0.0027,
+    "uma": 0.0015,
+    "diff": 0.0042,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4(SO2)3",
+    "id": "mp-29007",
+    "mp": 0.0125,
+    "uma": 0.0142,
+    "diff": 0.0018,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4O9",
+    "id": "mp-541846",
+    "mp": 0.0059,
+    "uma": 0.0126,
+    "diff": 0.0067,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4S3",
+    "id": "mp-1468",
+    "mp": -0.0216,
+    "uma": -0.0195,
+    "diff": 0.0021,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4S5",
+    "id": "mp-690",
+    "mp": 0.0043,
+    "uma": 0.0011,
+    "diff": -0.0032,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4S7",
+    "id": "mp-2650",
+    "mp": -0.0125,
+    "uma": -0.0113,
+    "diff": 0.0012,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4S9",
+    "id": "mp-542630",
+    "mp": -0.0038,
+    "uma": -0.0006,
+    "diff": 0.0033,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4SO7",
+    "id": "mp-29081",
+    "mp": 0.0215,
+    "uma": 0.0251,
+    "diff": 0.0036,
+    "polysulfide": false
+   },
+   {
+    "formula": "PO2",
+    "id": "mp-562065",
+    "mp": 0.0114,
+    "uma": 0.0134,
+    "diff": 0.002,
+    "polysulfide": false
+   },
+   {
+    "formula": "PS",
+    "id": "mp-612",
+    "mp": 0.0201,
+    "uma": 0.0153,
+    "diff": -0.0048,
+    "polysulfide": false
+   },
+   {
+    "formula": "SO2",
+    "id": "mp-27726",
+    "mp": -0.12,
+    "uma": -0.1258,
+    "diff": -0.0057,
+    "polysulfide": false
+   },
+   {
+    "formula": "SO3",
+    "id": "mp-561397",
+    "mp": -0.4358,
+    "uma": -0.4263,
+    "diff": 0.0095,
+    "polysulfide": false
+   }
+  ],
+  "reason": null,
+  "method": "decomposition energy of each known compound against the other phases, UMA + MP2020 vs MP",
+  "compounds": {
+   "n": 36,
+   "mae": 0.005,
+   "rmse": 0.0065,
+   "max_abs": 0.0166,
+   "bias": -0.0003
+  },
+  "polysulfides": {
+   "n": 2,
+   "mae": 0.008,
+   "rmse": 0.0091,
+   "max_abs": 0.0124,
+   "bias": -0.008
+  }
+ },
+ {
+  "system": "Li-P-S-Sb",
+  "available": true,
+  "rows": [
+   {
+    "formula": "Li27Sb10",
+    "id": "mp-676024",
+    "mp": 0.0134,
+    "uma": 0.0137,
+    "diff": 0.0003,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2S",
+    "id": "mp-1153",
+    "mp": -1.2484,
+    "uma": -1.2552,
+    "diff": -0.0068,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2Sb",
+    "id": "mp-1545896",
+    "mp": -0.0328,
+    "uma": -0.0347,
+    "diff": -0.0018,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3P",
+    "id": "mp-736",
+    "mp": -0.4349,
+    "uma": -0.4405,
+    "diff": -0.0056,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3P7",
+    "id": "mp-28336",
+    "mp": -0.0326,
+    "uma": -0.031,
+    "diff": 0.0016,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3PS4",
+    "id": "mp-985583",
+    "mp": -0.0417,
+    "uma": -0.0331,
+    "diff": 0.0087,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3Sb",
+    "id": "mp-7955",
+    "mp": -0.073,
+    "uma": -0.0735,
+    "diff": -0.0005,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3Sb11S18",
+    "id": "mp-767088",
+    "mp": 0.0044,
+    "uma": -0.0023,
+    "diff": -0.0068,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3Sb17S27",
+    "id": "mp-767137",
+    "mp": 0.013,
+    "uma": 0.0159,
+    "diff": 0.0029,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3SbS3",
+    "id": "mp-1194339",
+    "mp": -0.0005,
+    "uma": -0.0039,
+    "diff": -0.0034,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3SbS4",
+    "id": "mp-756316",
+    "mp": -0.0459,
+    "uma": -0.0416,
+    "diff": 0.0043,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li7P3S11",
+    "id": "mp-641703",
+    "mp": 0.0199,
+    "uma": 0.01,
+    "diff": -0.0099,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li7PS6",
+    "id": "mp-1211324",
+    "mp": 0.0325,
+    "uma": 0.0269,
+    "diff": -0.0056,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiP",
+    "id": "mp-9588",
+    "mp": -0.0139,
+    "uma": -0.0121,
+    "diff": 0.0018,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiP5",
+    "id": "mp-2412",
+    "mp": 0.0104,
+    "uma": 0.023,
+    "diff": 0.0126,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiP7",
+    "id": "mp-27687",
+    "mp": -0.0054,
+    "uma": -0.0127,
+    "diff": -0.0072,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiS4",
+    "id": "mp-995393",
+    "mp": -0.1618,
+    "uma": -0.1742,
+    "diff": -0.0124,
+    "polysulfide": true
+   },
+   {
+    "formula": "LiSb3",
+    "id": "mp-1185416",
+    "mp": 0.0474,
+    "uma": 0.2085,
+    "diff": 0.1611,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiSbS",
+    "id": "mp-2206511",
+    "mp": 0.0217,
+    "uma": -0.0408,
+    "diff": -0.0625,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiSbS2",
+    "id": "mp-1079885",
+    "mp": -0.0087,
+    "uma": -0.0001,
+    "diff": 0.0086,
+    "polysulfide": false
+   },
+   {
+    "formula": "P2S3",
+    "id": "mp-29014",
+    "mp": 0.01,
+    "uma": 0.0056,
+    "diff": -0.0043,
+    "polysulfide": false
+   },
+   {
+    "formula": "P2S5",
+    "id": "mp-541788",
+    "mp": -0.0033,
+    "uma": -0.0051,
+    "diff": -0.0018,
+    "polysulfide": false
+   },
+   {
+    "formula": "P2S7",
+    "id": "mp-1199938",
+    "mp": -0.1081,
+    "uma": -0.1117,
+    "diff": -0.0036,
+    "polysulfide": true
+   },
+   {
+    "formula": "P4S3",
+    "id": "mp-1468",
+    "mp": -0.0216,
+    "uma": -0.0195,
+    "diff": 0.0021,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4S5",
+    "id": "mp-690",
+    "mp": 0.0043,
+    "uma": 0.0011,
+    "diff": -0.0032,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4S7",
+    "id": "mp-2650",
+    "mp": -0.0125,
+    "uma": -0.0113,
+    "diff": 0.0012,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4S9",
+    "id": "mp-542630",
+    "mp": -0.0038,
+    "uma": -0.0006,
+    "diff": 0.0033,
+    "polysulfide": false
+   },
+   {
+    "formula": "PS",
+    "id": "mp-612",
+    "mp": 0.0201,
+    "uma": 0.0153,
+    "diff": -0.0048,
+    "polysulfide": false
+   },
+   {
+    "formula": "Sb2S3",
+    "id": "mp-2809",
+    "mp": -0.5511,
+    "uma": -0.5511,
+    "diff": -0.0,
+    "polysulfide": false
+   },
+   {
+    "formula": "SbPS4",
+    "id": "mp-572597",
+    "mp": -0.0664,
+    "uma": -0.0683,
+    "diff": -0.0019,
+    "polysulfide": false
+   }
+  ],
+  "reason": null,
+  "method": "decomposition energy of each known compound against the other phases, UMA + MP2020 vs MP",
+  "compounds": {
+   "n": 30,
+   "mae": 0.0117,
+   "rmse": 0.032,
+   "max_abs": 0.1611,
+   "bias": 0.0022
+  },
+  "polysulfides": {
+   "n": 2,
+   "mae": 0.008,
+   "rmse": 0.0091,
+   "max_abs": 0.0124,
+   "bias": -0.008
+  }
+ },
+ {
+  "system": "Li-P-S-Se",
+  "available": true,
+  "rows": [
+   {
+    "formula": "Li2S",
+    "id": "mp-1153",
+    "mp": -1.2484,
+    "uma": -1.2552,
+    "diff": -0.0068,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2Se",
+    "id": "mp-2286",
+    "mp": -1.4178,
+    "uma": -1.4285,
+    "diff": -0.0107,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3P",
+    "id": "mp-736",
+    "mp": -0.4349,
+    "uma": -0.4405,
+    "diff": -0.0056,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3P7",
+    "id": "mp-28336",
+    "mp": -0.0326,
+    "uma": -0.031,
+    "diff": 0.0016,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3PS4",
+    "id": "mp-985583",
+    "mp": -0.0417,
+    "uma": -0.0331,
+    "diff": 0.0087,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li7P3S11",
+    "id": "mp-641703",
+    "mp": 0.0199,
+    "uma": 0.01,
+    "diff": -0.0099,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li7PS6",
+    "id": "mp-1211324",
+    "mp": 0.0325,
+    "uma": 0.0269,
+    "diff": -0.0056,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li7PSe6",
+    "id": "mp-1211446",
+    "mp": -0.0058,
+    "uma": -0.0054,
+    "diff": 0.0003,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiP",
+    "id": "mp-9588",
+    "mp": -0.0139,
+    "uma": -0.0121,
+    "diff": 0.0018,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiP5",
+    "id": "mp-2412",
+    "mp": 0.0104,
+    "uma": 0.023,
+    "diff": 0.0126,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiP7",
+    "id": "mp-27687",
+    "mp": -0.0054,
+    "uma": -0.0127,
+    "diff": -0.0072,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiS4",
+    "id": "mp-995393",
+    "mp": -0.1618,
+    "uma": -0.1742,
+    "diff": -0.0124,
+    "polysulfide": true
+   },
+   {
+    "formula": "P2S3",
+    "id": "mp-29014",
+    "mp": 0.01,
+    "uma": 0.0056,
+    "diff": -0.0043,
+    "polysulfide": false
+   },
+   {
+    "formula": "P2S5",
+    "id": "mp-541788",
+    "mp": -0.0033,
+    "uma": -0.0051,
+    "diff": -0.0018,
+    "polysulfide": false
+   },
+   {
+    "formula": "P2S7",
+    "id": "mp-1199938",
+    "mp": -0.1081,
+    "uma": -0.1117,
+    "diff": -0.0036,
+    "polysulfide": true
+   },
+   {
+    "formula": "P2Se5",
+    "id": "mp-28860",
+    "mp": -0.1459,
+    "uma": -0.1562,
+    "diff": -0.0103,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4S3",
+    "id": "mp-1468",
+    "mp": -0.0216,
+    "uma": -0.0195,
+    "diff": 0.0021,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4S5",
+    "id": "mp-690",
+    "mp": 0.0043,
+    "uma": 0.0011,
+    "diff": -0.0032,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4S7",
+    "id": "mp-2650",
+    "mp": -0.0125,
+    "uma": -0.0113,
+    "diff": 0.0012,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4S9",
+    "id": "mp-542630",
+    "mp": -0.0038,
+    "uma": -0.0006,
+    "diff": 0.0033,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4Se3",
+    "id": "mp-541189",
+    "mp": 0.015,
+    "uma": 0.0158,
+    "diff": 0.0008,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4Se5",
+    "id": "mp-2447",
+    "mp": 0.0092,
+    "uma": 0.015,
+    "diff": 0.0058,
+    "polysulfide": false
+   },
+   {
+    "formula": "PS",
+    "id": "mp-612",
+    "mp": 0.0201,
+    "uma": 0.0153,
+    "diff": -0.0048,
+    "polysulfide": false
+   },
+   {
+    "formula": "PSe",
+    "id": "mp-28885",
+    "mp": -0.0264,
+    "uma": -0.0296,
+    "diff": -0.0032,
+    "polysulfide": false
+   },
+   {
+    "formula": "SeS7",
+    "id": "mp-1219328",
+    "mp": -0.4141,
+    "uma": -0.4178,
+    "diff": -0.0038,
+    "polysulfide": true
+   }
+  ],
+  "reason": null,
+  "method": "decomposition energy of each known compound against the other phases, UMA + MP2020 vs MP",
+  "compounds": {
+   "n": 25,
+   "mae": 0.0053,
+   "rmse": 0.0064,
+   "max_abs": 0.0126,
+   "bias": -0.0022
+  },
+  "polysulfides": {
+   "n": 3,
+   "mae": 0.0066,
+   "rmse": 0.0078,
+   "max_abs": 0.0124,
+   "bias": -0.0066
+  }
+ },
+ {
+  "system": "Li-P-S",
+  "available": true,
+  "rows": [
+   {
+    "formula": "Li2S",
+    "id": "mp-1153",
+    "mp": -1.2484,
+    "uma": -1.2552,
+    "diff": -0.0068,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3P",
+    "id": "mp-736",
+    "mp": -0.4349,
+    "uma": -0.4405,
+    "diff": -0.0056,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3P7",
+    "id": "mp-28336",
+    "mp": -0.0326,
+    "uma": -0.031,
+    "diff": 0.0016,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3PS4",
+    "id": "mp-985583",
+    "mp": -0.0417,
+    "uma": -0.0331,
+    "diff": 0.0087,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li7P3S11",
+    "id": "mp-641703",
+    "mp": 0.0199,
+    "uma": 0.01,
+    "diff": -0.0099,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li7PS6",
+    "id": "mp-1211324",
+    "mp": 0.0325,
+    "uma": 0.0269,
+    "diff": -0.0056,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiP",
+    "id": "mp-9588",
+    "mp": -0.0139,
+    "uma": -0.0121,
+    "diff": 0.0018,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiP5",
+    "id": "mp-2412",
+    "mp": 0.0104,
+    "uma": 0.023,
+    "diff": 0.0126,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiP7",
+    "id": "mp-27687",
+    "mp": -0.0054,
+    "uma": -0.0127,
+    "diff": -0.0072,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiS4",
+    "id": "mp-995393",
+    "mp": -0.1618,
+    "uma": -0.1742,
+    "diff": -0.0124,
+    "polysulfide": true
+   },
+   {
+    "formula": "P2S3",
+    "id": "mp-29014",
+    "mp": 0.01,
+    "uma": 0.0056,
+    "diff": -0.0043,
+    "polysulfide": false
+   },
+   {
+    "formula": "P2S5",
+    "id": "mp-541788",
+    "mp": -0.0033,
+    "uma": -0.0051,
+    "diff": -0.0018,
+    "polysulfide": false
+   },
+   {
+    "formula": "P2S7",
+    "id": "mp-1199938",
+    "mp": -0.1081,
+    "uma": -0.1117,
+    "diff": -0.0036,
+    "polysulfide": true
+   },
+   {
+    "formula": "P4S3",
+    "id": "mp-1468",
+    "mp": -0.0216,
+    "uma": -0.0195,
+    "diff": 0.0021,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4S5",
+    "id": "mp-690",
+    "mp": 0.0043,
+    "uma": 0.0011,
+    "diff": -0.0032,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4S7",
+    "id": "mp-2650",
+    "mp": -0.0125,
+    "uma": -0.0113,
+    "diff": 0.0012,
+    "polysulfide": false
+   },
+   {
+    "formula": "P4S9",
+    "id": "mp-542630",
+    "mp": -0.0038,
+    "uma": -0.0006,
+    "diff": 0.0033,
+    "polysulfide": false
+   },
+   {
+    "formula": "PS",
+    "id": "mp-612",
+    "mp": 0.0201,
+    "uma": 0.0153,
+    "diff": -0.0048,
+    "polysulfide": false
+   }
+  ],
+  "reason": null,
+  "method": "decomposition energy of each known compound against the other phases, UMA + MP2020 vs MP",
+  "compounds": {
+   "n": 18,
+   "mae": 0.0054,
+   "rmse": 0.0064,
+   "max_abs": 0.0126,
+   "bias": -0.0019
+  },
+  "polysulfides": {
+   "n": 2,
+   "mae": 0.008,
+   "rmse": 0.0091,
+   "max_abs": 0.0124,
+   "bias": -0.008
+  }
+ },
+ {
+  "system": "Li-P",
+  "available": true,
+  "rows": [
+   {
+    "formula": "Li3P",
+    "id": "mp-736",
+    "mp": -0.4349,
+    "uma": -0.4405,
+    "diff": -0.0056,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3P7",
+    "id": "mp-28336",
+    "mp": -0.0326,
+    "uma": -0.031,
+    "diff": 0.0016,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiP",
+    "id": "mp-9588",
+    "mp": -0.0139,
+    "uma": -0.0121,
+    "diff": 0.0018,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiP5",
+    "id": "mp-2412",
+    "mp": 0.0104,
+    "uma": 0.023,
+    "diff": 0.0126,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiP7",
+    "id": "mp-27687",
+    "mp": -0.0054,
+    "uma": -0.0127,
+    "diff": -0.0072,
+    "polysulfide": false
+   }
+  ],
+  "reason": null,
+  "method": "decomposition energy of each known compound against the other phases, UMA + MP2020 vs MP",
+  "compounds": {
+   "n": 5,
+   "mae": 0.0058,
+   "rmse": 0.007,
+   "max_abs": 0.0126,
+   "bias": 0.0006
+  },
+  "polysulfides": {
+   "n": 0,
+   "mae": null,
+   "rmse": null,
+   "max_abs": null,
+   "bias": null
+  }
+ },
+ {
+  "system": "Li-S-Sb",
+  "available": true,
+  "rows": [
+   {
+    "formula": "Li27Sb10",
+    "id": "mp-676024",
+    "mp": 0.0134,
+    "uma": 0.0137,
+    "diff": 0.0003,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2S",
+    "id": "mp-1153",
+    "mp": -1.2484,
+    "uma": -1.2552,
+    "diff": -0.0068,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2Sb",
+    "id": "mp-1545896",
+    "mp": -0.0328,
+    "uma": -0.0347,
+    "diff": -0.0018,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3Sb",
+    "id": "mp-7955",
+    "mp": -0.073,
+    "uma": -0.0735,
+    "diff": -0.0005,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3Sb11S18",
+    "id": "mp-767088",
+    "mp": 0.0044,
+    "uma": -0.0023,
+    "diff": -0.0068,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3Sb17S27",
+    "id": "mp-767137",
+    "mp": 0.013,
+    "uma": 0.0159,
+    "diff": 0.0029,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3SbS3",
+    "id": "mp-1194339",
+    "mp": -0.0005,
+    "uma": -0.0039,
+    "diff": -0.0034,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3SbS4",
+    "id": "mp-756316",
+    "mp": -0.0459,
+    "uma": -0.0416,
+    "diff": 0.0043,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiS4",
+    "id": "mp-995393",
+    "mp": -0.1618,
+    "uma": -0.1742,
+    "diff": -0.0124,
+    "polysulfide": true
+   },
+   {
+    "formula": "LiSb3",
+    "id": "mp-1185416",
+    "mp": 0.0474,
+    "uma": 0.2085,
+    "diff": 0.1611,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiSbS",
+    "id": "mp-2206511",
+    "mp": 0.0217,
+    "uma": -0.0408,
+    "diff": -0.0625,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiSbS2",
+    "id": "mp-1079885",
+    "mp": -0.0087,
+    "uma": -0.0001,
+    "diff": 0.0086,
+    "polysulfide": false
+   },
+   {
+    "formula": "Sb2S3",
+    "id": "mp-2809",
+    "mp": -0.5511,
+    "uma": -0.5511,
+    "diff": -0.0,
+    "polysulfide": false
+   }
+  ],
+  "reason": null,
+  "method": "decomposition energy of each known compound against the other phases, UMA + MP2020 vs MP",
+  "compounds": {
+   "n": 13,
+   "mae": 0.0209,
+   "rmse": 0.0482,
+   "max_abs": 0.1611,
+   "bias": 0.0064
+  },
+  "polysulfides": {
+   "n": 1,
+   "mae": 0.0124,
+   "rmse": 0.0124,
+   "max_abs": 0.0124,
+   "bias": -0.0124
+  }
+ },
+ {
+  "system": "Li-S",
+  "available": true,
+  "rows": [
+   {
+    "formula": "Li2S",
+    "id": "mp-1153",
+    "mp": -1.2484,
+    "uma": -1.2552,
+    "diff": -0.0068,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiS4",
+    "id": "mp-995393",
+    "mp": -0.1618,
+    "uma": -0.1742,
+    "diff": -0.0124,
+    "polysulfide": true
+   }
+  ],
+  "reason": null,
+  "method": "decomposition energy of each known compound against the other phases, UMA + MP2020 vs MP",
+  "compounds": {
+   "n": 2,
+   "mae": 0.0096,
+   "rmse": 0.01,
+   "max_abs": 0.0124,
+   "bias": -0.0096
+  },
+  "polysulfides": {
+   "n": 1,
+   "mae": 0.0124,
+   "rmse": 0.0124,
+   "max_abs": 0.0124,
+   "bias": -0.0124
+  }
+ },
+ {
+  "system": "Li-Sb",
+  "available": true,
+  "rows": [
+   {
+    "formula": "Li27Sb10",
+    "id": "mp-676024",
+    "mp": 0.0134,
+    "uma": 0.0137,
+    "diff": 0.0003,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2Sb",
+    "id": "mp-1545896",
+    "mp": -0.0328,
+    "uma": -0.0347,
+    "diff": -0.0018,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3Sb",
+    "id": "mp-7955",
+    "mp": -0.073,
+    "uma": -0.0735,
+    "diff": -0.0005,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiSb3",
+    "id": "mp-1185416",
+    "mp": 0.0474,
+    "uma": 0.2085,
+    "diff": 0.1611,
+    "polysulfide": false
+   }
+  ],
+  "reason": null,
+  "method": "decomposition energy of each known compound against the other phases, UMA + MP2020 vs MP",
+  "compounds": {
+   "n": 4,
+   "mae": 0.0409,
+   "rmse": 0.0806,
+   "max_abs": 0.1611,
+   "bias": 0.0398
+  },
+  "polysulfides": {
+   "n": 0,
+   "mae": null,
+   "rmse": null,
+   "max_abs": null,
+   "bias": null
+  }
+ },
+ {
+  "system": "Li-Si",
+  "available": true,
+  "rows": [
+   {
+    "formula": "Li13Si4",
+    "id": "mp-672287",
+    "mp": -0.0077,
+    "uma": -0.0076,
+    "diff": 0.0,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li15Si4",
+    "id": "mp-569849",
+    "mp": -0.0102,
+    "uma": -0.0119,
+    "diff": -0.0017,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2Si",
+    "id": "mp-27705",
+    "mp": 0.043,
+    "uma": 0.0378,
+    "diff": -0.0052,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li7Si2",
+    "id": "mp-27930",
+    "mp": 0.0283,
+    "uma": 0.0303,
+    "diff": 0.002,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li7Si3",
+    "id": "mp-1201871",
+    "mp": -0.0276,
+    "uma": -0.0248,
+    "diff": 0.0028,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiSi",
+    "id": "mp-795",
+    "mp": 0.0122,
+    "uma": 0.0106,
+    "diff": -0.0016,
+    "polysulfide": false
+   }
+  ],
+  "reason": null,
+  "method": "decomposition energy of each known compound against the other phases, UMA + MP2020 vs MP",
+  "compounds": {
+   "n": 6,
+   "mae": 0.0022,
+   "rmse": 0.0027,
+   "max_abs": 0.0052,
+   "bias": -0.0006
+  },
+  "polysulfides": {
+   "n": 0,
+   "mae": null,
+   "rmse": null,
+   "max_abs": null,
+   "bias": null
+  }
+ }
+]

@@ -104,6 +104,12 @@ def _md_screen(cands: list[dict], plan: dict) -> list[dict]:
     return md_verdicts(md_screen(jobs, backend=backend, max_runs=len(jobs) * config.MD_SCREEN_SEEDS))
 
 
+def _ehull_error(formula: str) -> dict | None:
+    from autolab.analysis.uma_errors import ehull_uncertainty
+
+    return ehull_uncertainty(formula)
+
+
 def _novelty(cands: list[dict], client) -> dict:
     from autolab.agent.novelty import novelty_check
     from autolab.store.cache import JsonCache
@@ -122,6 +128,7 @@ class ElectrolyteTools(Tools):
     md_plan: Callable = _md_plan  # (candidates) -> runs to compute and estimated cost
     md_screen: Callable = _md_screen  # (candidates, plan) -> md_verdicts rows (parents included)
     novelty: Callable = _novelty  # (candidates, client) -> novelty_check dict
+    ehull_error: Callable = _ehull_error  # (formula) -> UMA-vs-DFT error bar of its system (analysis.uma_errors)
 
 
 # --- stages -------------------------------------------------------------------
@@ -177,11 +184,18 @@ def electrodes(camp: Campaign) -> dict:
             out["not_computed"][c["id"]] = f"window and passivation: {e}"
             continue
         w, p = wp["window"], wp["passivation"]
-        # reduced confidence: polysulfides in the decomposition of the electrolyte only (window, Li metal);
-        # those of the cathode reaction (FeS2 for almost every sulfide) are information
-        polys = set(w.get("polysulfide_products") or []) | set(p.get("polysulfide_products") or [])
+        # reduced confidence: polysulfides in the decomposition of the electrolyte only (window, Li metal), and for
+        # the window only when its limits move by more than WINDOW_SENSITIVITY_MAX_V once the polysulfide energies are
+        # shifted by their measured UMA error (window_sensitivity); those of the cathode reaction (FeS2 for almost
+        # every sulfide) are information
+        sens = w.get("sensitivity")
+        window_polys = set(w.get("polysulfide_products") or [])
+        robust = bool(window_polys) and sens is not None and sens["robust"]
+        polys = (set() if robust else window_polys) | set(p.get("polysulfide_products") or [])
         c.update(window={k: w.get(k) for k in ("v_low", "v_high", "stable", "reduction_products",
-                                               "oxidation_products")}, passivation=p["verdict"],
+                                               "oxidation_products", "sensitivity")},
+                 window_polysulfides=sorted(window_polys), window_robust=robust if window_polys else None,
+                 passivation=p["verdict"],
                  passivation_reaction_energy=p["reaction_energy"], passivation_products=p["products"],
                  metallic_products=p["metallic_products"])
         if p["verdict"] in config.ELECTRODE_EXCLUDED_PASSIVATION:  # excluded: no interface computed
@@ -361,6 +375,13 @@ def ranking(camp: Campaign) -> dict:
         return (bool(c.get("excluded_at")), order.get(c.get("md_verdict") or "not_run", len(order)), *rank_key(c))
 
     ranked = sorted(camp.passed(), key=key)
+    errors = {}
+    error_bar = getattr(camp.tools, "ehull_error", None)  # funnel-only tools (other domains, tests) have none
+    for c in ranked:  # error bar of the E_hull: UMA vs DFT on the known compounds of its system (cached per system)
+        f = c["formula"]
+        if f not in errors:
+            errors[f] = error_bar(f) if error_bar else None
+        c["e_hull_error"] = errors[f] if errors[f] and errors[f].get("available", True) else None
     kept = [c["id"] for c in ranked if not c.get("excluded_at")]
     out = {"ranking": [c["id"] for c in ranked], "kept": kept, "finalists": kept[:config.FINALISTS_MAX],
            "excluded": {c["id"]: f"{c['excluded_at']}: {c['exclusion_reason']}" for c in ranked if c.get("excluded_at")}}
@@ -467,8 +488,15 @@ def render_electrodes(out: dict, result: dict) -> list[str]:
             c = by_id[cid]
             w = c["window"]
             window = f"{_v(w['v_low'])}–{_v(w['v_high'])}" if w["stable"] else "zero width (not a rejection)"
-            conf = (f"reduced (electrolyte decomposes via {', '.join(c['electrodes_polysulfides'])})"
+            sens = (w.get("sensitivity") or {}) if isinstance(w, dict) else {}
+            conf = (f"reduced (electrolyte decomposes via {', '.join(c['electrodes_polysulfides'])}"
+                    + (f"; window limits move by {_v(sens.get('max_shift_V'))} V when the polysulfide energies shift "
+                       f"by ±{sens.get('delta_eV_per_atom')} eV/atom" if sens.get("windows") else "") + ")"
                     if c["electrodes_reduced_confidence"] else "normal")
+            if c.get("window_robust"):
+                conf += (f" (window via {', '.join(c['window_polysulfides'])}, robust: limits move by "
+                         f"{_v(sens.get('max_shift_V'))} V for ±{sens.get('delta_eV_per_atom')} eV/atom on the "
+                         f"polysulfides)")
             if c.get("interface_polysulfides"):
                 conf += f"; cathode reaction forms {', '.join(c['interface_polysulfides'])} (information)"
             if c.get("interfaces") and all(v is None for v in c["interfaces"].values()) and not c.get("excluded_at"):
@@ -481,7 +509,10 @@ def render_electrodes(out: dict, result: dict) -> list[str]:
     if out.get("stopped"):
         lines += ["", f"**Stopped:** {out['stopped']}"]
     lines += ["", "Reduced confidence: the decomposition of the electrolyte (window limits, Li metal) goes through a "
-                  "polysulfide, where UMA is least reliable. Interfaces are informative (no threshold); a polysulfide "
+                  "polysulfide, where UMA is least reliable, and the window limits move by more than "
+                  f"{config.WINDOW_SENSITIVITY_MAX_V} V when every polysulfide energy is shifted by "
+                  f"±{config.POLYSULFIDE_ENERGY_ERROR_EV} eV/atom (twice the largest UMA-vs-DFT difference measured on "
+                  "known polysulfides). Interfaces are informative (no threshold); a polysulfide "
                   "formed with the cathode (FeS2 for almost every sulfide against LiFePO4) is shown as information only."]
     return lines + [""]
 
@@ -547,7 +578,8 @@ def render_ranking(out: dict, result: dict) -> list[str]:
     lines = ["## Final ranking", "",
              f"Order: MD verdict ({' > '.join(config.FINAL_RANK_MD_ORDER)}), then lowest E_hull per substitution; "
              "excluded candidates last, with their reason. Candidates are computational predictions, not proven "
-             "materials.", ""]
+             "materials. E_hull ± its error bar: mean absolute UMA-vs-DFT (Materials Project) difference on the known "
+             "compounds of the same chemical system.", ""]
     if not out["ranking"]:
         return lines + ["No candidate passed all filters.", ""]
     for i, cid in enumerate(out["ranking"], 1):
@@ -559,8 +591,10 @@ def render_ranking(out: dict, result: dict) -> list[str]:
             flags.append(f"reduced confidence of the window (decomposes via {', '.join(c['electrodes_polysulfides'])})")
         tail = f" — EXCLUDED at {c['excluded_at']}: {c['exclusion_reason']}" if c.get("excluded_at") else ""
         star = " **finalist**" if cid in out["finalists"] else ""
+        err = c.get("e_hull_error")
+        pm = f" ± {err['mae_eV_per_atom']:.3f}" if err else ""
         lines.append(f"{i}. {cid} {c['formula']}{star}: E_hull per substitution {c['e_hull_per_substitution']:.3f} eV, "
-                     f"E_hull {c['e_hull']:.3f} eV/atom, gap {_v(c.get('gap_optb88'))} eV, MD {md}{ratio}"
+                     f"E_hull {c['e_hull']:.3f}{pm} eV/atom, gap {_v(c.get('gap_optb88'))} eV, MD {md}{ratio}"
                      f"{'; ' + '; '.join(flags) if flags else ''}{tail}")
     return lines + [""]
 
@@ -571,7 +605,8 @@ METHODS = [
     ("Candidate proposals and decisions", "Meta Muse Spark (reasoning model), with comparisons computed by the code"),
     ("Structure relaxation and energies", "Meta FAIR UMA (uma-s-1p2, OMat head), MP2020 corrections; references from "
                                          "Materials Project, all relaxed with UMA (no mixing of energy sources)"),
-    ("Thermodynamic stability", "energy above the convex hull of the chemical system; kept if <= 0.05 eV/atom"),
+    ("Thermodynamic stability", "energy above the convex hull of the chemical system; kept if <= 0.05 eV/atom; error "
+                                "bar measured against DFT (Materials Project) on the known compounds of the same system"),
     ("Electronic band gap", "recorded prediction (optB88vdW scale for the filter, mBJ shown); kept if >= 2 eV"),
     ("Electrochemical window and electrodes", "grand-potential phase diagrams (window, reaction with Li metal), "
                                               "interface reactivity with LiFePO4 (calibrated against MP)"),
@@ -589,6 +624,7 @@ METHODS = [
 REPORT_SYSTEM = """You write the final report of a computational materials-discovery research, for scientists and for readers who are not specialists. The code gives you the comparison table of the three finalists (the first one is the champion: the best compromise by the criteria of the research), the excluded candidates with their reasons, the literature check and what was not computed.
 Rules:
 - Use only the numbers of the table, quoted exactly with their units; never invent or estimate a value. A missing value was not computed: say so.
+- The energy above the hull comes with its error bar (e_hull_error_eV_per_atom: mean UMA-vs-DFT difference on known compounds of the same system): quote it with the value when given.
 - champion_reasons: why the champion is preferred to the two others, each reason tied to numbers of the table.
 - tradeoffs: its compromises and weaknesses. uncertainties: what limits the confidence (methods, temperature of the diffusion, reduced-confidence flags, statistics).
 - validation: experiments or calculations to confirm it (e.g. XRD, impedance spectroscopy, DFT checks, cycling against Li metal), each with "basis": "documented" (standard practice) or "hypothesis".
@@ -625,6 +661,9 @@ def _finalist_row(c: dict, novelty_by_id: dict) -> dict:
     return {"id": c["id"], "formula": c["formula"], "parent": c.get("parent_formula") or c.get("parent"),
             "substitution": c.get("substitution"), **_structure_info(c),
             "e_hull_eV_per_atom": c.get("e_hull"), "e_hull_per_substitution_eV": c.get("e_hull_per_substitution"),
+            "e_hull_error_eV_per_atom": (c.get("e_hull_error") or {}).get("mae_eV_per_atom"),
+            "e_hull_error_basis": (f"mean absolute UMA-vs-DFT difference on {c['e_hull_error']['n']} known compounds of "
+                                   f"{c['e_hull_error']['system']}" if c.get("e_hull_error") else None),
             "decomposition": c.get("decomposition"), "gap_optb88_eV": c.get("gap_optb88"), "gap_mbj_eV": c.get("gap_mbj"),
             "window_V": c.get("window"), "against_li_metal": c.get("passivation"),
             "reaction_with_LiFePO4_eV_per_atom": c.get("interface_reaction_energy"),
@@ -705,7 +744,8 @@ def render_report(out: dict, result: dict) -> list[str]:
               "| | " + " | ".join(r["formula"] for r in rows) + " |", "|---|" + "---|" * len(rows)]
     fields = [("Parent crystal", "parent", None), ("Space group", "space_group", None),
               ("Cell a / b / c (Å)", None, lambda r: " / ".join(_fmt(r.get(k), ".2f") for k in ("a_A", "b_A", "c_A"))),
-              ("E_hull (eV/atom)", "e_hull_eV_per_atom", ".3f"),
+              ("E_hull (eV/atom)", None, lambda r: _fmt(r.get("e_hull_eV_per_atom"), ".3f") + (
+                  f" ± {r['e_hull_error_eV_per_atom']:.3f}" if r.get("e_hull_error_eV_per_atom") is not None else "")),
               ("E_hull per substitution (eV)", "e_hull_per_substitution_eV", ".3f"),
               ("Band gap optB88 / mBJ (eV)", None, lambda r: f"{_fmt(r['gap_optb88_eV'], '.2f')} / {_fmt(r['gap_mbj_eV'], '.2f')}"),
               ("Window (V)", None, lambda r: (f"{r['window_V']['v_low']:.2f}–{r['window_V']['v_high']:.2f}"

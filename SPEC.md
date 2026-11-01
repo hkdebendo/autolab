@@ -119,7 +119,8 @@ Le fichier `.env` est dans `.gitignore` **dès le premier commit**. Aucune clé 
 ### 5.3 `chem/checks.py` ✅
 - `a_liaisons_SS(atoms, rayon=2.3)` : vrai si deux S sont à moins de 2,3 Å (via `ase.neighborlist.neighbor_list`).
 - **Ne s'applique qu'aux composés** (ignorer le soufre élémentaire, fait d'anneaux S₈).
-- Si vrai : le résultat UMA est marqué « fiabilité réduite » (UMA se trompe sur les polysulfures : LiS₄ à 0,178 eV/atome avec UMA contre 0 dans MP).
+- Si vrai : le résultat UMA est marqué « fiabilité réduite » (UMA brut se trompe sur les polysulfures : LiS₄ à 0,178 eV/atome au-dessus de l'enveloppe avec UMA contre 0 dans MP).
+- ⚠️ Mesure du 2026-11-01 (`results/2026-11-01_uma_error_bars`) : **avec les corrections MP2020** (utilisées partout depuis le 28 octobre), l'énergie de décomposition de LiS₄ est −0,174 eV/atome contre −0,162 dans MP, et l'écart UMA + MP2020 / MP reste ≤ 0,0124 eV/atome sur 9 polysulfures connus. L'ancien chiffre (0,17) comparait UMA sans corrections.
 
 ### 5.4 `data/mp.py` ✅
 - `MPRester(MP_API_KEY)`, `mpr.materials.summary.search(...)`.

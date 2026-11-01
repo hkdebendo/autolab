@@ -91,6 +91,11 @@ INTERFACE_REF_EHULL_MAX = 0.0  # eV/atom, MP references kept for cathode interfa
 INTERFACE_CALIBRATION_MAX_DIFF = 0.05  # eV/atom, max |UMA - MP| on Li3PS4/cathode before trusting UMA interfaces
 CALIBRATION_CATHODES = ["LiCoO2", "LiFePO4"]  # LiCoO2: MP -0.416 eV/atom; LiFePO4: magnetic Fe, checked too
 LI3PS4_WINDOW_MP = (1.72, 2.34)  # V, Li3PS4 window with MP energies (validated, SPEC 5.9)
+# Window sensitivity (2026-11-01): the window is recomputed with every polysulfide energy shifted by -/+ this amount;
+# 2 x the largest UMA + MP2020 vs MP difference measured on 9 polysulfides (0.0124 eV/atom, LiS4;
+# results/2026-11-01_uma_error_bars). Reduced confidence only when a limit then moves by more than WINDOW_SENSITIVITY_MAX_V.
+POLYSULFIDE_ENERGY_ERROR_EV = 0.025  # eV/atom
+WINDOW_SENSITIVITY_MAX_V = 0.1  # V
 # MP2020 corrections (pymatgen MaterialsProject2020Compatibility) on every UMA energy (E_hull, windows, passivation,
 # interfaces): UMA reproduces raw PBE / PBE+U energies, comparable across oxides of U metals and sulfides only after
 # this scheme. Each entry gets its structure and oxidation states, so the corrected anion atoms are conserved.

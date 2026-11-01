@@ -41,3 +41,9 @@ A10G vs H100 check (fixed beforehand, results/2026-11-01_md_gpu_check): same D f
 H100 measured 14-17 ms/step, 1.3-1.7x faster than A10G (2.1-2.7x dearer per run). Cost: 2 H100 runs, ~1.5 $ (estimate 1.76 $). 142 tests pass.
 Next: error-driven loop (MD inside each iteration, failures fed back to Muse Spark; live: 3 iterations, 1 MD candidate each).
 Service redeployed on Modal (owner's go): H100 MD and today's fixes live; health ok, not busy, 1 of 6 researches used. Owner: future redeploys pre-approved.
+
+**Error-driven loop (2026-11-01)** — slow tests (Li-metal contact, MD) inside each iteration, failures fed back to Muse Spark with their measurements (hypothesis + correction asked), live research 3 rounds x 1 MD (H100), MD cap 7 $ over the whole research. 163 tests pass. Owner's Modal ceiling: 40 $ total (~13.5 $ spent).
+Real test launched through the deployed service: 3 rounds x 3 candidates. Estimate: Modal ~6 $ (3 MD x 2 H100 runs ~5 $, <=160 relaxations ~0.8 $), Meta ~0.6 $, Baseten ~0.2 $, Fireworks (Glimmer wake-up) ~1 $.
+
+**UMA error bars and window sensitivity (2026-11-01)** — results/2026-11-01_uma_error_bars: UMA + MP2020 vs DFT (MP) on known compounds, leave-one-out decomposition energies, 18 of 19 systems: mean abs. 0.004-0.006 eV/atom for the sulfide systems (largest 0.013-0.021), Sb systems worse (LiSb3 alloy 0.161); 9 polysulfides within 0.0124 eV/atom. E_hull now shown with its error bar (ranking, final report).
+Window sensitivity: polysulfide energies shifted by +/-0.025 eV/atom; on the 20 reference-run candidates 11 windows are robust (limits move 0.02-0.08 V: flag removed), 9 not (Li7P3S11 family: the 2.28-2.30 V window vanishes, flag kept). Cost: 0 $ (one light MP request per system).

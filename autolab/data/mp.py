@@ -171,6 +171,24 @@ def get_entries(elements: Iterable[str]) -> list[ComputedEntry]:
     return entries
 
 
+def get_reference_energies(elements: Iterable[str]) -> dict[str, float]:
+    """MP energies per atom (GGA/GGA+U with MP2020 corrections, eV/atom) of the hull references of a system, for
+    the UMA-vs-DFT error bars only (analysis.uma_errors; never put in a hull with UMA energies). One light request
+    per system (energies only, no structure), cached."""
+    elements = sorted(set(elements))
+    path = config.MP_CACHE_DIR / "reference_energies" / f"{chemsys_key(elements)}.json"
+    cached = _read(path)
+    if cached is not None:
+        return cached
+    ids = sorted({r["material_id"] for r in get_references(elements)})
+    with _rester() as mpr:
+        docs = mpr.materials.thermo.search(material_ids=ids, thermo_types=config.MP_THERMO_TYPES,
+                                           fields=["material_id", "energy_per_atom", "thermo_type"])
+    out = {str(d.material_id): d.energy_per_atom for d in docs if d.energy_per_atom is not None}
+    _write(path, out)
+    return out
+
+
 def material_id_of(label: str) -> str:
     """MP material id from an entry id or name, e.g. 'mp-1153-GGA' -> 'mp-1153'."""
     return "-".join(str(label).split("-")[:2])

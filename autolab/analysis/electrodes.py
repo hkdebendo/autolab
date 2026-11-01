@@ -94,6 +94,46 @@ def electrochemical_window(
     }
 
 
+def _shifted(entries: list, formulas: set[str], delta: float) -> list:
+    """The entries with the energy of every phase of `formulas` shifted by `delta` eV/atom (same source tag)."""
+    out = []
+    for e in entries:
+        if e.composition.reduced_formula in formulas:
+            e = PDEntry(e.composition, e.energy + delta * e.composition.num_atoms, name=e.name, attribute=e.attribute)
+        out.append(e)
+    return out
+
+
+def window_sensitivity(target, entries: list, base: dict | None = None,
+                       delta: float = config.POLYSULFIDE_ENERGY_ERROR_EV) -> dict:
+    """Does the window depend on the polysulfide energies, where UMA is least reliable? The window is recomputed with
+    every polysulfide of the hull (S-S bonds; the target excepted) shifted by -delta and +delta eV/atom; `robust`
+    when no limit moves by more than config.WINDOW_SENSITIVITY_MAX_V (and the window keeps a width)."""
+    from autolab.analysis.uma_errors import is_polysulfide
+
+    base = base or electrochemical_window(target, entries)
+    polys = sorted({e.composition.reduced_formula for e in entries if is_polysulfide(e)}
+                   - {target.composition.reduced_formula})
+    out = {"delta_eV_per_atom": delta, "polysulfides": polys, "windows": [], "max_shift_V": 0.0, "robust": True,
+           "limit_V": config.WINDOW_SENSITIVITY_MAX_V}
+    if not polys:
+        return out
+    shifts = []
+    for sign in (-1, 1):
+        w = electrochemical_window(target, _shifted(entries, set(polys), sign * delta))
+        out["windows"].append({"shift_eV_per_atom": sign * delta, "stable": w["stable"], "v_low": w["v_low"],
+                               "v_high": w["v_high"]})
+        if w["stable"] != base["stable"]:  # the window vanishes, or a zero-width window opens
+            shifts.append(float("inf"))
+        elif w["stable"]:
+            shifts += [abs(w["v_low"] - base["v_low"]), abs(w["v_high"] - base["v_high"])]
+        else:
+            shifts.append(0.0)
+    out["max_shift_V"] = round(max(shifts), 3) if all(s != float("inf") for s in shifts) else None
+    out["robust"] = out["max_shift_V"] is not None and out["max_shift_V"] <= config.WINDOW_SENSITIVITY_MAX_V
+    return out
+
+
 def passivation(
     target,
     entries: list,
