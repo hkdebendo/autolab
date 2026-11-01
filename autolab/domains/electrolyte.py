@@ -498,6 +498,13 @@ def feedback(cands: list[dict]) -> list[dict]:
     return out
 
 
+def _unlabelled(text, label: str = "hypothesis") -> str:
+    """The model's sentence without its own leading "Hypothesis:" (the report adds the label)."""
+    import re
+
+    return re.sub(rf"^\s*{label}\s*:\s*", "", str(text or ""), flags=re.I)
+
+
 def render_feedback(record: dict) -> list[str]:
     """Report lines of the slow tests of one iteration and of the model's reading of the failures."""
     fb = record.get("feedback") or []
@@ -508,7 +515,8 @@ def render_feedback(record: dict) -> list[str]:
     lines += [f"- {f['message']}" for f in fb] or ["- none"]
     if fa:
         lines += ["", "**The model's reading of the failures (hypotheses, not measurements):**", ""]
-        lines += [f"- {x.get('id')}: hypothesis: {x.get('hypothesis')} — correction: {x.get('correction')}" for x in fa]
+        lines += [f"- {x.get('id')}: hypothesis: {_unlabelled(x.get('hypothesis'))} — correction: "
+                  f"{_unlabelled(x.get('correction'), 'correction')}" for x in fa]
     return lines + [""]
 
 

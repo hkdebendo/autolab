@@ -637,7 +637,7 @@ function notesHTML(notes) {
     if (n.kind === "feedback") return `<div class="note"><h4>Slow tests of round ${esc(n.data.iteration)} (sent back to the agent)</h4>
       <ul>${n.data.results.map((f) => `<li class="${f.outcome === "failed" ? "neg" : "pos"}">${esc(f.message)}</li>`).join("")}</ul></div>`;
     if (n.kind === "analysis") return `<div class="note"><h4>Interpretation</h4>${(n.data.failure_analysis || []).length ? `<p><b>Reading of the failures (hypotheses, not measurements):</b></p>
-      <ul>${n.data.failure_analysis.map((x) => `<li><b>${esc(x.id)}</b>: ${esc(x.hypothesis)} <i>Correction:</i> ${esc(x.correction)}</li>`).join("")}</ul>` : ""}<ul>${(n.data.lessons || []).map((l) => `<li>${esc(l)}</li>`).join("")}</ul>
+      <ul>${n.data.failure_analysis.map((x) => `<li><b>${esc(x.id)}</b>: ${esc(String(x.hypothesis || "").replace(/^\s*hypothesis\s*:\s*/i, ""))} <i>Correction:</i> ${esc(String(x.correction || "").replace(/^\s*correction\s*:\s*/i, ""))}</li>`).join("")}</ul>` : ""}<ul>${(n.data.lessons || []).map((l) => `<li>${esc(l)}</li>`).join("")}</ul>
       ${n.data.next_direction ? `<p><b>Next:</b> ${esc(n.data.next_direction)}</p>` : ""}</div>`;
     if (n.kind === "md") return `<div class="note"><h4>Why these candidates are simulated</h4><p>${esc(n.data.rationale)}</p></div>`;
     return `<div class="note"><h4>Summary</h4><p>${esc(n.data.text)}</p></div>`;
