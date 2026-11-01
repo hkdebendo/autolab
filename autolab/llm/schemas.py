@@ -14,6 +14,7 @@ PROPOSAL_ITEM = {"parent": str, "substitution": dict, "rationale": str}
 SUBSTITUTION = {"remove": str, "add": str, "count": (int, str)}
 
 ANALYSIS = {"ranking": list, "lessons": list, "next_direction": str, "stop": bool}
+FAILURE_ITEM = {"id": str, "hypothesis": str, "correction": str}  # optional "failure_analysis" of an analysis
 MD_SELECTION = {"selected": list, "rationale": str}
 CANDIDATE_ANALYSIS = {"strengths": list, "risks": list, "md_priority": str, "summary": str}
 SCOPE = {"intent": str, "status": str, "domain": str, "title": str, "constraints": list, "reply": str}
@@ -30,8 +31,10 @@ TEMPLATES = {
                        "substitution": {"remove": "S", "add": "Cl", "count": 1, "li_vacancies": 1},
                        "rationale": "short sentence"}],
     },
-    "analysis": {"ranking": ["candidate_id"], "lessons": ["short sentence"],
-                 "next_direction": "short sentence", "stop": False},
+    "analysis": {"ranking": ["candidate_id"],
+                 "failure_analysis": [{"id": "candidate_id", "hypothesis": "short sentence",
+                                       "correction": "short sentence"}],
+                 "lessons": ["short sentence"], "next_direction": "short sentence", "stop": False},
     "md_selection": {"selected": ["candidate_id"], "rationale": "short sentence"},
     "candidate_analysis": {"strengths": ["short sentence"], "risks": ["short sentence"], "md_priority": "high",
                            "summary": "one sentence"},
@@ -73,6 +76,11 @@ def validate(obj, name: str) -> dict:
         for i, item in enumerate(obj["proposals"]):
             _check_keys(item, PROPOSAL_ITEM, f"proposals[{i}]")
             _check_keys(item["substitution"], SUBSTITUTION, f"proposals[{i}]['substitution']")
+    if name == "analysis" and "failure_analysis" in obj:  # optional; when given, each item is checked
+        if not isinstance(obj["failure_analysis"], list):
+            raise SchemaError("the reply['failure_analysis'] must be a list")
+        for i, item in enumerate(obj["failure_analysis"]):
+            _check_keys(item, FAILURE_ITEM, f"failure_analysis[{i}]")
     return obj
 
 

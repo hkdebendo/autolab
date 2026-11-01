@@ -164,10 +164,10 @@ MODAL_AGENT_APP = "autolab-agent"
 MODAL_DATA_VOLUME = "autolab-data"  # the whole .cache, uploaded once; live runs read and write it (never recompute)
 MODAL_KEYS_SECRET = "autolab-keys"  # created by the owner: MODEL_API_KEY, BASETEN_API_KEY, MP_API_KEY, JURY_ACCESS_CODE
 MODAL_LIVE_STORE = "autolab-live"  # modal.Dict: events of the live runs as they happen, lock, run counter
-LIVE_ITERATIONS = 1
+LIVE_ITERATIONS = 3  # owner, 2026-11-01: the error-driven loop needs rounds after a failure
 LIVE_CANDIDATES = 3
-LIVE_MAX_RELAXATIONS = 60
-LIVE_MD_SELECT_MAX = 1  # new MD candidates per live run (Modal budget; cached verdicts still apply to all)
+LIVE_MAX_RELAXATIONS = 160  # 3 rounds x 3 candidates x ~8 arrangements, plus references (T4, ~0.005 $ each)
+LIVE_MD_SELECT_MAX = 1  # new MD candidates per iteration of a live run (Modal budget; cached verdicts apply to all)
 LIVE_MAX_RUNS = 6  # live runs allowed in production (1-4 $ each), counted in the store; then refused
 LIVE_RUN_TIMEOUT_S = 3 * 3600
 LIVE_GOAL_MAX_CHARS = 500
@@ -274,8 +274,16 @@ REPORT_MAX_OUTPUT_TOKENS = 6000
 ELECTRODES_TOP = 20  # passed candidates (lowest E_hull per substitution first) that get window, passivation, interfaces
 AGENT_CATHODES = ("LiFePO4",)  # cathode interfaces in the loop (cobalt-free, calibrated against MP); informative, no threshold
 ELECTRODE_EXCLUDED_PASSIVATION = ("non_passivating",)  # SPEC 5.9: metallic products and reaction >= 0.1 eV/atom with Li metal
-MD_SELECT_MAX = 3  # candidates the model may send to MD; with their parents and MD_SCREEN_SEEDS within MD_SCREEN_MAX_RUNS
-MD_MAX_USD_PER_RUN = 5.0  # estimated Modal cost of the MD stage above which it is not launched
+MD_SELECT_MAX = 3  # candidates the model may send to MD (without the feedback loop); within MD_SCREEN_MAX_RUNS
+MD_MAX_USD_PER_RUN = 7.0  # estimated Modal cost of all the MD launched in one research; an MD step that would pass it
+# is not launched (3 rounds x 1 candidate x 2 H100 runs ~ 5 $)
+
+# Error-driven loop (owner, 2026-11-01): the slow tests (electrodes, reviews, MD choice, MD) run inside each iteration
+# on its candidates; their results, failures included with their measurements, go back to the model before it
+# analyses the iteration (hypothesis on the cause, correction) and proposes the next one.
+FEEDBACK_LOOP = True
+ITERATION_MD_SELECT_MAX = 1  # candidates of one iteration sent to MD (the model chooses)
+FINAL_MD_SELECT_MAX = 0  # new MD after the iterations with the feedback loop (cached verdicts still apply to all)
 FINAL_RANK_MD_ORDER = ("higher", "tied", "not_run")  # MD verdicts, best first; then lowest E_hull per substitution;
 # excluded candidates (passivation, MD "lower", framework moved) come last and stay listed with their reason
 FINALISTS_MAX = 3  # best kept candidates sent to the novelty check
@@ -303,9 +311,9 @@ BENCHMARK_BAD = {  # expected to be rejected: electronic conductors or unstable
     "mp-1222635": "Li2PS3 (unstable, 0.126 eV/atom above the MP hull, metallic)",
 }
 
-MAX_ITERATIONS = 2
+MAX_ITERATIONS = 3
 MAX_CANDIDATES_PER_ITERATION = 5
-MAX_LLM_CALLS_PER_RUN = 10
-MAX_TOKENS_PER_RUN = 200_000
+MAX_LLM_CALLS_PER_RUN = 14  # 3 rounds x (proposal, MD choice, analysis) + report, with margin
+MAX_TOKENS_PER_RUN = 300_000
 MAX_LLM_COST_PER_RUN_USD = 1.0  # estimated from LLM_PROVIDERS prices
 JSON_MAX_RETRIES = 3

@@ -18,7 +18,8 @@ class Step:
     stage: str | None = None  # name of the stage after the iterations, when it is one
 
 
-# Solid electrolytes (the only domain implemented): the funnel steps repeat in each iteration, the stages run once.
+# Solid electrolytes (the only domain implemented): the funnel steps repeat in each iteration; with the error-driven
+# loop the slow tests (electrodes to molecular dynamics) also run in each iteration, then once more on the whole pool.
 ELECTROLYTE_STEPS = (
     Step("goal", "Understanding the research goal",
          "AutoLab reads the request, checks that it is within the supported research areas and sets the constraints.",
@@ -38,8 +39,8 @@ ELECTROLYTE_STEPS = (
          "An electrolyte must not conduct electrons: the band gap is predicted with a band-gap model and "
          "must be at least 2 eV.", ("candidate/bandgap", "candidate/ss_check", "candidate/done")),
     Step("learn", "Interpreting the results",
-         "The numbers of this round are compared and the next direction of the search is chosen.",
-         ("llm/analysis", "llm/summary")),
+         "The numbers of this round are compared, the failures of the slow tests are explained as hypotheses, and the "
+         "next direction of the search is chosen to correct them.", ("loop/feedback", "llm/analysis", "llm/summary")),
     Step("electrodes", "Electrochemical window and electrode compatibility",
          "Stability window in volts, reaction with lithium metal (a candidate forming a metal is excluded) and "
          "reaction energy with a LiFePO4 cathode.", stage="electrodes"),
@@ -51,7 +52,8 @@ ELECTROLYTE_STEPS = (
          stage="md_selection"),
     Step("md", "Lithium-ion diffusion (molecular dynamics)",
          "Lithium motion is simulated at 600 K and compared with the parent crystal; a candidate clearly slower than its "
-         "parent, or whose framework falls apart, is excluded.", stage="molecular_dynamics"),
+         "parent, or whose framework falls apart, is excluded, and the failure is sent back to guide the next round.",
+         stage="molecular_dynamics"),
     Step("ranking", "Ranking the candidates",
          "Candidates are ordered by their diffusion verdict, then by their stability cost per substitution.",
          stage="ranking"),
@@ -69,8 +71,11 @@ def steps_from_events(events: list[dict], run_state: str, steps=ELECTROLYTE_STEP
     seen: dict[str, list[dict]] = {s.key: [] for s in steps}
     stage_status: dict[str, str] = {}
     stage_summary: dict[str, dict] = {}
+    round_status: dict[str, str] = {}  # stages run inside an iteration (error-driven loop): last status
+    round_summary: dict[str, dict] = {}
     stages_started = False
     last_index: dict[str, int] = {}
+    last_round_stage = -1  # index of the last event of a stage run inside an iteration
     for i, e in enumerate(events):
         k = f"{e['type']}/{e['step']}"
         for s in steps:
@@ -78,17 +83,31 @@ def steps_from_events(events: list[dict], run_state: str, steps=ELECTROLYTE_STEP
                 seen[s.key].append(e)
                 last_index[s.key] = i
         if e["type"] == "stage" and ":" not in e["step"]:
+            if e["data"].get("iteration") is not None:
+                round_status[e["step"]] = e["data"].get("status", "start")
+                round_summary[e["step"]] = e["data"]
+                last_round_stage = i
+                continue
             stages_started = True
             stage_status[e["step"]] = e["data"].get("status", "start")
             stage_summary[e["step"]] = e["data"]
     finished = run_state in ("done", "interrupted", "error")
     current = max(last_index, key=last_index.get) if last_index else None  # the funnel step being worked on
+    if current is not None and last_index[current] < last_round_stage:
+        current = None  # a slow test of the round runs after it
     out = []
     for s in steps:
         detail = None
         if s.stage:
             st = stage_status.get(s.stage)
             summary = stage_summary.get(s.stage, {})
+            rst = round_status.get(s.stage)
+            if rst is not None and (st is None or _skipped(summary)):
+                st, summary = rst, {**round_summary[s.stage], "skipped": None}
+                if st not in ("start", "interrupted", "error"):
+                    st = "done"
+                    summary = {**summary, "reason": None, "stopped": summary.get("stopped") or
+                               f"run in each round (last: round {round_summary[s.stage]['iteration']})"}
             if st is None:
                 state = INTERRUPTED if run_state == "interrupted" else SKIPPED if finished else PENDING
             elif st == "start":
@@ -97,7 +116,7 @@ def steps_from_events(events: list[dict], run_state: str, steps=ELECTROLYTE_STEP
                 state = INTERRUPTED
             elif st == "error":
                 state, detail = FAILED, summary.get("error")
-            elif summary.get("skipped") or (summary.get("reason") and not summary.get("verdicts")):
+            elif _skipped(summary):
                 state, detail = SKIPPED, summary.get("skipped") or summary.get("reason")
             else:
                 state, detail = DONE, summary.get("stopped")  # a stage stopped by a budget is done, partially
@@ -114,6 +133,10 @@ def steps_from_events(events: list[dict], run_state: str, steps=ELECTROLYTE_STEP
             detail = _funnel_detail(s.key, seen[s.key])
         out.append({"key": s.key, "label": s.label, "why": s.why, "state": state, "detail": detail})
     return out
+
+
+def _skipped(summary: dict) -> bool:
+    return bool(summary.get("skipped") or (summary.get("reason") and not summary.get("verdicts")))
 
 
 def _funnel_detail(key: str, evs: list[dict]) -> str | None:

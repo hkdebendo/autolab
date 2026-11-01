@@ -5,6 +5,9 @@ A domain gives:
 - the prompts (proposal, analysis) and the candidate fields the model sees, with the code-computed comparisons;
 - the stages run once after the iterations, in order, on the whole pool (e.g. electrodes, molecular dynamics,
   final ranking, novelty check), each deciding from the rules of config.py;
+- the slow tests run inside each iteration on its own candidates (config.FEEDBACK_LOOP), and the feedback built
+  from their results (failures with their measurements), given to the model before it analyses the iteration and
+  proposes the next one (error-driven design);
 - the config thresholds it decides with (listed in the report).
 
 Only "electrolyte" exists (solid electrolytes for Li-metal batteries). A new domain (e.g. cobalt-free cathodes)
@@ -35,13 +38,16 @@ class Domain:
     make_tools: Callable[[], Any]  # injectable expensive steps (tests replace them)
     evaluate: Callable  # (candidate_id, parent_id, parent_structure, substitution, tools, events, budget) -> dict
     proposal_messages: Callable  # (goal, parents, history, max_proposals) -> messages
-    analysis_messages: Callable  # (goal, iteration, hypothesis, results, history, comparisons) -> messages
+    analysis_messages: Callable  # (goal, iteration, hypothesis, results, history, comparisons, feedback) -> messages
     comparisons: Callable[[list[dict]], list[dict]]
     for_model: tuple[str, ...]  # candidate fields sent to the model
     rank_key: Callable[[dict], Any]  # order of the passed candidates after the funnel (best first)
     stages: tuple[Stage, ...] = ()
     thresholds: tuple[str, ...] = ()  # config names the domain decides with
     render_candidates: Callable[[list[dict]], list[str]] | None = None  # report table of one iteration
+    iteration_stages: tuple[Stage, ...] = ()  # slow tests run in each iteration on its candidates (FEEDBACK_LOOP)
+    feedback: Callable[[list[dict]], list[dict]] | None = None  # iteration candidates -> results of the slow tests
+    render_feedback: Callable[[dict], list[str]] | None = None  # iteration record -> report lines of its feedback
 
 
 @dataclass
@@ -53,6 +59,8 @@ class Campaign:
     goal: str
     candidates: list[dict]
     outputs: dict[str, dict] = field(default_factory=dict)
+    iteration: int | None = None  # set when the stages run inside one iteration, on its candidates only
+    settings: dict = field(default_factory=dict)  # per-campaign limits (e.g. md_select_max)
 
     @property
     def tools(self):
@@ -70,6 +78,8 @@ class Campaign:
         return [c for c in self.candidates if c.get("status") == "passed"]
 
     def emit(self, stage: str, step: str, candidate_id: str | None = None, **data) -> None:
+        if self.iteration is not None:
+            data = {**data, "iteration": self.iteration}
         self.agent.events.emit("candidate" if candidate_id else "stage", f"{stage}:{step}", data, candidate_id)
 
     def ask(self, messages: list[dict], schema: str, step: str) -> dict:

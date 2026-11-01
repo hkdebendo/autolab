@@ -2,7 +2,10 @@
 
 Iterations: proposal (model) -> Materials Project check -> UMA relaxation -> E_hull (UMA + MP2020, per
 substitution) -> band gap (GapModel) -> S-S flag (agent/pipeline.py).
-After the iterations, on the passed candidates:
+Error-driven loop (config.FEEDBACK_LOOP): steps 1-4 below also run inside each iteration on its own candidates
+(ITERATION_MD_SELECT_MAX candidate to MD), and their results (failures with their measurements: Li-metal contact,
+slower than the parent, framework moving) go back to the model before it analyses the iteration (feedback()).
+After the iterations, on the passed candidates (what was already computed in an iteration is reused):
 1. electrodes: window, passivation against Li metal, interfaces with config.AGENT_CATHODES (top ELECTRODES_TOP);
    non-passivating -> excluded; polysulfide products -> reduced confidence of the electrode results;
 2. candidate_analyses: Muse Spark Open (Baseten) reviews each eligible candidate, in parallel;
@@ -30,7 +33,8 @@ from autolab.llm import prompts
 FOR_MODEL = ("id", "parent", "substitution", "formula", "status", "rejected_at", "reason", "arrangements",
              "converged", "energy_spread_meV", "n_atoms", "n_modified", "e_hull", "e_hull_per_substitution",
              "decomposition", "decomposition_polysulfides", "reduced_confidence", "known_in_mp", "gap_optb88",
-             "gap_mbj", "gap_low_confidence", "ss_bonds")
+             "gap_mbj", "gap_low_confidence", "ss_bonds", "passivation", "md_verdict", "D_ratio_to_parent",
+             "D_ratio_err", "excluded_at", "exclusion_reason")
 
 FOR_SELECTION = ("id", "parent", "parent_formula", "substitution", "formula", "e_hull", "e_hull_per_substitution",
                  "reduced_confidence", "decomposition_polysulfides", "gap_optb88", "ss_bonds", "window", "passivation",
@@ -40,7 +44,7 @@ FOR_SELECTION = ("id", "parent", "parent_formula", "substitution", "formula", "e
 THRESHOLDS = ("CANDIDATE_ANALYSIS_PROVIDER", "CANDIDATE_ANALYSIS_MAX", "EHULL_SYNTHESIZABLE", "BANDGAP_MIN", "ELECTRODES_TOP", "AGENT_CATHODES", "ELECTRODE_EXCLUDED_PASSIVATION",
               "MD_SELECT_MAX", "MD_SCREEN_TEMPERATURE_K", "MD_SCREEN_PS", "MD_SCREEN_SEEDS", "MD_TIE_SIGMA",
               "MD_EXCLUDED_VERDICTS", "MD_MAX_USD_PER_RUN", "FINAL_RANK_MD_ORDER", "FINALISTS_MAX",
-              "NOVELTY_COST_CAP_USD")
+              "NOVELTY_COST_CAP_USD", "FEEDBACK_LOOP", "ITERATION_MD_SELECT_MAX", "MD_FRAMEWORK_D_RATIO_MAX")
 
 
 # --- default tools (expensive or networked; tests replace them) ---------------
@@ -140,17 +144,33 @@ def electrodes(camp: Campaign) -> dict:
     top = sorted(camp.passed(), key=rank_key)[:config.ELECTRODES_TOP]
     out = {"cathodes": list(config.AGENT_CATHODES), "calibrations": {}, "candidates": [], "excluded": [],
            "not_computed": {}, "stopped": None}
+    memo = getattr(camp.agent, "electrode_calibrations", None)  # computed once per research, reused by each iteration
+    if memo is None:
+        memo = {}
+        try:
+            camp.agent.electrode_calibrations = memo
+        except AttributeError:
+            pass
     try:
         for cathode in config.AGENT_CATHODES:
+            if cathode in memo:
+                out["calibrations"][cathode] = memo[cathode]
+                continue
             cal = t.interface_calibration(cathode, camp.budget)
             out["calibrations"][cathode] = {k: cal.get(k) for k in ("electrolyte", "cathode", "diff", "ok", "tolerance")}
             out["calibrations"][cathode].update(uma=cal["uma"]["min_reaction_energy"], mp=cal["mp"]["min_reaction_energy"])
+            memo[cathode] = out["calibrations"][cathode]
             camp.emit("electrodes", "calibration", **out["calibrations"][cathode])
     except BudgetExceeded as e:
         out["stopped"] = f"relaxation budget (calibration): {e}"
         out["summary"] = {"computed": 0, "stopped": out["stopped"]}
         return out
     for c in top:
+        if c.get("electrodes_done"):  # computed in an iteration of this research: reused as is
+            out["candidates"].append(c["id"])
+            if c.get("excluded_at") == "electrodes":
+                out["excluded"].append(c["id"])
+            continue
         try:
             wp = t.window_passivation(c, camp.budget)
         except BudgetExceeded as e:
@@ -186,7 +206,8 @@ def electrodes(camp: Campaign) -> dict:
         c.update(interfaces=interfaces, interface_reaction_energy=min(energies) if energies else None,
                  interface_polysulfides=sorted({x for r in interfaces.values() if r
                                                 for x in r.get("polysulfide_products") or []}),
-                 electrodes_polysulfides=sorted(polys), electrodes_reduced_confidence=bool(polys))
+                 electrodes_polysulfides=sorted(polys), electrodes_reduced_confidence=bool(polys),
+                 electrodes_done=True)
         out["candidates"].append(c["id"])
         camp.emit("electrodes", "done", c["id"], formula=c["formula"], window=c["window"], passivation=p["verdict"],
                   interface_reaction_energy=c["interface_reaction_energy"],
@@ -252,15 +273,16 @@ def md_selection(camp: Campaign) -> dict:
     from autolab.agent.loop import LoopStopped
 
     eligible = sorted((c for c in camp.passed() if not c.get("excluded_at")), key=rank_key)
-    n = config.MD_SELECT_MAX
+    n = camp.settings.get("md_select_max", config.MD_SELECT_MAX)
     out = {"eligible": [c["id"] for c in eligible], "choices": [], "selected": [], "ignored": [], "chosen_by": None,
            "rationale": None, "llm": None}
     for c in eligible:
         c["md_cached"] = bool(camp.tools.md_cached(c))
     choices = [c for c in eligible if not c["md_cached"]]
     out["choices"] = [c["id"] for c in choices]
-    if not choices:
-        reason = "no eligible candidate" if not eligible else "every eligible candidate is already simulated"
+    if not choices or n <= 0:
+        reason = ("no eligible candidate" if not eligible else "every eligible candidate is already simulated"
+                  if not choices else "candidates were chosen for molecular dynamics in each iteration")
         out["summary"] = {"selected": [], "reason": reason}
         return out
     view = [{k: c.get(k) for k in FOR_SELECTION if k in c and k != "md_cached"} for c in choices]
@@ -298,14 +320,17 @@ def molecular_dynamics(camp: Campaign) -> dict:
     plan = camp.tools.md_plan(cands)
     out["plan"] = {k: plan.get(k) for k in ("gpu", "runs", "total_runs", "wall_s", "usd", "usd_max", "timeout_s")}
     camp.emit("molecular_dynamics", "plan", **out["plan"])
-    if plan["usd"] > config.MD_MAX_USD_PER_RUN:
-        out["stopped"] = (f"estimated Modal cost {plan['usd']:.2f} $ above MD_MAX_USD_PER_RUN "
-                          f"({config.MD_MAX_USD_PER_RUN:g} $): not launched")
+    spent = getattr(camp.agent, "md_usd", 0.0)  # MD already launched in this research (earlier iterations)
+    if spent + plan["usd"] > config.MD_MAX_USD_PER_RUN:
+        out["stopped"] = (f"estimated Modal cost {plan['usd']:.2f} $ (plus {spent:.2f} $ already launched in this "
+                          f"research) above MD_MAX_USD_PER_RUN ({config.MD_MAX_USD_PER_RUN:g} $): not launched")
     elif plan["runs"] > config.MD_SCREEN_MAX_RUNS:
         out["stopped"] = f"{plan['runs']} MD runs to compute, above MD_SCREEN_MAX_RUNS ({config.MD_SCREEN_MAX_RUNS}): not launched"
     if out["stopped"]:
         out["summary"] = {"stopped": out["stopped"]}
         return out
+    if plan["usd"] and hasattr(camp.agent, "md_usd"):
+        camp.agent.md_usd = spent + plan["usd"]
     rows = camp.tools.md_screen(cands, plan)
     out["rows"] = [{k: v for k, v in r.items() if k not in ("D_blocks_cm2_per_s",)} for r in rows]
     for r in rows:
@@ -316,7 +341,8 @@ def molecular_dynamics(camp: Campaign) -> dict:
         c.update(D_cm2_per_s=r["D_cm2_per_s"], D_sem_cm2_per_s=r["D_sem_cm2_per_s"],
                  D_ratio_to_parent=v["ratio"] if v else None, D_ratio_err=v["ratio_err"] if v else None,
                  md_verdict=v["verdict"] if v else "undetermined", conduction=r["conduction"],
-                 md_framework_intact=(r.get("framework") or {}).get("intact"))
+                 md_framework_intact=(r.get("framework") or {}).get("intact"),
+                 md_framework=framework_view(r.get("framework")), md_gpu=r.get("md_gpu"))
         if r["conduction"] == "excluded":
             exclude(c, "molecular_dynamics", r["conduction_reason"])
             out["excluded"].append(c["id"])
@@ -355,6 +381,70 @@ def novelty(camp: Campaign) -> dict:
     res["summary"] = {"control_ok": (res.get("control") or {}).get("control_ok"),
                       "levels": {r["id"]: r["level"] for r in res["candidates"]}, "stopped": res.get("stopped")}
     return res
+
+
+# --- feedback of the slow tests (error-driven loop) ------------------------------------------------------------
+
+def framework_view(framework: dict | None) -> dict | None:
+    """Per non-Li element, the largest D ratio to Li and final MSD over the seeds (the measurements behind
+    "framework moved"), for the model and the report."""
+    if not framework:
+        return None
+    els: dict[str, dict] = {}
+    for check in framework.get("per_seed") or [framework]:
+        for el, v in (check.get("elements") or {}).items():
+            e = els.setdefault(el, {"D_ratio_to_Li": None, "msd_final_A2": None})
+            for k in e:
+                if v.get(k) is not None and (e[k] is None or v[k] > e[k]):
+                    e[k] = round(v[k], 4)
+    return {"intact": framework.get("intact"), "limit_D_ratio_to_Li": config.MD_FRAMEWORK_D_RATIO_MAX, "elements": els}
+
+
+def feedback(cands: list[dict]) -> list[dict]:
+    """Results of the slow tests of one iteration, measured by the code: contact with Li metal (failures only) and
+    Li diffusion (every simulated candidate). Each item: what was tested, outcome, the measurements and a factual
+    message; the cause of a failure is left to the model, as a hypothesis."""
+    out = []
+    for c in cands:
+        if c.get("status") != "passed":
+            continue
+        base = {"id": c["id"], "formula": c["formula"], "parent": c.get("parent"), "substitution": c.get("substitution")}
+        if c.get("excluded_at") == "electrodes":
+            out.append({**base, "test": "contact with Li metal", "outcome": "failed", "reason": c["exclusion_reason"],
+                        "measured": {"passivation": c.get("passivation"),
+                                     "reaction_energy_eV_per_atom": c.get("passivation_reaction_energy"),
+                                     "products_with_Li": c.get("passivation_products"),
+                                     "metallic_products": c.get("metallic_products")},
+                        "message": f"Negative result: {c['formula']} ({c['id']}) failed the contact test with Li metal: "
+                                   f"{c['exclusion_reason']}."})
+        if c.get("md_verdict") is None:
+            continue
+        failed = c.get("excluded_at") == "molecular_dynamics"
+        ratio = (f"D/D(parent) = {c['D_ratio_to_parent']:.2f} ± {c['D_ratio_err']:.2f}"
+                 if c.get("D_ratio_to_parent") is not None else "D/D(parent) undetermined")
+        reason = c["exclusion_reason"] if failed else f"{c['md_verdict']} with its parent ({ratio})"
+        test = f"Li diffusion at {config.MD_SCREEN_TEMPERATURE_K} K (molecular dynamics, against its parent)"
+        out.append({**base, "test": test, "outcome": "failed" if failed else "passed", "reason": reason,
+                    "measured": {"D_cm2_per_s": c.get("D_cm2_per_s"), "D_error_cm2_per_s": c.get("D_sem_cm2_per_s"),
+                                 "D_ratio_to_parent": c.get("D_ratio_to_parent"), "D_ratio_error": c.get("D_ratio_err"),
+                                 "verdict": c.get("md_verdict"), "framework": c.get("md_framework")},
+                    "message": (f"Negative result: {c['formula']} ({c['id']}) failed the {test}: {reason}." if failed
+                                else f"Result: {c['formula']} ({c['id']}) passed the {test}: {reason}.")})
+    return out
+
+
+def render_feedback(record: dict) -> list[str]:
+    """Report lines of the slow tests of one iteration and of the model's reading of the failures."""
+    fb = record.get("feedback") or []
+    fa = ((record.get("analysis") or {}).get("reply") or {}).get("failure_analysis") or []
+    if not fb and not fa:
+        return []
+    lines = ["**Slow tests of this iteration (fed back to the model):**", ""]
+    lines += [f"- {f['message']}" for f in fb] or ["- none"]
+    if fa:
+        lines += ["", "**The model's reading of the failures (hypotheses, not measurements):**", ""]
+        lines += [f"- {x.get('id')}: hypothesis: {x.get('hypothesis')} — correction: {x.get('correction')}" for x in fa]
+    return lines + [""]
 
 
 # --- report sections -----------------------------------------------------------
@@ -489,6 +579,9 @@ METHODS = [
     ("Lithium diffusion", "Langevin molecular dynamics with UMA at 600 K, 2 x 40 ps per structure, diffusion "
                           "coefficient by blocks, compared with the parent crystal (calibrated: Li7P3S11 2.0x faster "
                           "than beta-Li3PS4)"),
+    ("Error-driven loop", "the slow tests (reaction with lithium metal, lithium diffusion) run in each round; their "
+                          "failures, with the measured numbers, go back to the proposing model, which explains them "
+                          "as hypotheses and corrects its next proposals"),
     ("Literature check", "Meta Muse Spark with web search; a known electrolyte (LGPS) checked first as a control"),
     ("Plain-language summaries", "Meta Muse Glimmer"),
 ]
@@ -672,6 +765,11 @@ def make_domain() -> Domain:
         make_tools=lambda: ElectrolyteTools(not_run=[]), evaluate=_evaluate,
         proposal_messages=prompts.proposal_messages, analysis_messages=prompts.analysis_messages,
         comparisons=comparisons, for_model=FOR_MODEL, rank_key=rank_key,
+        iteration_stages=(Stage("electrodes", electrodes, render_electrodes),
+                          Stage("candidate_analyses", candidate_analyses, render_candidate_analyses),
+                          Stage("md_selection", md_selection, render_md_selection),
+                          Stage("molecular_dynamics", molecular_dynamics, render_md)),
+        feedback=feedback, render_feedback=render_feedback,
         stages=(Stage("electrodes", electrodes, render_electrodes),
                 Stage("candidate_analyses", candidate_analyses, render_candidate_analyses),
                 Stage("md_selection", md_selection, render_md_selection),

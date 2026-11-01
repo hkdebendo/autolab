@@ -35,14 +35,15 @@ def show(event: dict) -> None:
 
 def plan(args, brain_cap: float) -> None:
     """Upper bounds of the run, from config and the arguments (nothing is called)."""
-    calls = 2 * args.iterations + 1
-    print(f"language model ({args.brain}): {calls} calls (proposal + analysis per iteration, MD choice), up to "
+    calls = (3 if config.FEEDBACK_LOOP else 2) * args.iterations + 2
+    print(f"language model ({args.brain}): {calls} calls (proposal, MD choice and analysis per iteration, report), up to "
           f"{config.JSON_MAX_RETRIES} attempts each for a malformed JSON; cap {brain_cap} $ and "
           f"{config.MAX_LLM_CALLS_PER_RUN} calls")
     print(f"UMA relaxations on Modal ({config.MODAL_GPU}): at most {args.max_relaxations} new "
           f"(about {config.GENERATOR_N_ARRANGEMENTS} per candidate, plus references of new elements and of the "
           f"cathode interfaces)")
-    print(f"molecular dynamics on Modal {config.MODAL_MD_GPU}: at most {config.MD_SELECT_MAX} candidates x "
+    n_md = config.ITERATION_MD_SELECT_MAX * args.iterations if config.FEEDBACK_LOOP else config.MD_SELECT_MAX
+    print(f"molecular dynamics on Modal {config.MODAL_MD_GPU}: at most {n_md} candidates x "
           f"{config.MD_SCREEN_SEEDS} seeds of {config.MD_SCREEN_PS} ps at {config.MD_SCREEN_TEMPERATURE_K} K "
           f"(cached runs are free); not launched above {config.MD_MAX_USD_PER_RUN} $ estimated")
     print(f"candidate analyses ({args.analyst}): one call per eligible candidate (at most "

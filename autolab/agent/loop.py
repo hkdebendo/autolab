@@ -1,7 +1,9 @@
 """Agent loop: hypothesis -> evaluation -> analysis (SPEC 6.2), then the stages of the domain.
 
-The model proposes substitutions (JSON), the domain's funnel evaluates them, the model
-reads the numbers and sets the next direction. Iterations stop after n, when a
+The model proposes substitutions (JSON), the domain's funnel evaluates them, the domain's slow tests run on
+this iteration's candidates (config.FEEDBACK_LOOP: e.g. Li-metal contact, Li diffusion) and their results, failures
+included with their measurements, are given to the model, which analyses them (a hypothesis on the cause of each
+failure and a correction) and sets the next direction: error-driven design. Iterations stop after n, when a
 budget is reached, or when the model returns stop=true. Then the domain's stages run in
 order on the whole pool (this run plus earlier runs given as `prior`), each emitting its
 events and deciding from config.py. No retry loops: the fallback provider is tried once
@@ -59,6 +61,7 @@ class Agent:
         self.tools = tools or self.domain.make_tools()
         self.events = events or EventLog()
         self.budget = budget or RelaxBudget(config.MAX_RELAXATIONS_PER_RUN)
+        self.md_usd = 0.0  # estimated Modal cost of the MD launched in this run (cap config.MD_MAX_USD_PER_RUN)
         if get_structure is None:
             from autolab.data.mp import get_structure
         self.get_structure = get_structure
@@ -139,7 +142,8 @@ class Agent:
             if cancel.requested():
                 result["stop_reason"] = INTERRUPTED
                 break
-            record = {"iteration": it, "proposal": None, "candidates": [], "comparisons": [], "analysis": None}
+            record = {"iteration": it, "proposal": None, "candidates": [], "comparisons": [], "feedback": [],
+                      "analysis": None}
             result["iterations"].append(record)
             self.events.emit("loop", "iteration", {"iteration": it})
             try:
@@ -186,23 +190,37 @@ class Agent:
             if user_stop:
                 result["stop_reason"] = INTERRUPTED
                 break
+            if config.FEEDBACK_LOOP and d.iteration_stages:  # slow tests of this iteration, then their feedback
+                camp = Campaign(self, goal, record["candidates"], iteration=it,
+                                settings={"md_select_max": config.ITERATION_MD_SELECT_MAX})
+                record["stages"] = {}
+                if self._run_stages(d.iteration_stages, camp, record["stages"], it):
+                    result["stop_reason"] = INTERRUPTED
+                    break
+                record["feedback"] = d.feedback(record["candidates"]) if d.feedback else []
+                self.events.emit("loop", "feedback", {"iteration": it, "results": record["feedback"]})
             for_model = [{k: c.get(k) for k in d.for_model if k in c} for c in record["candidates"]]
             # Comparisons over every candidate so far, so that the model never compares tables itself.
             record["comparisons"] = d.comparisons(prior + [c for r in result["iterations"] for c in r["candidates"]])
+            args = (goal, it, proposal["hypothesis"], for_model, history, record["comparisons"])
             try:
                 record["analysis"] = self.ask(
-                    d.analysis_messages(goal, it, proposal["hypothesis"], for_model, history, record["comparisons"]),
+                    d.analysis_messages(*args, record["feedback"]) if d.feedback else d.analysis_messages(*args),
                     "analysis", "analysis")
             except LoopStopped as e:
                 result["stop_reason"] = f"language model: {e}"
                 break
             analysis = record["analysis"]["reply"]
             history.append({"iteration": it, "hypothesis": proposal["hypothesis"], "results": for_model,
+                            **({"slow_tests": record["feedback"],
+                                "failure_analysis": analysis.get("failure_analysis") or []} if d.feedback else {}),
                             "lessons": analysis["lessons"], "next_direction": analysis["next_direction"]})
             self._summarize("iteration", f"iteration {it}", {
                 "iteration": it, "hypothesis": proposal["hypothesis"],
                 "candidates": [{k: c.get(k) for k in ("formula", "status", "rejected_at", "reason", "e_hull",
                                                       "gap_optb88") if c.get(k) is not None} for c in record["candidates"]],
+                "slow_tests": [{k: f.get(k) for k in ("formula", "test", "outcome", "reason")} for f in record["feedback"]],
+                "failure_analysis": analysis.get("failure_analysis") or [],
                 "lessons": analysis["lessons"], "next_direction": analysis["next_direction"]})
             if sim_stop:
                 result["stop_reason"] = f"relaxation budget: {sim_stop}"
@@ -217,7 +235,8 @@ class Agent:
         result["funnel_ranking"] = [c["id"] for c in passed]
         result["model_ranking"] = last["ranking"] if last else []
         if stages:
-            self.run_stages(Campaign(self, goal, prior + candidates), result)
+            final = {"md_select_max": config.FINAL_MD_SELECT_MAX} if config.FEEDBACK_LOOP and d.iteration_stages else {}
+            self.run_stages(Campaign(self, goal, prior + candidates, settings=final), result)
         result["final_ranking"] = result["stages"].get("ranking", {}).get("ranking", result["funnel_ranking"])
         if self.summarizer is not None and result["stop_reason"] == INTERRUPTED:
             result["summaries"] = self.summarizer.close(timeout=0)  # nothing new is asked after a stop
@@ -238,6 +257,7 @@ class Agent:
             "summaries": self.summarizer.client.tracker.summary() if self.summarizer is not None else None,
             "relaxations": {"new": self.budget.used, "limit": self.budget.max_new},
             "md": result["stages"].get("molecular_dynamics", {}).get("plan"),
+            "md_usd": round(self.md_usd, 3),
             "events": len(self.events.events),
             "seconds": round(time.perf_counter() - t0, 1),
         }
@@ -252,22 +272,35 @@ class Agent:
     def run_stages(self, campaign: Campaign, result: dict) -> None:
         """The domain's stages in order. A stage that fails or is stopped by a budget does not stop the next
         ones: each reads what the previous ones left on the candidates."""
-        for stage in self.domain.stages:
-            if cancel.requested() or result["stop_reason"] == INTERRUPTED:
-                result["stop_reason"] = INTERRUPTED
+        if result["stop_reason"] == INTERRUPTED:
+            for stage in self.domain.stages:
                 result["stages"][stage.name] = {"status": "interrupted"}
                 self.events.emit("stage", stage.name, {"status": "interrupted"})
+            return
+        if self._run_stages(self.domain.stages, campaign, result["stages"]):
+            result["stop_reason"] = INTERRUPTED
+
+    def _run_stages(self, stages, campaign: Campaign, store: dict, iteration: int | None = None) -> bool:
+        """Run `stages` in order, outputs in `store` and in campaign.outputs; returns True if the user stopped them
+        (the remaining stages are marked interrupted). Inside an iteration, the events carry its number."""
+        tag = {} if iteration is None else {"iteration": iteration}
+        stopped = False
+        for stage in stages:
+            if stopped or cancel.requested():
+                stopped = True
+                store[stage.name] = {"status": "interrupted"}
+                self.events.emit("stage", stage.name, {"status": "interrupted", **tag})
                 continue
-            self.events.emit("stage", stage.name, {"status": "start"})
+            self.events.emit("stage", stage.name, {"status": "start", **tag})
             try:
                 out = stage.run(campaign)
                 status = "stopped" if out.get("stopped") else "done"
             except cancel.Cancelled:
-                out, status = {"interrupted": True}, "interrupted"
-                result["stop_reason"] = INTERRUPTED
+                out, status, stopped = {"interrupted": True}, "interrupted", True
             except Exception as e:  # reported, never retried
                 out, status = {"error": f"{type(e).__name__}: {e}"}, "error"
             campaign.outputs[stage.name] = out
-            result["stages"][stage.name] = {"status": status, **out}
-            self.events.emit("stage", stage.name, {"status": status, **out.get("summary", {}),
+            store[stage.name] = {"status": status, **out}
+            self.events.emit("stage", stage.name, {"status": status, **out.get("summary", {}), **tag,
                                                    **({"error": out["error"]} if "error" in out else {})})
+        return stopped

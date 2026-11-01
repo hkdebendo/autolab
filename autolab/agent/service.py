@@ -254,8 +254,9 @@ def code_summary(result: dict) -> str:
 @contextlib.contextmanager
 def live_limits():
     """The config limits of a live research, restored afterwards."""
-    saved = {"MD_SELECT_MAX": config.MD_SELECT_MAX}
+    saved = {"MD_SELECT_MAX": config.MD_SELECT_MAX, "ITERATION_MD_SELECT_MAX": config.ITERATION_MD_SELECT_MAX}
     config.MD_SELECT_MAX = config.LIVE_MD_SELECT_MAX
+    config.ITERATION_MD_SELECT_MAX = config.LIVE_MD_SELECT_MAX
     try:
         yield
     finally:

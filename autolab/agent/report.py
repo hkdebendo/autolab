@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from autolab import config
+
 REASONING_CHARS = 1200
 
 
@@ -89,6 +91,8 @@ def render(result: dict, domain=None) -> str:
             lines += ["", "<details><summary>Reasoning summary (proposals)</summary>", "",
                       _short(p["reasoning"]), "", "</details>"]
         lines += [""] + table(r["candidates"])
+        if domain.render_feedback:
+            lines += [""] + domain.render_feedback(r)
         if r.get("comparisons"):
             lines += ["", "<details><summary>Comparisons computed by the code (given to the model)</summary>", ""]
             for comp in r["comparisons"]:
@@ -143,7 +147,10 @@ def render(result: dict, domain=None) -> str:
                      f"{u['analyst']['calls']} calls, ~${u['analyst']['cost_usd']:.4f}")
     if u.get("novelty"):
         lines.append(f"- novelty web search: {u['novelty']['calls']} calls, ~${u['novelty']['cost_usd']:.4f}")
-    if u.get("md"):
+    if u.get("md_usd") is not None:
+        lines.append(f"- molecular dynamics launched in this research (all iterations): estimate {u['md_usd']:.2f} $ "
+                     f"on Modal {config.MODAL_MD_GPU}")
+    elif u.get("md"):
         lines.append(f"- molecular dynamics: {u['md']['runs']} new runs of {u['md']['total_runs']} on Modal "
                      f"{u['md']['gpu']}, estimate {u['md']['usd']:.2f} $")
     lines += [f"- UMA relaxations: {u['relaxations']['new']} new / {u['relaxations']['limit']} allowed",

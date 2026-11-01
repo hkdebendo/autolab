@@ -36,6 +36,8 @@ Filters applied after relaxation, with thresholds fixed by the code:
 - Band gap (GapModel, optB88 scale) >= {config.BANDGAP_MIN} eV: the electrolyte must be an electronic insulator.
 - S-S bonds shorter than {config.SS_BOND_CUTOFF} A are flagged: UMA is less reliable for polysulfides.
 
+The history may hold slow_tests: results measured by the code on some candidates of earlier iterations (contact with Li metal; Li diffusion by molecular dynamics at {config.MD_SCREEN_TEMPERATURE_K} K against the parent, where a candidate slower than its parent by more than {config.MD_TIE_SIGMA:g} combined errors, or whose host framework moves, is excluded), and your failure_analysis of the failed ones. Treat every failure as data: do not repeat a strategy that failed; when your proposals correct an earlier failure, say in the hypothesis which one and how (the cause you give is a hypothesis, the code measured only the numbers). Keep every proposal charge-neutral.
+
 Propose at most {max_proposals} substitutions, diverse and chemically motivated, each with a one-sentence rationale. Never repeat a substitution already evaluated.
 Reply with JSON only, exactly this shape: {template("proposal")}"""
 
@@ -53,9 +55,14 @@ You receive the results of the candidates evaluated in this iteration. Fields:
 - ss_bonds: true = S-S chains present, UMA less reliable for this candidate.
 - reduced_confidence: true when the decomposition goes through a polysulfide (decomposition_polysulfides, e.g. LiS4): UMA is least reliable there (LiS4 is off by about 0.17 eV/atom from MP), so its E_hull is uncertain.
 - comparisons: statements computed by the code over all candidates so far (same substitution on different parents, same parent with a different added element, rankings on one parent). Whenever a lesson compares candidates, base it only on these statements and quote their numbers; never compare values yourself.
-Electrochemical window, interfaces and ionic conductivity are computed only after the last iteration: do not claim them.
+- slow_tests: the slower tests run by the code in this iteration on some passed candidates, with their measurements:
+  - "contact with Li metal": a candidate whose reaction with Li metal gives a metallic product and releases at least 0.1 eV/atom (non_passivating) is excluded (measured: products, reaction energy).
+  - "Li diffusion" (molecular dynamics at {config.MD_SCREEN_TEMPERATURE_K} K, {config.MD_SCREEN_SEEDS} runs of {config.MD_SCREEN_PS} ps, against the parent): D in cm2/s with its error, D_ratio_to_parent with its error, verdict "higher", "tied" or "lower" (lower = slower by more than {config.MD_TIE_SIGMA:g} combined errors: excluded); framework: for each non-Li element, its diffusion relative to Li (D_ratio_to_Li) and final mean squared displacement (A2); the framework "moved" when one element exceeds {config.MD_FRAMEWORK_D_RATIO_MAX:.0%} of Li (excluded: the host lattice is disordering).
+  - outcome "failed" is a negative result; excluded_at and exclusion_reason also appear in the results.
+- failure_analysis: for EACH failed slow test, give its id, a hypothesis on the physical or chemical cause (e.g. ionic radius, bond strength, a reducible element against Li metal), explicitly a hypothesis since the code measured only the numbers, and a correction: how the next proposals change the substitution strategy to avoid it while keeping charge neutrality. Empty list when nothing failed. Use it in the lessons and the next direction.
+Ionic conductivity at room temperature is not computed during the iterations: do not claim it.
 
-Rank only candidates with status "passed", best first by e_hull_per_substitution unless the comparisons give a reason otherwise (empty list if none). Give 1 to 3 short lessons, one sentence of next direction, and stop=true only if more iterations are unlikely to help.
+Rank only candidates with status "passed" and not excluded, best first by e_hull_per_substitution unless the comparisons or the slow tests give a reason otherwise (empty list if none). Give 1 to 3 short lessons, one sentence of next direction, and stop=true only if more iterations are unlikely to help.
 Reply with JSON only, exactly this shape: {template("analysis")}"""
 
 
@@ -105,9 +112,10 @@ def proposal_messages(goal: str, parents: list[dict], history: list[dict], max_p
 
 
 def analysis_messages(goal: str, iteration: int, hypothesis: str, results: list[dict], history: list[dict],
-                      comparisons: list[dict] | None = None) -> list[dict]:
-    """Messages asking to analyse one iteration's results, with code-computed comparisons."""
+                      comparisons: list[dict] | None = None, slow_tests: list[dict] | None = None) -> list[dict]:
+    """Messages asking to analyse one iteration's results, with code-computed comparisons and the results of the
+    slow tests of this iteration (error-driven loop)."""
     user = {"goal": goal, "iteration": iteration, "hypothesis": hypothesis, "results": results,
-            "comparisons": comparisons or [], "previous_iterations": history}
+            "comparisons": comparisons or [], "slow_tests": slow_tests or [], "previous_iterations": history}
     return [{"role": "system", "content": analysis_system()},
             {"role": "user", "content": json.dumps(user)}]

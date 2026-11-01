@@ -261,6 +261,8 @@ table.data tr.clickable:hover td { background: var(--bg-soft); }
 .note p { margin: 0; }
 .note ul { margin: 6px 0 0; padding-left: 18px; }
 .note li { margin: 3px 0; }
+.note li.neg::marker { color: var(--bad); }
+.note li.pos::marker { color: var(--good); }
 
 /* ---------- charts and 3D ---------- */
 .viz-grid { display: grid; gap: 18px; }

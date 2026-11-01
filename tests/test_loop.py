@@ -119,6 +119,7 @@ def steps(events, kind):
 def tmp_cache(tmp_path, monkeypatch):
     monkeypatch.setattr(config, "CACHE_DIR", tmp_path)
     monkeypatch.setattr(config, "UMA_MP2020", False)  # the fake hull holds raw energies (as in test_agent)
+    monkeypatch.setattr(config, "FEEDBACK_LOOP", False)  # stages after the iterations only (feedback: test_feedback)
 
 
 def novelty_replies(n):

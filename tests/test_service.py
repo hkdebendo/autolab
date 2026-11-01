@@ -81,7 +81,8 @@ def test_follow_ups_reuse_stored_answers_and_refuse_new_discoveries():
     assert question_key("Why is it stable?") == question_key("why is it   STABLE")
 
 
-def test_a_research_runs_stores_its_events_result_report_and_can_be_stopped(li3ps4):
+def test_a_research_runs_stores_its_events_result_report_and_can_be_stopped(li3ps4, monkeypatch):
+    monkeypatch.setattr(config, "LIVE_ITERATIONS", 1)  # one round of fake replies
     model = Model([scope()])
     svc, store = service(model)
     cid = svc.start("electrolytes")["conversation"]["id"]
