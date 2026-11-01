@@ -70,32 +70,52 @@ def _md_jobs(cands: list[dict]) -> list[dict]:
 
 
 def _md_cached(c: dict) -> bool:
-    from autolab.agent.dynamics import candidate_job, md_runs_to_compute
+    from autolab.agent.dynamics import candidate_job, md_gpu_groups, md_runs_to_compute
 
-    return not md_runs_to_compute([candidate_job(c)])
+    ((gpu, _),) = md_gpu_groups([c]).items()
+    return not md_runs_to_compute([candidate_job(c)], gpu=gpu)
 
 
 def _md_plan(cands: list[dict]) -> dict:
-    """Runs missing from the MD cache (candidates and their parents) and their estimated Modal cost."""
-    from autolab.agent.dynamics import md_runs_to_compute, modal_md_plan
+    """Runs missing from the MD cache (candidates and their parents, on the GPU of each candidate: see
+    dynamics.md_gpu_groups) and their estimated Modal cost."""
+    from autolab.agent.dynamics import md_gpu_groups, md_runs_to_compute, modal_md_plan
 
-    jobs = _md_jobs(cands)
-    todo = md_runs_to_compute(jobs)
-    plan = modal_md_plan(todo) if todo else {"gpu": config.MODAL_MD_GPU, "runs": 0, "seconds": [], "timeout_s": 0,
-                                             "wall_s": 0, "usd": 0.0, "usd_max": 0.0}
-    return {**plan, "total_runs": len(jobs) * config.MD_SCREEN_SEEDS}
+    plan = {"gpu": None, "runs": 0, "seconds": [], "timeout_s": 0, "wall_s": 0, "usd": 0.0, "usd_max": 0.0,
+            "total_runs": 0, "by_gpu": {}}
+    for gpu, group in md_gpu_groups(cands).items():
+        jobs = _md_jobs(group)
+        todo = md_runs_to_compute(jobs, gpu=gpu)
+        plan["total_runs"] += len(jobs) * config.MD_SCREEN_SEEDS
+        plan["by_gpu"][gpu] = {"ids": [c["id"] for c in group], "runs": len(todo)}
+        if not todo:
+            continue
+        p = modal_md_plan(todo, gpu)
+        plan["gpu"] = gpu if plan["gpu"] is None else f"{plan['gpu']} + {gpu}"
+        plan["runs"] += p["runs"]
+        plan["seconds"] += p["seconds"]
+        plan["usd"] += p["usd"]
+        plan["usd_max"] += p["usd_max"]
+        plan["timeout_s"] = max(plan["timeout_s"], p["timeout_s"])
+        plan["wall_s"] = max(plan["wall_s"], p["wall_s"])
+    plan["gpu"] = plan["gpu"] or config.MODAL_MD_GPU
+    return plan
 
 
 def _md_screen(cands: list[dict], plan: dict) -> list[dict]:
-    """Screening at the validated settings, all missing runs in parallel on Modal, each cached when it ends."""
-    from autolab.agent.dynamics import md_screen, md_verdicts
+    """Screening at the validated settings, all missing runs in parallel on Modal, each cached when it ends; each
+    candidate is compared with its parent on the same GPU (dynamics.md_gpu_groups)."""
+    from autolab.agent.dynamics import md_gpu_groups, md_screen, md_verdicts
     from autolab.sim.backend import ModalBackend
 
-    backend = None
-    if config.SIM_BACKEND == "modal" and plan["runs"]:
-        backend = ModalBackend(md_timeout_s=plan["timeout_s"])
-    jobs = _md_jobs(cands)  # the limit applies to the runs to compute (plan), cached runs are free
-    return md_verdicts(md_screen(jobs, backend=backend, max_runs=len(jobs) * config.MD_SCREEN_SEEDS))
+    rows = []
+    for gpu, group in md_gpu_groups(cands).items():
+        backend = None
+        if config.SIM_BACKEND == "modal" and (plan.get("by_gpu", {}).get(gpu) or {}).get("runs", plan["runs"]):
+            backend = ModalBackend(gpu=gpu, md_timeout_s=plan["timeout_s"])
+        jobs = _md_jobs(group)  # the limit applies to the runs to compute (plan), cached runs are free
+        rows += md_verdicts(md_screen(jobs, backend=backend, gpu=gpu, max_runs=len(jobs) * config.MD_SCREEN_SEEDS))
+    return rows
 
 
 def _novelty(cands: list[dict], client) -> dict:
@@ -422,8 +442,12 @@ def render_md_selection(out: dict, result: dict) -> list[str]:
 
 
 def render_md(out: dict, result: dict) -> list[str]:
+    from autolab.sim.backend import gpu_type
+
+    gpus = sorted({g for g in (gpu_type(r.get("gpu")) for r in out.get("rows") or []) if g}) or [config.MODAL_MD_GPU]
     lines = [f"## Li diffusion ({config.MD_SCREEN_TEMPERATURE_K} K, {config.MD_SCREEN_SEEDS} seeds of "
-             f"{config.MD_SCREEN_PS} ps pooled, Modal {config.MODAL_MD_GPU})", ""]
+             f"{config.MD_SCREEN_PS} ps pooled, Modal {' + '.join(gpus)}; each candidate against its parent on the "
+             f"same GPU)", ""]
     p = out.get("plan")
     if p:
         lines.append(f"Runs computed: {p['runs']} of {p['total_runs']} (others from the cache); estimate "

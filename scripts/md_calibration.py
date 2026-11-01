@@ -1,6 +1,6 @@
 """MD calibration (truth test of the block D, SPEC 5.10): the two parents at several temperatures, one Kaggle session.
 
-    SIM_BACKEND=modal python scripts/md_calibration.py --out results/<dir> --gpu A10G [--dry-run]
+    SIM_BACKEND=modal python scripts/md_calibration.py --out results/<dir> --gpu H100 [--dry-run]
     SIM_BACKEND=kaggle python scripts/md_calibration.py --out results/<dir> [--dry-run]     # fallback
 
 On Modal every run gets its own container (all in parallel) and is cached as soon as it ends; on Kaggle the six
@@ -21,14 +21,13 @@ from autolab import config
 from autolab.agent.dynamics import (calibration_runs, md_calibration, md_calibration_v2, modal_md_plan as modal_plan,
                                     parent_job)
 from autolab.analysis.diffusion import diffusion_coefficient, framework_check
-from autolab.sim.backend import ModalBackend, _as_atoms_dict, get_backend, run_md_runs
+from autolab.sim.backend import ModalBackend, _as_atoms_dict, get_backend, md_settings, run_md_runs
 from autolab.sim.serialize import atoms_key
 from autolab.store.cache import JsonCache
 
 
-def _cached(run: dict, cache: JsonCache) -> dict | None:
-    settings = {"model": config.UMA_MODEL, "precision": config.UMA_PRECISION_MD, "T": run["temperature_K"],
-                "n_steps": run["n_steps"], "seed": run["seed"]}
+def _cached(run: dict, cache: JsonCache, gpu: str | None) -> dict | None:
+    settings = md_settings(run["temperature_K"], run["n_steps"], run["seed"], gpu=gpu)
     return cache.get(atoms_key(_as_atoms_dict(run["atoms"]), **settings))
 
 
@@ -110,17 +109,18 @@ def render_v2(rows: list[dict], cal: dict) -> str:
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--out", type=Path, required=True)
-    ap.add_argument("--gpu", default=config.MODAL_GPU, help="Modal GPU type (SIM_BACKEND=modal)")
+    ap.add_argument("--gpu", default=config.MODAL_MD_GPU, help="Modal GPU type (SIM_BACKEND=modal)")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--v2", action="store_true", help="calibration v2: 600 K, 3 seeds of 40 ps (SPEC 7)")
     args = ap.parse_args()
     on_modal = config.SIM_BACKEND == "modal"
+    gpu = args.gpu if on_modal else None  # cache keys name the Modal GPU (sim.backend.md_settings)
 
     parents = {role: parent_job(mid) for role, mid in config.MD_CALIBRATION_PARENTS.items()}
     v2 = [(config.MD_CALIBRATION_V2_T, config.MD_CALIBRATION_V2_PS, s) for s in config.MD_CALIBRATION_V2_SEEDS]
     runs = calibration_runs(parents, v2) if args.v2 else calibration_runs(parents)
     cache = JsonCache(config.CACHE_DIR / "md")
-    todo = [r for r in runs if _cached(r, cache) is None]
+    todo = [r for r in runs if _cached(r, cache, gpu) is None]
     if on_modal:
         plan = modal_plan(todo, args.gpu)
         for r, s in zip(todo, plan["seconds"]):
@@ -145,10 +145,10 @@ def main() -> None:
     backend = ModalBackend(gpu=args.gpu, md_timeout_s=plan["timeout_s"]) if on_modal else get_backend()
     sent = run_md_runs(runs, backend=backend)
     print(f"sent: {sent} MD runs" + (f", failed: {backend.errors}" if getattr(backend, "errors", None) else ""))
-    missing = [f"{r['formula']} {r['temperature_K']} K" for r in runs if _cached(r, cache) is None]
+    missing = [f"{r['formula']} {r['temperature_K']} K" for r in runs if _cached(r, cache, gpu) is None]
     if missing:  # never start a second session on its own
         raise SystemExit(f"runs missing after the session: {', '.join(missing)}")
-    rows = [analyse(r, _cached(r, cache)) for r in runs]
+    rows = [analyse(r, _cached(r, cache, gpu)) for r in runs]
     if args.v2:
         cal = md_calibration_v2(rows)
         text, name = render_v2(rows, cal), "md_calibration_v2"

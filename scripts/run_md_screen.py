@@ -3,7 +3,7 @@
     SIM_BACKEND=modal python scripts/run_md_screen.py results/<step>/candidates.json --ids it2-c5 it1-c2 \
         --parents mp-985583 mp-641703 --out <dir> [--dry-run]
 
-Defaults are the validated screening settings (config: 600 K, 40 ps, 2 seeds pooled, Modal A10G). On Modal every
+Defaults are the validated screening settings (config: 600 K, 40 ps, 2 seeds pooled, Modal config.MODAL_MD_GPU; each candidate against its parent on the same GPU). On Modal every
 run gets its own container and is cached as soon as it ends (an interrupted screening resumes, nothing is ever
 recomputed). md_screen.json (rows with D / D(parent) and the verdict) and md_screen.md are written at the end.
 """
@@ -67,10 +67,11 @@ def main() -> None:
 
     by_id = {c["id"]: c for c in json.loads(args.candidates.read_text(encoding="utf-8"))["candidates"]}
     jobs = [parent_job(p) for p in args.parents] + [candidate_job(by_id[i]) for i in args.ids]
+    gpu = args.gpu if config.SIM_BACKEND == "modal" else None  # cache keys name the Modal GPU
     runs = [{"formula": j["formula"], **r} for j in jobs
-            for r in md_runs_to_compute([j], args.temperature, args.ps, all_runs=True)]
+            for r in md_runs_to_compute([j], args.temperature, args.ps, all_runs=True, gpu=gpu)]
     todo = [r for r in runs if not r["cached"]]
-    backend = get_backend()
+    backend = ModalBackend(gpu=gpu) if gpu else get_backend()
     if config.SIM_BACKEND == "modal" and todo:
         plan = modal_md_plan(todo, args.gpu)
         for r, s in zip(todo, plan["seconds"]):
@@ -85,7 +86,7 @@ def main() -> None:
         return
 
     args.out.mkdir(parents=True, exist_ok=True)
-    rows = md_screen(jobs, args.temperature, args.ps, backend=backend)
+    rows = md_screen(jobs, args.temperature, args.ps, backend=backend, gpu=gpu)
     errors = getattr(backend, "errors", None)
     if errors:
         print(f"failed runs (not retried): {errors}")

@@ -81,7 +81,9 @@ def export_run(result: dict, out_dir, n_frames: int = config.REPLAY_MD_FRAMES) -
     for row in result.get("stages", {}).get("molecular_dynamics", {}).get("rows", []):
         job = parent_job(row["id"]) if row["kind"] == "parent" else candidate_job(pool[row["id"]])
         for seed in range(row.get("seeds", config.MD_SCREEN_SEEDS)):
-            md = md_cached_result(job, seed, row["temperature_K"], row["ps"])
+            # the GPU of the screening: rows written before 2026-11-01 have no md_gpu and ran on the legacy GPU
+            md = md_cached_result(job, seed, row["temperature_K"], row["ps"],
+                                  gpu=row.get("md_gpu") or config.MD_LEGACY_GPU)
             if md is None:
                 continue
             view = md_view(job["atoms"], md, n_frames)

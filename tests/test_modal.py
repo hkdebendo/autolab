@@ -4,7 +4,8 @@ import modal.exception
 import pytest
 
 from autolab import config
-from autolab.sim.backend import ModalBackend, run_md, run_md_runs
+from autolab.agent.dynamics import md_gpu_groups, md_runs_to_compute
+from autolab.sim.backend import ModalBackend, md_settings, run_md, run_md_runs
 
 from test_kaggle import fake_md, licl
 
@@ -42,6 +43,10 @@ class FakeFn:
         self.spawned.append((temperature_K, n_steps, seed, call))
         return call
 
+    def remote(self, atoms, precision, temperature_K, n_steps, seed=0):
+        self.spawned.append((temperature_K, n_steps, seed, None))
+        return fake_md(atoms)
+
 
 def runs():
     return [{"atoms": licl(5.1), "temperature_K": t, "n_steps": n, "seed": s}
@@ -71,3 +76,47 @@ def test_modal_refused_call_cancels_what_was_sent(tmp_path, monkeypatch):
     with pytest.raises(modal.exception.Error, match="spending limit"):
         run_md_runs(runs(), backend=backend)
     assert len(fn.spawned) == 1 and fn.spawned[0][3].cancelled
+
+
+def test_md_cache_keys_name_the_gpu_except_the_legacy_one():
+    legacy = {"model": config.UMA_MODEL, "precision": config.UMA_PRECISION_MD, "T": 600, "n_steps": 40000, "seed": 1}
+    assert md_settings(600, 40000, 1, gpu=config.MD_LEGACY_GPU) == legacy  # keys of the runs cached before 2026-11-01
+    assert md_settings(600, 40000, 1) == legacy
+    assert md_settings(600, 40000, 1, gpu="H100") == {**legacy, "gpu": "H100"}
+
+
+def _backend(gpu, fn, monkeypatch):
+    backend = ModalBackend(gpu=gpu, md_timeout_s=3600, poll_s=0)
+    monkeypatch.setattr(backend, "_fn", lambda name: fn)
+    return backend
+
+
+def test_a_run_on_another_gpu_never_reads_the_legacy_result(tmp_path, monkeypatch):
+    monkeypatch.setattr(config, "CACHE_DIR", tmp_path)
+    run = [{"atoms": licl(5.1), "temperature_K": 600, "n_steps": 40000, "seed": 0}]
+    assert run_md_runs(run, backend=_backend("A10G", FakeFn(), monkeypatch)) == 1
+    fn = FakeFn()
+    assert run_md_runs(run, backend=_backend("H100", fn, monkeypatch)) == 1  # computed again, on the H100
+    assert fn.options["gpu"] == "H100"
+    assert run_md(licl(5.1), 600, 40000, gpu="H100", backend=_backend("H100", FakeFn(), monkeypatch))["cached"]
+    with pytest.raises(ValueError, match="H100"):  # never cached under a GPU it did not run on
+        run_md(licl(5.1), 600, 40000, gpu="A10G", backend=_backend("H100", FakeFn(), monkeypatch))
+
+
+def test_single_md_run_goes_to_the_md_gpu(tmp_path, monkeypatch):
+    monkeypatch.setattr(config, "CACHE_DIR", tmp_path)
+    fn = FakeFn()
+    run_md(licl(5.1), 600, 40000, backend=_backend(None, fn, monkeypatch))
+    assert fn.options == {"gpu": config.MODAL_MD_GPU, "timeout": 3600}
+
+
+def test_candidate_simulated_on_the_legacy_gpu_keeps_it(tmp_path, monkeypatch):
+    monkeypatch.setattr(config, "CACHE_DIR", tmp_path)
+    old = {"id": "c1", "formula": "LiCl", "parent": "mp-22905", "relaxed_atoms": licl(5.1)}
+    new = {"id": "c2", "formula": "LiCl", "parent": "mp-22905", "relaxed_atoms": licl(5.2)}
+    run_md_runs([{"atoms": licl(5.1), "temperature_K": config.MD_SCREEN_TEMPERATURE_K,
+                  "n_steps": round(config.MD_SCREEN_PS * 1000 / config.MD_TIMESTEP_FS), "seed": s}
+                 for s in range(config.MD_SCREEN_SEEDS)], backend=_backend("A10G", FakeFn(), monkeypatch))
+    assert md_gpu_groups([old, new], gpu="H100") == {"A10G": [old], "H100": [new]}
+    assert md_gpu_groups([old, new], gpu="A10G") == {"A10G": [old, new]}
+    assert md_runs_to_compute([{"id": "c1", "atoms": licl(5.1)}], gpu="H100")  # not cached on the H100

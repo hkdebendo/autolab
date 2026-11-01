@@ -63,6 +63,10 @@ class ModalBackend:
         self.poll_s = poll_s
         self.errors: dict[int, str] = {}
 
+    @property
+    def md_gpu(self) -> str:
+        return self.gpu or config.MODAL_MD_GPU
+
     def _fn(self, name: str):
         import modal
 
@@ -73,7 +77,8 @@ class ModalBackend:
         yield from self._fn("relax_chunk").map(chunks, kwargs=kwargs)
 
     def md(self, atoms: dict, precision: str, **kwargs) -> dict:
-        return self._fn("md_run").remote(atoms, precision=precision, **kwargs)
+        fn = self._fn("md_run").with_options(gpu=self.md_gpu, timeout=self.md_timeout_s or config.MODAL_MD_TIMEOUT)
+        return fn.remote(atoms, precision=precision, **kwargs)
 
     def md_batch_iter(self, items: list[dict], precision: str) -> Iterator[tuple[int, dict | None]]:
         """All MD runs at once, one container each ({"atoms", "temperature_K", "n_steps", "seed"}); yields
@@ -83,7 +88,7 @@ class ModalBackend:
 
         import modal.exception
 
-        opts = {"max_containers": len(items), "gpu": self.gpu or config.MODAL_MD_GPU,
+        opts = {"max_containers": len(items), "gpu": self.md_gpu,
                 "timeout": self.md_timeout_s or config.MODAL_MD_TIMEOUT}
         fn = self._fn("md_run").with_options(**opts)
         calls = {}
@@ -199,17 +204,50 @@ def relax_structures(
     return [{**cache.get(k), "cache_key": k, "cached": k not in fresh} for k in keys]
 
 
-def run_md(atoms, temperature_K: float, n_steps: int, precision: str = config.UMA_PRECISION_MD,
-           backend=None, seed: int = 0, cache: JsonCache | None = None) -> dict:
-    """Molecular dynamics through the backend, cached by structure and settings."""
-    cache = cache or JsonCache(config.CACHE_DIR / "md")
-    d = _as_atoms_dict(atoms)
+def md_gpu(backend=None) -> str | None:
+    """GPU type of the MD cache keys: the Modal MD GPU (also when no backend is given and SIM_BACKEND is modal),
+    None for the other backends (keys without a GPU name, as before 2026-11-01)."""
+    if backend is None:
+        return config.MODAL_MD_GPU if config.SIM_BACKEND == "modal" else None
+    return getattr(backend, "md_gpu", None)
+
+
+def gpu_type(name: str | None) -> str | None:
+    """Modal GPU type ("H100", "A10G", ...) of a device name such as "NVIDIA A10G"; None if unknown."""
+    return next((g for g in config.MODAL_GPU_USD_PER_H if name and g in name), None)
+
+
+def md_settings(temperature_K: float, n_steps: int, seed: int = 0, precision: str = config.UMA_PRECISION_MD,
+                gpu: str | None = None) -> dict:
+    """Settings in the MD cache key. The GPU is named unless it is config.MD_LEGACY_GPU (or None), so that the runs
+    cached before 2026-11-01 keep their keys and runs on another GPU are never mixed with them."""
     settings = {"model": config.UMA_MODEL, "precision": precision, "T": temperature_K, "n_steps": n_steps, "seed": seed}
+    if gpu and gpu != config.MD_LEGACY_GPU:
+        settings["gpu"] = gpu
+    return settings
+
+
+def _check_md_gpu(backend, gpu: str | None) -> None:
+    """A run is cached under the GPU it really ran on: `gpu` must be that of the backend when both are given."""
+    if gpu and backend is not None and md_gpu(backend) != gpu:
+        raise ValueError(f"MD asked on {gpu} but the {getattr(backend, 'name', 'given')} backend runs on "
+                         f"{md_gpu(backend)}")
+
+
+def run_md(atoms, temperature_K: float, n_steps: int, precision: str = config.UMA_PRECISION_MD,
+           backend=None, seed: int = 0, cache: JsonCache | None = None, gpu: str | None = None) -> dict:
+    """Molecular dynamics through the backend, cached by structure and settings (GPU type included: `gpu`, else
+    that of the backend)."""
+    cache = cache or JsonCache(config.CACHE_DIR / "md")
+    _check_md_gpu(backend, gpu)
+    d = _as_atoms_dict(atoms)
+    settings = md_settings(temperature_K, n_steps, seed, precision, gpu or md_gpu(backend))
     key = atoms_key(d, **settings)
     cached = cache.get(key)
     if cached is not None:
         return {**cached, "cached": True}
-    backend = backend or get_backend()
+    if backend is None:
+        backend = ModalBackend(gpu=gpu) if gpu and config.SIM_BACKEND == "modal" else get_backend()
     res = backend.md(d, precision=precision, temperature_K=temperature_K, n_steps=n_steps, seed=seed)
     cache.set(key, {**res, "settings": settings})
     return {**res, "settings": settings, "cached": False}
@@ -226,18 +264,20 @@ def run_md_batch(atoms_list: list, temperature_K: float, n_steps: int, precision
 
 
 def run_md_runs(runs: list[dict], precision: str = config.UMA_PRECISION_MD, backend=None,
-                cache: JsonCache | None = None) -> int:
+                cache: JsonCache | None = None, gpu: str | None = None) -> int:
     """Fill the MD cache for runs that each have their own settings ({"atoms", "temperature_K", "n_steps",
-    "seed"}) in one backend call when the backend can batch (Kaggle: one session). Returns the number sent."""
+    "seed"}) in one backend call when the backend can batch (Kaggle: one session), on the GPU type `gpu` (else that
+    of the backend). Returns the number sent."""
     cache = cache or JsonCache(config.CACHE_DIR / "md")
-    backend = backend or get_backend()
+    _check_md_gpu(backend, gpu)
+    if backend is None:
+        backend = ModalBackend(gpu=gpu) if gpu and config.SIM_BACKEND == "modal" else get_backend()
     if not hasattr(backend, "md_batch") and not hasattr(backend, "md_batch_iter"):
         return 0
     missing: dict[str, tuple[dict, dict]] = {}
     for r in runs:
         d = _as_atoms_dict(r["atoms"])
-        settings = {"model": config.UMA_MODEL, "precision": precision, "T": r["temperature_K"],
-                    "n_steps": r["n_steps"], "seed": r.get("seed", 0)}
+        settings = md_settings(r["temperature_K"], r["n_steps"], r.get("seed", 0), precision, gpu or md_gpu(backend))
         key = atoms_key(d, **settings)  # the key of run_md, which then reads the cache
         if cache.get(key) is None:
             missing.setdefault(key, (d, settings))
