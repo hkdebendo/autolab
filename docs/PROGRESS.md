@@ -35,3 +35,8 @@ Next: deploy the page on Render (owner: AUTOLAB_API_URL, AUTOLAB_LIVE=1), step 5
 Waiting for the owner: Supabase project and DATABASE_URL (in .env and the Modal secret) to create the tables, import the history and deploy.
 Supabase connected (session pooler, eu-west-1), tables created (migration 001), the 3 recorded researches imported with their 3D files on the Modal volume; service redeployed on Modal and checked read-only (history, steps, report, 3D files). First real research through the API started (56ba511269b1).
 First real research through the deployed service (56ba511269b1, 'Se-Br substituted sulfide electrolytes'): done in ~30 min, 13 steps done, 79 events in Supabase, summary and report in the conversation, 49 3D files. Fixed after it: a substitution written differently was not seen as already evaluated (no cost, all cached); summaries still used field names.
+
+**MD on H100 (2026-11-01, owner)** — MODAL_MD_GPU = H100; MD cache keys name the GPU (A10G keys unchanged, nothing recomputed).
+A10G vs H100 check (fixed beforehand, results/2026-11-01_md_gpu_check): same D for both parents (-0.0 and +0.4 sigma), frameworks intact -> results of both GPUs compared freely, parents read from the A10G cache.
+H100 measured 14-17 ms/step, 1.3-1.7x faster than A10G (2.1-2.7x dearer per run). Cost: 2 H100 runs, ~1.5 $ (estimate 1.76 $). 142 tests pass.
+Next: error-driven loop (MD inside each iteration, failures fed back to Muse Spark; live: 3 iterations, 1 MD candidate each).

@@ -239,13 +239,13 @@ def run_md(atoms, temperature_K: float, n_steps: int, precision: str = config.UM
     """Molecular dynamics through the backend, cached by structure and settings (GPU type included: `gpu`, else
     that of the backend)."""
     cache = cache or JsonCache(config.CACHE_DIR / "md")
-    _check_md_gpu(backend, gpu)
     d = _as_atoms_dict(atoms)
     settings = md_settings(temperature_K, n_steps, seed, precision, gpu or md_gpu(backend))
     key = atoms_key(d, **settings)
     cached = cache.get(key)
     if cached is not None:
         return {**cached, "cached": True}
+    _check_md_gpu(backend, gpu)
     if backend is None:
         backend = ModalBackend(gpu=gpu) if gpu and config.SIM_BACKEND == "modal" else get_backend()
     res = backend.md(d, precision=precision, temperature_K=temperature_K, n_steps=n_steps, seed=seed)
@@ -266,8 +266,9 @@ def run_md_batch(atoms_list: list, temperature_K: float, n_steps: int, precision
 def run_md_runs(runs: list[dict], precision: str = config.UMA_PRECISION_MD, backend=None,
                 cache: JsonCache | None = None, gpu: str | None = None) -> int:
     """Fill the MD cache for runs that each have their own settings ({"atoms", "temperature_K", "n_steps",
-    "seed"}) in one backend call when the backend can batch (Kaggle: one session), on the GPU type `gpu` (else that
-    of the backend). Returns the number sent."""
+    "seed", optional "gpu"}) in one backend call when the backend can batch (Kaggle: one session). Each run is looked
+    up on its own GPU type (else `gpu`, else that of the backend); the missing ones must be on the backend's GPU.
+    Returns the number sent."""
     cache = cache or JsonCache(config.CACHE_DIR / "md")
     _check_md_gpu(backend, gpu)
     if backend is None:
@@ -277,9 +278,11 @@ def run_md_runs(runs: list[dict], precision: str = config.UMA_PRECISION_MD, back
     missing: dict[str, tuple[dict, dict]] = {}
     for r in runs:
         d = _as_atoms_dict(r["atoms"])
-        settings = md_settings(r["temperature_K"], r["n_steps"], r.get("seed", 0), precision, gpu or md_gpu(backend))
+        g = r.get("gpu") or gpu or md_gpu(backend)
+        settings = md_settings(r["temperature_K"], r["n_steps"], r.get("seed", 0), precision, g)
         key = atoms_key(d, **settings)  # the key of run_md, which then reads the cache
         if cache.get(key) is None:
+            _check_md_gpu(backend, g)
             missing.setdefault(key, (d, settings))
     if not missing:
         return 0

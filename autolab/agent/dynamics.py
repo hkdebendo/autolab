@@ -33,8 +33,8 @@ def md_runs_to_compute(jobs: list[dict], temperature_K: float = config.MD_SCREEN
                        ps: float = config.MD_SCREEN_PS, seeds: int = config.MD_SCREEN_SEEDS,
                        all_runs: bool = False, gpu: str | None = None) -> list[dict]:
     """The runs (job x seed) of a screening missing from the MD cache ({"id", "atoms", "temperature_K", "n_steps",
-    "seed", "cached"}) on the GPU type `gpu` (default: sim.backend.md_gpu()); with all_runs, cached ones too. Same
-    keys as sim.backend.run_md."""
+    "seed", "gpu", "cached"}), each on the GPU type of its job ("md_gpu", see with_md_gpu), else `gpu` (default:
+    sim.backend.md_gpu()); with all_runs, cached ones too. Same keys as sim.backend.run_md."""
     from autolab.sim.backend import _as_atoms_dict, md_gpu, md_settings
     from autolab.sim.serialize import atoms_key
     from autolab.store.cache import JsonCache
@@ -45,12 +45,12 @@ def md_runs_to_compute(jobs: list[dict], temperature_K: float = config.MD_SCREEN
     out = []
     for job in jobs:
         d = _as_atoms_dict(job["atoms"])
+        g = job.get("md_gpu") or gpu
         for s in range(seeds):
-            key = atoms_key(d, **md_settings(temperature_K, n_steps, s, gpu=gpu))
-            cached = cache.get(key) is not None
+            cached = cache.get(atoms_key(d, **md_settings(temperature_K, n_steps, s, gpu=g))) is not None
             if all_runs or not cached:
                 out.append({"id": job["id"], "atoms": job["atoms"], "temperature_K": temperature_K,
-                            "n_steps": n_steps, "seed": s, "cached": cached})
+                            "n_steps": n_steps, "seed": s, "gpu": g, "cached": cached})
     return out
 
 
@@ -66,20 +66,19 @@ def md_cached_result(job: dict, seed: int, temperature_K: float = config.MD_SCRE
     return JsonCache(config.CACHE_DIR / "md").get(atoms_key(_as_atoms_dict(job["atoms"]), **settings))
 
 
-def md_gpu_groups(cands: list[dict], gpu: str | None = None, legacy: str = config.MD_LEGACY_GPU) -> dict[str, list]:
-    """Candidates by the GPU type their screening uses: a candidate whose runs are all cached on the legacy GPU
-    keeps it (its parent is then read, or run, on that GPU too), the others run on `gpu` (default:
-    sim.backend.md_gpu()). Never computes."""
+def with_md_gpu(jobs: list[dict], gpu: str | None = None, legacy: str = config.MD_LEGACY_GPU,
+                temperature_K: float = config.MD_SCREEN_TEMPERATURE_K, ps: float = config.MD_SCREEN_PS,
+                seeds: int = config.MD_SCREEN_SEEDS) -> list[dict]:
+    """The jobs with the GPU type of their runs ("md_gpu"): a job whose runs are all cached on the legacy GPU reads
+    them (never recomputed), the others run on `gpu` (default: sim.backend.md_gpu()). A10G and H100 give the same D
+    (results/2026-11-01_md_gpu_check), so a candidate may be compared with a parent simulated on the other GPU."""
     from autolab.sim.backend import md_gpu
 
     gpu = gpu or md_gpu()
     if gpu in (None, legacy):
-        return {gpu: list(cands)} if cands else {}
-    groups: dict[str, list] = {}
-    for c in cands:
-        old = not md_runs_to_compute([candidate_job(c)], gpu=legacy)
-        groups.setdefault(legacy if old else gpu, []).append(c)
-    return groups
+        return [{**j, "md_gpu": gpu} for j in jobs]
+    return [{**j, "md_gpu": legacy if not md_runs_to_compute([j], temperature_K, ps, seeds, gpu=legacy) else gpu}
+            for j in jobs]
 
 
 def modal_md_plan(runs: list[dict], gpu: str = config.MODAL_MD_GPU) -> dict:
@@ -107,8 +106,8 @@ def md_screen(jobs: list[dict], temperature_K: float = config.MD_SCREEN_TEMPERAT
               on_done: Callable[[dict], None] | None = None, seeds: int = config.MD_SCREEN_SEEDS,
               max_runs: int = config.MD_SCREEN_MAX_RUNS, backend=None, gpu: str | None = None) -> list[dict]:
     """Run each job with `seeds` seeds (cached), pool the blocks of its seeds into one D with its error
-    (calibration v2, SPEC 5.10), check the framework of every run, call on_done after each job. All jobs run on
-    one GPU type (`gpu`, else that of the backend): candidates and parents are compared on the same GPU."""
+    (calibration v2, SPEC 5.10), check the framework of every run, call on_done after each job. Runs are read on the
+    GPU type of their job ("md_gpu", see with_md_gpu); missing ones run on `gpu`, else that of the backend."""
     from autolab.analysis.diffusion import diffusion_coefficient, framework_check, pool
 
     if len(jobs) * seeds > max_runs:
@@ -123,14 +122,16 @@ def md_screen(jobs: list[dict], temperature_K: float = config.MD_SCREEN_TEMPERAT
         from autolab.agent import cancel
 
         gpu = gpu or md_gpu(backend)
-        run_md_runs([{"atoms": job["atoms"], "temperature_K": temperature_K, "n_steps": n_steps, "seed": s}
-                     for job in jobs for s in range(seeds)], backend=backend, gpu=gpu)
+        run_md_runs([{"atoms": job["atoms"], "temperature_K": temperature_K, "n_steps": n_steps, "seed": s,
+                      "gpu": job.get("md_gpu") or gpu} for job in jobs for s in range(seeds)], backend=backend, gpu=gpu)
         cancel.check()  # stopped: the missing runs must not be computed one by one below
-        run = partial(run_md, backend=backend, gpu=gpu)
+        run = partial(run_md, backend=backend)
     out = []
     for job in jobs:
         t0 = time.perf_counter()
-        results = [run(job["atoms"], temperature_K=temperature_K, n_steps=n_steps, seed=s) for s in range(seeds)]
+        g = job.get("md_gpu") or gpu
+        kw = {"gpu": g} if g else {}
+        results = [run(job["atoms"], temperature_K=temperature_K, n_steps=n_steps, seed=s, **kw) for s in range(seeds)]
         ds = [diffusion_coefficient(r["positions"], r["dt_record_fs"]) for r in results]
         d = pool(ds)
         row = {k: v for k, v in job.items() if k != "atoms"}
@@ -138,7 +139,7 @@ def md_screen(jobs: list[dict], temperature_K: float = config.MD_SCREEN_TEMPERAT
         row.update(temperature_K=temperature_K, ps=ps, seeds=seeds, n_atoms=res["n_atoms"],
                    n_li=len(res["positions"][0]), ms_per_step=res["ms_per_step"],
                    cached=all(r.get("cached", False) for r in results), wall_s=round(time.perf_counter() - t0, 1),
-                   gpu=res.get("gpu"), md_gpu=gpu, **d)
+                   gpu=res.get("gpu"), md_gpu=g, **d)
         checks = [framework_check(r["framework_msd"], r["dt_record_fs"], di["D_A2_per_ps"])
                   for r, di in zip(results, ds) if r.get("framework_msd")]
         if checks:  # runs recorded before this check have Li positions only

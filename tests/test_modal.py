@@ -4,7 +4,7 @@ import modal.exception
 import pytest
 
 from autolab import config
-from autolab.agent.dynamics import md_gpu_groups, md_runs_to_compute
+from autolab.agent.dynamics import md_runs_to_compute, md_screen, md_verdicts, with_md_gpu
 from autolab.sim.backend import ModalBackend, md_settings, run_md, run_md_runs
 
 from test_kaggle import fake_md, licl
@@ -99,8 +99,9 @@ def test_a_run_on_another_gpu_never_reads_the_legacy_result(tmp_path, monkeypatc
     assert run_md_runs(run, backend=_backend("H100", fn, monkeypatch)) == 1  # computed again, on the H100
     assert fn.options["gpu"] == "H100"
     assert run_md(licl(5.1), 600, 40000, gpu="H100", backend=_backend("H100", FakeFn(), monkeypatch))["cached"]
-    with pytest.raises(ValueError, match="H100"):  # never cached under a GPU it did not run on
-        run_md(licl(5.1), 600, 40000, gpu="A10G", backend=_backend("H100", FakeFn(), monkeypatch))
+    assert run_md(licl(5.1), 600, 40000, gpu="A10G", backend=_backend("H100", FakeFn(), monkeypatch))["cached"]
+    with pytest.raises(ValueError, match="H100"):  # a new run is never cached under a GPU it did not run on
+        run_md(licl(5.3), 600, 40000, gpu="A10G", backend=_backend("H100", FakeFn(), monkeypatch))
 
 
 def test_single_md_run_goes_to_the_md_gpu(tmp_path, monkeypatch):
@@ -110,13 +111,21 @@ def test_single_md_run_goes_to_the_md_gpu(tmp_path, monkeypatch):
     assert fn.options == {"gpu": config.MODAL_MD_GPU, "timeout": 3600}
 
 
-def test_candidate_simulated_on_the_legacy_gpu_keeps_it(tmp_path, monkeypatch):
+def test_legacy_runs_are_read_and_missing_ones_run_on_the_new_gpu(tmp_path, monkeypatch):
     monkeypatch.setattr(config, "CACHE_DIR", tmp_path)
-    old = {"id": "c1", "formula": "LiCl", "parent": "mp-22905", "relaxed_atoms": licl(5.1)}
-    new = {"id": "c2", "formula": "LiCl", "parent": "mp-22905", "relaxed_atoms": licl(5.2)}
-    run_md_runs([{"atoms": licl(5.1), "temperature_K": config.MD_SCREEN_TEMPERATURE_K,
-                  "n_steps": round(config.MD_SCREEN_PS * 1000 / config.MD_TIMESTEP_FS), "seed": s}
-                 for s in range(config.MD_SCREEN_SEEDS)], backend=_backend("A10G", FakeFn(), monkeypatch))
-    assert md_gpu_groups([old, new], gpu="H100") == {"A10G": [old], "H100": [new]}
-    assert md_gpu_groups([old, new], gpu="A10G") == {"A10G": [old, new]}
-    assert md_runs_to_compute([{"id": "c1", "atoms": licl(5.1)}], gpu="H100")  # not cached on the H100
+    n_steps = round(config.MD_SCREEN_PS * 1000 / config.MD_TIMESTEP_FS)
+    parent = {"id": "mp-22905", "formula": "LiCl", "kind": "parent", "atoms": licl(5.1)}
+    old = {"id": "c1", "formula": "LiCl", "kind": "candidate", "parent": "mp-22905", "atoms": licl(5.15)}
+    new = {"id": "c2", "formula": "LiCl", "kind": "candidate", "parent": "mp-22905", "atoms": licl(5.2)}
+    run_md_runs([{"atoms": j["atoms"], "temperature_K": config.MD_SCREEN_TEMPERATURE_K, "n_steps": n_steps, "seed": s}
+                 for j in (parent, old) for s in range(config.MD_SCREEN_SEEDS)],
+                backend=_backend("A10G", FakeFn(), monkeypatch))
+    jobs = with_md_gpu([parent, old, new], gpu="H100")
+    assert [j["md_gpu"] for j in jobs] == ["A10G", "A10G", "H100"]
+    todo = md_runs_to_compute(jobs, gpu="H100")
+    assert [(r["id"], r["gpu"]) for r in todo] == [("c2", "H100")] * config.MD_SCREEN_SEEDS  # parent never rerun
+    fn = FakeFn()
+    rows = md_verdicts(md_screen(jobs, backend=_backend("H100", fn, monkeypatch)))
+    assert len(fn.spawned) == config.MD_SCREEN_SEEDS and fn.options["gpu"] == "H100"
+    assert [r["md_gpu"] for r in rows] == ["A10G", "A10G", "H100"]
+    assert rows[2]["vs_parent"] is not None  # H100 candidate compared with its A10G parent

@@ -144,9 +144,9 @@ MODAL_HF_SECRET = "huggingface-secret"
 MODAL_DOWNLOAD_TIMEOUT = 900  # s
 MODAL_RELAX_TIMEOUT = 1200  # s, per chunk of structures
 MODAL_MD_TIMEOUT = 3600  # s per MD run (40 ps on A10G: 16-27 min)
-MODAL_MD_GPU = "H100"  # owner, 2026-11-01: ~2x faster, ~2x dearer per run; calibration v2 to rerun on it (SPEC 5.10)
-MD_LEGACY_GPU = "A10G"  # MD cached before 2026-11-01 (calibration v2, screenings): keys without a GPU name; a candidate
-# is always compared with its parent on the same GPU (TF32 differs between GPUs)
+MODAL_MD_GPU = "H100"  # owner, 2026-11-01: 1.3-1.7x faster than A10G (measured), 2.1-2.7x dearer per run
+MD_LEGACY_GPU = "A10G"  # MD cached before 2026-11-01 (calibration v2, screenings): keys without a GPU name, read as is;
+# same D on A10G and H100 (results/2026-11-01_md_gpu_check), so candidates and parents may come from either
 MODAL_SPEED_TIMEOUT = 600  # s, MD speed measurement (warm-up + 0.5 ps)
 MODAL_SPEED_DEADLINE_S = 900  # s; speed calls unfinished by then are cancelled (GPU never available)
 MODAL_SCALEDOWN_S = 2  # s a GPU container stays up after its work (Modal's default of 60 s is billed)
