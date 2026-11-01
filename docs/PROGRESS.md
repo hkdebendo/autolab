@@ -40,3 +40,4 @@ First real research through the deployed service (56ba511269b1, 'Se-Br substitut
 A10G vs H100 check (fixed beforehand, results/2026-11-01_md_gpu_check): same D for both parents (-0.0 and +0.4 sigma), frameworks intact -> results of both GPUs compared freely, parents read from the A10G cache.
 H100 measured 14-17 ms/step, 1.3-1.7x faster than A10G (2.1-2.7x dearer per run). Cost: 2 H100 runs, ~1.5 $ (estimate 1.76 $). 142 tests pass.
 Next: error-driven loop (MD inside each iteration, failures fed back to Muse Spark; live: 3 iterations, 1 MD candidate each).
+Service redeployed on Modal (owner's go): H100 MD and today's fixes live; health ok, not busy, 1 of 6 researches used. Owner: future redeploys pre-approved.
