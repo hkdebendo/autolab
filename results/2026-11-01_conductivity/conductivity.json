@@ -1,0 +1,114 @@
+{
+ "parents": {
+  "mp-641703": {
+   "sigma_mS_cm": 99.93689251505103,
+   "sigma_low_mS_cm": 58.135454711619104,
+   "sigma_high_mS_cm": 171.79503514864155,
+   "temperature_K": 300,
+   "Ea_eV": 0.1373866306469344,
+   "Ea_err_eV": 0.0259923002527565,
+   "D_cm2_per_s": 1.006625951528943e-06,
+   "fit_temperatures_K": [
+    500.0,
+    600.0,
+    700.0
+   ],
+   "li_density_cm3": 1.6019223786423253e+22,
+   "method": "own Arrhenius fit (500, 600, 700 K)",
+   "points": [
+    {
+     "T": 500.0,
+     "D_cm2_per_s": 9.146512815800638e-06,
+     "D_sem_cm2_per_s": 1.5226397551904542e-06,
+     "runs": 1
+    },
+    {
+     "T": 600.0,
+     "D_cm2_per_s": 1.2737894696012157e-05,
+     "D_sem_cm2_per_s": 1.660170576491111e-06,
+     "runs": 3
+    },
+    {
+     "T": 700.0,
+     "D_cm2_per_s": 2.1419466858718194e-05,
+     "D_sem_cm2_per_s": 1.5313898008134368e-06,
+     "runs": 1
+    }
+   ],
+   "formula": "Li7P3S11"
+  },
+  "mp-985583": {
+   "sigma_mS_cm": 1.1762647363161314,
+   "sigma_low_mS_cm": 0.4325019774753996,
+   "sigma_high_mS_cm": 3.1990575811403223,
+   "temperature_K": 300,
+   "Ea_eV": 0.335851653839978,
+   "Ea_err_eV": 0.05085660796207477,
+   "D_cm2_per_s": 1.0373388363307293e-08,
+   "fit_temperatures_K": [
+    500.0,
+    600.0,
+    700.0
+   ],
+   "li_density_cm3": 1.829650715203591e+22,
+   "method": "own Arrhenius fit (500, 600, 700 K)",
+   "points": [
+    {
+     "T": 500.0,
+     "D_cm2_per_s": 2.194921238317414e-06,
+     "D_sem_cm2_per_s": 5.956137937654677e-07,
+     "runs": 1
+    },
+    {
+     "T": 600.0,
+     "D_cm2_per_s": 5.9683009268526135e-06,
+     "D_sem_cm2_per_s": 9.860807219447539e-07,
+     "runs": 3
+    },
+    {
+     "T": 700.0,
+     "D_cm2_per_s": 1.965256038058348e-05,
+     "D_sem_cm2_per_s": 3.976820294369087e-06,
+     "runs": 1
+    }
+   ],
+   "formula": "Li3PS4"
+  }
+ },
+ "candidates": {},
+ "plan": {
+  "gpu": "H100",
+  "runs": 2,
+  "seconds": [
+   673.9200000000001,
+   932.64
+  ],
+  "timeout_s": 1865,
+  "wall_s": 932.64,
+  "usd": 1.7627533333333334,
+  "usd_max": 4.092638888888889
+ },
+ "truth_test": {
+  "passed": true,
+  "order_ok": true,
+  "factor": 10.0,
+  "parents": {
+   "Li7P3S11": {
+    "sigma_mS_cm": 99.93689251505103,
+    "experiment_mS_cm": [
+     3.2,
+     17.0
+    ],
+    "within": true
+   },
+   "Li3PS4": {
+    "sigma_mS_cm": 1.1762647363161314,
+    "experiment_mS_cm": [
+     0.16,
+     0.16
+    ],
+    "within": true
+   }
+  }
+ }
+}
