@@ -107,7 +107,11 @@ Truth test, fixed before the runs (each within 0.4 V of experiment, LiFePO4 lowe
 
 First live research (Nov 2, 2026, `results/2026-11-02_cathode_run/`): *"Find new cobalt-free cathodes for lithium-ion batteries with a higher energy density than LiFePO4."* 3 rounds, 9 proposals: 2 already in Materials Project (not computed), 7 passed every filter. Finalists, all on the LiNi0.5Mn1.5O4 spinel: Ti-doped (4.75 V, 147 mAh/g, 701 Wh/kg), V-doped (4.69 V, 690 Wh/kg), Zr-doped (4.72 V, 676 Wh/kg). Honest outcome: each is **comparable to its parent** (4.72 V, 692 Wh/kg) within the model's voltage error, and the literature check (a known cathode first as a control) finds each family **already studied**. 142 relaxations, about 1 $ in all.
 
-Limits: average voltage over the whole charge only (no voltage profile), no oxygen redox, lithium diffusion in the cathode and cycling not computed; UMA underestimates the Mn voltages by about 0.2-0.3 V and the volume change of LiFePO4 (3.6 % against 6.8 % measured).
+Each E_hull carries its UMA-vs-DFT error bar, measured on the stable known compounds of its system: 0.005-0.010 eV/atom on 8 cathode systems (`results/2026-11-02_cathode_error_bars/`).
+
+**Blind benchmark** (`results/2026-11-02_cathode_benchmark/`, expected outcomes fixed before the runs, each compound's own composition removed from its hull): **9/10 as expected**. Good cathodes pass 2/2 (LiNiO2 3.95 V, Li3V2(PO4)3 3.73 V); bad compounds rejected 6/6 before any simulation (LiCoO2: cobalt; Li2MnO3, LiFeO2, Li3PO4, LiAlO2, Li4Ti5O12: no Li can leave); hard negatives 1/2: LiTiO2 rejected at 1.46 V, but **Li2FeSiO4 passes at 3.29 V** while it works at 2.8 V in experiment (failure kept: UMA overestimates this iron silicate).
+
+Limits: average voltage over the whole charge only (no voltage profile), no oxygen redox, lithium diffusion in the cathode and cycling not computed; UMA underestimates the Mn voltages by about 0.2-0.3 V, overestimates Li2FeSiO4 by about 0.5 V, and underestimates the volume change of LiFePO4 (3.6 % against 6.8 % measured).
 
 ## Limits that were addressed, and what remains
 
@@ -157,7 +161,7 @@ About 36 $ of Modal GPU time (calibrations, benchmark, runs), 1.2 $ of Muse Spar
 ```bash
 pip install -e ".[bandgap,dev]"
 cp .env.example .env          # then fill in your own keys
-pytest                        # 184 CPU tests; GPU and paid-API tests are skipped
+pytest                        # 187 CPU tests; GPU and paid-API tests are skipped
 pytest web/tests              # 17 tests of the interface
 pytest --gpu                  # UMA truth tests (NVIDIA GPU only)
 ```
@@ -167,6 +171,7 @@ Recorded results need no key: open `results/*/report.md`, or preview the interfa
 ```bash
 python scripts/dev_server.py  # http://127.0.0.1:8100, no database, no paid call
 # watch the agent at work on the Nov 1 research: http://127.0.0.1:8100/c/feedback-2026-11-01?watch=2
+# and on the cobalt-free cathode research: http://127.0.0.1:8100/c/cathode-2026-11-02?watch=2
 ```
 
 The interface shows the agent at work: one card per action, naming the model or tool and what it does (Muse Spark reasoning and proposing, pymatgen building, UMA relaxing the crystal in 3D while the cell parameters move, GapModel band gap, Muse Spark Open reviews, molecular dynamics with the recorded lithium trajectory, failures sent back and explained), the progress list ticking and a lab notebook of the decisions; the research card, the summary and the report come at the end. The lab opens full screen in landscape (progress, current action and lab notebook side by side; a button reduces it into the chat); after a research, "Watch the agent at work" replays it there, with pause, stop, restart and leave (a paused replay resumes where it stopped). Results taken from the saved computations are played at a readable pace and marked "reused"; an identical request reuses a finished research without computing anything.

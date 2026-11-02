@@ -1,0 +1,2434 @@
+[
+ {
+  "system": "Li-Mn-Ni-O-Ti",
+  "available": true,
+  "rows": [
+   {
+    "formula": "Li(NiO2)2",
+    "id": "mp-774941",
+    "mp": -0.0065,
+    "uma": -0.0127,
+    "diff": -0.0062,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2Mn3NiO8",
+    "id": "mp-771112",
+    "mp": -0.033,
+    "uma": -0.0343,
+    "diff": -0.0013,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2MnO3",
+    "id": "mp-18988",
+    "mp": -0.1239,
+    "uma": -0.1181,
+    "diff": 0.0058,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2NiO3",
+    "id": "mp-556550",
+    "mp": -0.0363,
+    "uma": -0.0403,
+    "diff": -0.004,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2O",
+    "id": "mp-1960",
+    "mp": -0.9615,
+    "uma": -0.9789,
+    "diff": -0.0174,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2O2",
+    "id": "mp-841",
+    "mp": -0.0789,
+    "uma": -0.078,
+    "diff": 0.0009,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2Ti3MnO8",
+    "id": "mp-775865",
+    "mp": -0.0082,
+    "uma": -0.0118,
+    "diff": -0.0036,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2Ti3NiO8",
+    "id": "mp-775326",
+    "mp": -0.004,
+    "uma": -0.0059,
+    "diff": -0.0018,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2TiO3",
+    "id": "mp-2931",
+    "mp": -0.0775,
+    "uma": -0.0728,
+    "diff": 0.0046,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li4Mn5O12",
+    "id": "mp-691115",
+    "mp": -0.0085,
+    "uma": -0.0119,
+    "diff": -0.0034,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li4TiO4",
+    "id": "mp-9172",
+    "mp": -0.0324,
+    "uma": -0.0346,
+    "diff": -0.0022,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li5Mn7O16",
+    "id": "mp-530177",
+    "mp": -0.0098,
+    "uma": -0.0076,
+    "diff": 0.0022,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li7Ti11O24",
+    "id": "mp-766823",
+    "mp": -0.0036,
+    "uma": -0.0064,
+    "diff": -0.0028,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiMn2O4",
+    "id": "mp-1272804",
+    "mp": -0.0034,
+    "uma": -0.0036,
+    "diff": -0.0002,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiMnNiO4",
+    "id": "mp-756366",
+    "mp": -0.0006,
+    "uma": -0.0044,
+    "diff": -0.0039,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiMnO2",
+    "id": "mp-754656",
+    "mp": -0.0307,
+    "uma": -0.0277,
+    "diff": 0.0029,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiNiO2",
+    "id": "mp-2348641",
+    "mp": -0.0047,
+    "uma": -0.0031,
+    "diff": 0.0016,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiO8",
+    "id": "mp-1235059",
+    "mp": -0.0604,
+    "uma": -0.0482,
+    "diff": 0.0121,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiTi2O4",
+    "id": "mp-5670",
+    "mp": -0.0227,
+    "uma": -0.0238,
+    "diff": -0.0011,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiTiO2",
+    "id": "mp-38280",
+    "mp": -0.0159,
+    "uma": -0.0249,
+    "diff": -0.009,
+    "polysulfide": false
+   },
+   {
+    "formula": "Mn(Ni3O4)2",
+    "id": "mp-19442",
+    "mp": -0.0096,
+    "uma": -0.0064,
+    "diff": 0.0032,
+    "polysulfide": false
+   },
+   {
+    "formula": "Mn2O3",
+    "id": "mp-1172875",
+    "mp": -0.0419,
+    "uma": -0.0489,
+    "diff": -0.0071,
+    "polysulfide": false
+   },
+   {
+    "formula": "Mn3O4",
+    "id": "mp-18759",
+    "mp": -0.0472,
+    "uma": -0.0485,
+    "diff": -0.0013,
+    "polysulfide": false
+   },
+   {
+    "formula": "MnNi",
+    "id": "mp-11500",
+    "mp": 0.0353,
+    "uma": 0.0245,
+    "diff": -0.0108,
+    "polysulfide": false
+   },
+   {
+    "formula": "MnNi3",
+    "id": "mp-11501",
+    "mp": -0.0947,
+    "uma": -0.0747,
+    "diff": 0.02,
+    "polysulfide": false
+   },
+   {
+    "formula": "MnNiO3",
+    "id": "mp-19331",
+    "mp": -0.0439,
+    "uma": -0.0536,
+    "diff": -0.0097,
+    "polysulfide": false
+   },
+   {
+    "formula": "MnO",
+    "id": "mp-1232659",
+    "mp": -0.1824,
+    "uma": -0.1526,
+    "diff": 0.0298,
+    "polysulfide": false
+   },
+   {
+    "formula": "MnO2",
+    "id": "mp-644514",
+    "mp": -0.111,
+    "uma": -0.1078,
+    "diff": 0.0032,
+    "polysulfide": false
+   },
+   {
+    "formula": "Ni3O4",
+    "id": "mp-656887",
+    "mp": -0.0027,
+    "uma": -0.0147,
+    "diff": -0.012,
+    "polysulfide": false
+   },
+   {
+    "formula": "NiO",
+    "id": "mp-19009",
+    "mp": -0.3022,
+    "uma": -0.2867,
+    "diff": 0.0154,
+    "polysulfide": false
+   },
+   {
+    "formula": "Ti2MnNi",
+    "id": "mp-865712",
+    "mp": -0.0334,
+    "uma": -0.0227,
+    "diff": 0.0107,
+    "polysulfide": false
+   },
+   {
+    "formula": "Ti2Ni",
+    "id": "mp-1808",
+    "mp": -0.0134,
+    "uma": -0.0218,
+    "diff": -0.0083,
+    "polysulfide": false
+   },
+   {
+    "formula": "Ti2O",
+    "id": "mp-1215",
+    "mp": -0.0196,
+    "uma": -0.0304,
+    "diff": -0.0108,
+    "polysulfide": false
+   },
+   {
+    "formula": "Ti2O3",
+    "id": "mp-458",
+    "mp": -0.022,
+    "uma": -0.0194,
+    "diff": 0.0026,
+    "polysulfide": false
+   },
+   {
+    "formula": "Ti3O",
+    "id": "mp-2591",
+    "mp": -0.0239,
+    "uma": -0.0262,
+    "diff": -0.0024,
+    "polysulfide": false
+   },
+   {
+    "formula": "Ti3O5",
+    "id": "mp-8057",
+    "mp": 0.0005,
+    "uma": -0.0024,
+    "diff": -0.0029,
+    "polysulfide": false
+   },
+   {
+    "formula": "Ti4(Ni5O8)3",
+    "id": "mp-766093",
+    "mp": -0.0201,
+    "uma": -0.0249,
+    "diff": -0.0048,
+    "polysulfide": false
+   },
+   {
+    "formula": "Ti6O",
+    "id": "mp-554098",
+    "mp": -0.0196,
+    "uma": -0.0107,
+    "diff": 0.0089,
+    "polysulfide": false
+   },
+   {
+    "formula": "TiMn2",
+    "id": "mp-1949",
+    "mp": -0.2722,
+    "uma": -0.2618,
+    "diff": 0.0103,
+    "polysulfide": false
+   },
+   {
+    "formula": "TiMnO3",
+    "id": "mp-19082",
+    "mp": -0.0669,
+    "uma": -0.0731,
+    "diff": -0.0062,
+    "polysulfide": false
+   },
+   {
+    "formula": "TiNi",
+    "id": "mp-1048",
+    "mp": -0.0363,
+    "uma": -0.0339,
+    "diff": 0.0024,
+    "polysulfide": false
+   },
+   {
+    "formula": "TiNi3",
+    "id": "mp-1409",
+    "mp": -0.2849,
+    "uma": -0.2793,
+    "diff": 0.0055,
+    "polysulfide": false
+   },
+   {
+    "formula": "TiNiO3",
+    "id": "mp-18732",
+    "mp": -0.0123,
+    "uma": -0.0281,
+    "diff": -0.0158,
+    "polysulfide": false
+   },
+   {
+    "formula": "TiO",
+    "id": "mp-1071163",
+    "mp": -0.08,
+    "uma": -0.0565,
+    "diff": 0.0235,
+    "polysulfide": false
+   },
+   {
+    "formula": "TiO2",
+    "id": "mp-390",
+    "mp": -0.4954,
+    "uma": -0.4989,
+    "diff": -0.0035,
+    "polysulfide": false
+   }
+  ],
+  "reason": null,
+  "method": "decomposition energy of each known compound against the other phases, UMA + MP2020 vs MP",
+  "compounds": {
+   "n": 45,
+   "mae": 0.0071,
+   "rmse": 0.0095,
+   "max_abs": 0.0298,
+   "bias": 0.0003
+  },
+  "polysulfides": {
+   "n": 0,
+   "mae": null,
+   "rmse": null,
+   "max_abs": null,
+   "bias": null
+  }
+ },
+ {
+  "system": "Li-Mn-Ni-O-V",
+  "available": true,
+  "rows": [
+   {
+    "formula": "Li(NiO2)2",
+    "id": "mp-774941",
+    "mp": -0.0065,
+    "uma": -0.0127,
+    "diff": -0.0062,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2Mn3NiO8",
+    "id": "mp-771112",
+    "mp": -0.033,
+    "uma": -0.0343,
+    "diff": -0.0013,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2MnO3",
+    "id": "mp-18988",
+    "mp": -0.1239,
+    "uma": -0.1181,
+    "diff": 0.0058,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2NiO3",
+    "id": "mp-556550",
+    "mp": -0.0363,
+    "uma": -0.0403,
+    "diff": -0.004,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2O",
+    "id": "mp-1960",
+    "mp": -0.9615,
+    "uma": -0.9789,
+    "diff": -0.0174,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2O2",
+    "id": "mp-841",
+    "mp": -0.0789,
+    "uma": -0.078,
+    "diff": 0.0009,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3VO4",
+    "id": "mp-19219",
+    "mp": -0.2249,
+    "uma": -0.2265,
+    "diff": -0.0016,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li4Mn5O12",
+    "id": "mp-691115",
+    "mp": -0.0085,
+    "uma": -0.0119,
+    "diff": -0.0034,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li5Mn7O16",
+    "id": "mp-530177",
+    "mp": -0.0098,
+    "uma": -0.0076,
+    "diff": 0.0022,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiMn2O4",
+    "id": "mp-1272804",
+    "mp": -0.0034,
+    "uma": -0.0036,
+    "diff": -0.0002,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiMnNiO4",
+    "id": "mp-756366",
+    "mp": -0.0006,
+    "uma": -0.0044,
+    "diff": -0.0039,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiMnO2",
+    "id": "mp-754656",
+    "mp": -0.0307,
+    "uma": -0.0277,
+    "diff": 0.0029,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiMnVO4",
+    "id": "mp-19107",
+    "mp": -0.0065,
+    "uma": -0.001,
+    "diff": 0.0055,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiNiO2",
+    "id": "mp-2348641",
+    "mp": -0.0047,
+    "uma": -0.0031,
+    "diff": 0.0016,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiO8",
+    "id": "mp-1235059",
+    "mp": -0.0604,
+    "uma": -0.0482,
+    "diff": 0.0121,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiVO2",
+    "id": "mp-19340",
+    "mp": -0.1212,
+    "uma": -0.099,
+    "diff": 0.0222,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiVO3",
+    "id": "mp-19373",
+    "mp": -0.0045,
+    "uma": -0.0001,
+    "diff": 0.0044,
+    "polysulfide": false
+   },
+   {
+    "formula": "Mn(Ni3O4)2",
+    "id": "mp-19442",
+    "mp": -0.0096,
+    "uma": -0.0064,
+    "diff": 0.0032,
+    "polysulfide": false
+   },
+   {
+    "formula": "Mn2O3",
+    "id": "mp-1172875",
+    "mp": -0.0419,
+    "uma": -0.0489,
+    "diff": -0.0071,
+    "polysulfide": false
+   },
+   {
+    "formula": "Mn2V2O7",
+    "id": "mp-19142",
+    "mp": -0.0177,
+    "uma": -0.017,
+    "diff": 0.0006,
+    "polysulfide": false
+   },
+   {
+    "formula": "Mn2V3NiO8",
+    "id": "mp-1280544",
+    "mp": -0.0285,
+    "uma": -0.0169,
+    "diff": 0.0117,
+    "polysulfide": false
+   },
+   {
+    "formula": "Mn3O4",
+    "id": "mp-18759",
+    "mp": -0.0472,
+    "uma": -0.0485,
+    "diff": -0.0013,
+    "polysulfide": false
+   },
+   {
+    "formula": "Mn3V2O8",
+    "id": "mp-17899",
+    "mp": -0.0127,
+    "uma": -0.0163,
+    "diff": -0.0035,
+    "polysulfide": false
+   },
+   {
+    "formula": "MnNi",
+    "id": "mp-11500",
+    "mp": 0.0353,
+    "uma": 0.0245,
+    "diff": -0.0108,
+    "polysulfide": false
+   },
+   {
+    "formula": "MnNi3",
+    "id": "mp-11501",
+    "mp": -0.0947,
+    "uma": -0.0747,
+    "diff": 0.02,
+    "polysulfide": false
+   },
+   {
+    "formula": "MnNiO3",
+    "id": "mp-19331",
+    "mp": -0.0439,
+    "uma": -0.0536,
+    "diff": -0.0097,
+    "polysulfide": false
+   },
+   {
+    "formula": "MnO",
+    "id": "mp-1232659",
+    "mp": -0.1824,
+    "uma": -0.1526,
+    "diff": 0.0298,
+    "polysulfide": false
+   },
+   {
+    "formula": "MnO2",
+    "id": "mp-644514",
+    "mp": -0.111,
+    "uma": -0.1078,
+    "diff": 0.0032,
+    "polysulfide": false
+   },
+   {
+    "formula": "MnV",
+    "id": "mp-316",
+    "mp": -0.2841,
+    "uma": -0.2767,
+    "diff": 0.0074,
+    "polysulfide": false
+   },
+   {
+    "formula": "MnV2O6",
+    "id": "mp-2490654",
+    "mp": -0.0256,
+    "uma": -0.0215,
+    "diff": 0.0041,
+    "polysulfide": false
+   },
+   {
+    "formula": "Ni3O4",
+    "id": "mp-656887",
+    "mp": -0.0027,
+    "uma": -0.0147,
+    "diff": -0.012,
+    "polysulfide": false
+   },
+   {
+    "formula": "NiO",
+    "id": "mp-19009",
+    "mp": -0.3022,
+    "uma": -0.2867,
+    "diff": 0.0154,
+    "polysulfide": false
+   },
+   {
+    "formula": "V2Ni3O8",
+    "id": "mp-542151",
+    "mp": -0.0542,
+    "uma": -0.0666,
+    "diff": -0.0123,
+    "polysulfide": false
+   },
+   {
+    "formula": "V2NiO6",
+    "id": "mp-28162",
+    "mp": 0.0041,
+    "uma": 0.0037,
+    "diff": -0.0004,
+    "polysulfide": false
+   },
+   {
+    "formula": "V2O3",
+    "id": "mp-21579",
+    "mp": -0.3203,
+    "uma": -0.3283,
+    "diff": -0.008,
+    "polysulfide": false
+   },
+   {
+    "formula": "V2O5",
+    "id": "mp-25279",
+    "mp": -0.1802,
+    "uma": -0.1789,
+    "diff": 0.0013,
+    "polysulfide": false
+   },
+   {
+    "formula": "V3Ni",
+    "id": "mp-7226",
+    "mp": -0.039,
+    "uma": -0.0409,
+    "diff": -0.0019,
+    "polysulfide": false
+   },
+   {
+    "formula": "V3Ni2",
+    "id": "mp-1216708",
+    "mp": -0.0003,
+    "uma": -0.0017,
+    "diff": -0.0013,
+    "polysulfide": false
+   },
+   {
+    "formula": "VNi2",
+    "id": "mp-11531",
+    "mp": -0.0131,
+    "uma": -0.0053,
+    "diff": 0.0078,
+    "polysulfide": false
+   },
+   {
+    "formula": "VNi3",
+    "id": "mp-171",
+    "mp": -0.0605,
+    "uma": -0.0666,
+    "diff": -0.0062,
+    "polysulfide": false
+   },
+   {
+    "formula": "VO2",
+    "id": "mp-541404",
+    "mp": -0.0689,
+    "uma": -0.065,
+    "diff": 0.0039,
+    "polysulfide": false
+   }
+  ],
+  "reason": null,
+  "method": "decomposition energy of each known compound against the other phases, UMA + MP2020 vs MP",
+  "compounds": {
+   "n": 41,
+   "mae": 0.0068,
+   "rmse": 0.0094,
+   "max_abs": 0.0298,
+   "bias": 0.0013
+  },
+  "polysulfides": {
+   "n": 0,
+   "mae": null,
+   "rmse": null,
+   "max_abs": null,
+   "bias": null
+  }
+ },
+ {
+  "system": "Li-Mn-Ni-O-Zr",
+  "available": true,
+  "rows": [
+   {
+    "formula": "Li(NiO2)2",
+    "id": "mp-774941",
+    "mp": -0.0065,
+    "uma": -0.0127,
+    "diff": -0.0062,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2Mn3NiO8",
+    "id": "mp-771112",
+    "mp": -0.033,
+    "uma": -0.0343,
+    "diff": -0.0013,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2MnO3",
+    "id": "mp-18988",
+    "mp": -0.1239,
+    "uma": -0.1181,
+    "diff": 0.0058,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2NiO3",
+    "id": "mp-556550",
+    "mp": -0.0363,
+    "uma": -0.0403,
+    "diff": -0.004,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2O",
+    "id": "mp-1960",
+    "mp": -0.9615,
+    "uma": -0.9789,
+    "diff": -0.0174,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2O2",
+    "id": "mp-841",
+    "mp": -0.0789,
+    "uma": -0.078,
+    "diff": 0.0009,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2ZrO3",
+    "id": "mp-4156",
+    "mp": -0.0168,
+    "uma": -0.0143,
+    "diff": 0.0024,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li4Mn5O12",
+    "id": "mp-691115",
+    "mp": -0.0085,
+    "uma": -0.0119,
+    "diff": -0.0034,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li5Mn7O16",
+    "id": "mp-530177",
+    "mp": -0.0098,
+    "uma": -0.0076,
+    "diff": 0.0022,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li6Zr2O7",
+    "id": "mp-5418",
+    "mp": -0.0209,
+    "uma": -0.023,
+    "diff": -0.0021,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiMn2O4",
+    "id": "mp-1272804",
+    "mp": -0.0034,
+    "uma": -0.0036,
+    "diff": -0.0002,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiMnNiO4",
+    "id": "mp-756366",
+    "mp": -0.0006,
+    "uma": -0.0044,
+    "diff": -0.0039,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiMnO2",
+    "id": "mp-754656",
+    "mp": -0.0307,
+    "uma": -0.0277,
+    "diff": 0.0029,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiNiO2",
+    "id": "mp-2348641",
+    "mp": -0.0047,
+    "uma": -0.0031,
+    "diff": 0.0016,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiO8",
+    "id": "mp-1235059",
+    "mp": -0.0604,
+    "uma": -0.0482,
+    "diff": 0.0121,
+    "polysulfide": false
+   },
+   {
+    "formula": "Mn(Ni3O4)2",
+    "id": "mp-19442",
+    "mp": -0.0096,
+    "uma": -0.0064,
+    "diff": 0.0032,
+    "polysulfide": false
+   },
+   {
+    "formula": "Mn2O3",
+    "id": "mp-1172875",
+    "mp": -0.0419,
+    "uma": -0.0489,
+    "diff": -0.0071,
+    "polysulfide": false
+   },
+   {
+    "formula": "Mn3O4",
+    "id": "mp-18759",
+    "mp": -0.0472,
+    "uma": -0.0485,
+    "diff": -0.0013,
+    "polysulfide": false
+   },
+   {
+    "formula": "MnNi",
+    "id": "mp-11500",
+    "mp": 0.0353,
+    "uma": 0.0245,
+    "diff": -0.0108,
+    "polysulfide": false
+   },
+   {
+    "formula": "MnNi3",
+    "id": "mp-11501",
+    "mp": -0.0947,
+    "uma": -0.0747,
+    "diff": 0.02,
+    "polysulfide": false
+   },
+   {
+    "formula": "MnNiO3",
+    "id": "mp-19331",
+    "mp": -0.0439,
+    "uma": -0.0536,
+    "diff": -0.0097,
+    "polysulfide": false
+   },
+   {
+    "formula": "MnO",
+    "id": "mp-1232659",
+    "mp": -0.1824,
+    "uma": -0.1526,
+    "diff": 0.0298,
+    "polysulfide": false
+   },
+   {
+    "formula": "MnO2",
+    "id": "mp-644514",
+    "mp": -0.111,
+    "uma": -0.1078,
+    "diff": 0.0032,
+    "polysulfide": false
+   },
+   {
+    "formula": "Ni3O4",
+    "id": "mp-656887",
+    "mp": -0.0027,
+    "uma": -0.0147,
+    "diff": -0.012,
+    "polysulfide": false
+   },
+   {
+    "formula": "NiO",
+    "id": "mp-19009",
+    "mp": -0.3022,
+    "uma": -0.2867,
+    "diff": 0.0154,
+    "polysulfide": false
+   },
+   {
+    "formula": "Zr2Ni",
+    "id": "mp-328",
+    "mp": -0.0192,
+    "uma": -0.0036,
+    "diff": 0.0157,
+    "polysulfide": false
+   },
+   {
+    "formula": "Zr2Ni7",
+    "id": "mp-2717",
+    "mp": -0.0198,
+    "uma": -0.011,
+    "diff": 0.0088,
+    "polysulfide": false
+   },
+   {
+    "formula": "Zr3O",
+    "id": "mp-14024",
+    "mp": -0.0285,
+    "uma": -0.032,
+    "diff": -0.0035,
+    "polysulfide": false
+   },
+   {
+    "formula": "Zr4O",
+    "id": "mp-1215377",
+    "mp": -0.0049,
+    "uma": 0.0076,
+    "diff": 0.0125,
+    "polysulfide": false
+   },
+   {
+    "formula": "ZrMn2",
+    "id": "mp-2027032",
+    "mp": -0.1874,
+    "uma": -0.1693,
+    "diff": 0.0181,
+    "polysulfide": false
+   },
+   {
+    "formula": "ZrNi",
+    "id": "mp-556",
+    "mp": -0.0785,
+    "uma": -0.0858,
+    "diff": -0.0073,
+    "polysulfide": false
+   },
+   {
+    "formula": "ZrNi3",
+    "id": "mp-485",
+    "mp": -0.0283,
+    "uma": -0.0384,
+    "diff": -0.0101,
+    "polysulfide": false
+   },
+   {
+    "formula": "ZrO2",
+    "id": "mp-2858",
+    "mp": -3.127,
+    "uma": -3.2052,
+    "diff": -0.0782,
+    "polysulfide": false
+   }
+  ],
+  "reason": null,
+  "method": "decomposition energy of each known compound against the other phases, UMA + MP2020 vs MP",
+  "compounds": {
+   "n": 33,
+   "mae": 0.0101,
+   "rmse": 0.0171,
+   "max_abs": 0.0782,
+   "bias": -0.0007
+  },
+  "polysulfides": {
+   "n": 0,
+   "mae": null,
+   "rmse": null,
+   "max_abs": null,
+   "bias": null
+  }
+ },
+ {
+  "system": "Li-Mn-Ni-O",
+  "available": true,
+  "rows": [
+   {
+    "formula": "Li(NiO2)2",
+    "id": "mp-774941",
+    "mp": -0.0065,
+    "uma": -0.0127,
+    "diff": -0.0062,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2Mn3NiO8",
+    "id": "mp-771112",
+    "mp": -0.033,
+    "uma": -0.0343,
+    "diff": -0.0013,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2MnO3",
+    "id": "mp-18988",
+    "mp": -0.1239,
+    "uma": -0.1181,
+    "diff": 0.0058,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2NiO3",
+    "id": "mp-556550",
+    "mp": -0.0363,
+    "uma": -0.0403,
+    "diff": -0.004,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2O",
+    "id": "mp-1960",
+    "mp": -0.9615,
+    "uma": -0.9789,
+    "diff": -0.0174,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2O2",
+    "id": "mp-841",
+    "mp": -0.0789,
+    "uma": -0.078,
+    "diff": 0.0009,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li4Mn5O12",
+    "id": "mp-691115",
+    "mp": -0.0085,
+    "uma": -0.0119,
+    "diff": -0.0034,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li5Mn7O16",
+    "id": "mp-530177",
+    "mp": -0.0098,
+    "uma": -0.0076,
+    "diff": 0.0022,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiMn2O4",
+    "id": "mp-1272804",
+    "mp": -0.0034,
+    "uma": -0.0036,
+    "diff": -0.0002,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiMnNiO4",
+    "id": "mp-756366",
+    "mp": -0.0006,
+    "uma": -0.0044,
+    "diff": -0.0039,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiMnO2",
+    "id": "mp-754656",
+    "mp": -0.0307,
+    "uma": -0.0277,
+    "diff": 0.0029,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiNiO2",
+    "id": "mp-2348641",
+    "mp": -0.0047,
+    "uma": -0.0031,
+    "diff": 0.0016,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiO8",
+    "id": "mp-1235059",
+    "mp": -0.0604,
+    "uma": -0.0482,
+    "diff": 0.0121,
+    "polysulfide": false
+   },
+   {
+    "formula": "Mn(Ni3O4)2",
+    "id": "mp-19442",
+    "mp": -0.0096,
+    "uma": -0.0064,
+    "diff": 0.0032,
+    "polysulfide": false
+   },
+   {
+    "formula": "Mn2O3",
+    "id": "mp-1172875",
+    "mp": -0.0419,
+    "uma": -0.0489,
+    "diff": -0.0071,
+    "polysulfide": false
+   },
+   {
+    "formula": "Mn3O4",
+    "id": "mp-18759",
+    "mp": -0.0472,
+    "uma": -0.0485,
+    "diff": -0.0013,
+    "polysulfide": false
+   },
+   {
+    "formula": "MnNi",
+    "id": "mp-11500",
+    "mp": 0.0353,
+    "uma": 0.0245,
+    "diff": -0.0108,
+    "polysulfide": false
+   },
+   {
+    "formula": "MnNi3",
+    "id": "mp-11501",
+    "mp": -0.0947,
+    "uma": -0.0747,
+    "diff": 0.02,
+    "polysulfide": false
+   },
+   {
+    "formula": "MnNiO3",
+    "id": "mp-19331",
+    "mp": -0.0439,
+    "uma": -0.0536,
+    "diff": -0.0097,
+    "polysulfide": false
+   },
+   {
+    "formula": "MnO",
+    "id": "mp-1232659",
+    "mp": -0.1824,
+    "uma": -0.1526,
+    "diff": 0.0298,
+    "polysulfide": false
+   },
+   {
+    "formula": "MnO2",
+    "id": "mp-644514",
+    "mp": -0.111,
+    "uma": -0.1078,
+    "diff": 0.0032,
+    "polysulfide": false
+   },
+   {
+    "formula": "Ni3O4",
+    "id": "mp-656887",
+    "mp": -0.0027,
+    "uma": -0.0147,
+    "diff": -0.012,
+    "polysulfide": false
+   },
+   {
+    "formula": "NiO",
+    "id": "mp-19009",
+    "mp": -0.3022,
+    "uma": -0.2867,
+    "diff": 0.0154,
+    "polysulfide": false
+   }
+  ],
+  "reason": null,
+  "method": "decomposition energy of each known compound against the other phases, UMA + MP2020 vs MP",
+  "compounds": {
+   "n": 23,
+   "mae": 0.0076,
+   "rmse": 0.0105,
+   "max_abs": 0.0298,
+   "bias": 0.0009
+  },
+  "polysulfides": {
+   "n": 0,
+   "mae": null,
+   "rmse": null,
+   "max_abs": null,
+   "bias": null
+  }
+ },
+ {
+  "system": "Al-Li-Mn-O",
+  "available": true,
+  "rows": [
+   {
+    "formula": "Al2O3",
+    "id": "mp-1143",
+    "mp": -3.4266,
+    "uma": -3.4209,
+    "diff": 0.0056,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2Al",
+    "id": "mp-1210753",
+    "mp": -0.0069,
+    "uma": -0.0027,
+    "diff": 0.0042,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2MnO3",
+    "id": "mp-18988",
+    "mp": -0.1239,
+    "uma": -0.1181,
+    "diff": 0.0058,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2O",
+    "id": "mp-1960",
+    "mp": -0.9615,
+    "uma": -0.9789,
+    "diff": -0.0174,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2O2",
+    "id": "mp-841",
+    "mp": -0.0789,
+    "uma": -0.078,
+    "diff": 0.0009,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3Al2",
+    "id": "mp-16506",
+    "mp": -0.0164,
+    "uma": -0.009,
+    "diff": 0.0074,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li4Mn5O12",
+    "id": "mp-691115",
+    "mp": -0.0085,
+    "uma": -0.0119,
+    "diff": -0.0034,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li5AlO4",
+    "id": "mp-15960",
+    "mp": -0.0324,
+    "uma": -0.0319,
+    "diff": 0.0005,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li5Mn7O16",
+    "id": "mp-530177",
+    "mp": -0.0098,
+    "uma": -0.0076,
+    "diff": 0.0022,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li9Al4",
+    "id": "mp-568404",
+    "mp": 0.0056,
+    "uma": -0.0028,
+    "diff": -0.0084,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiAl",
+    "id": "mp-1067",
+    "mp": -0.0233,
+    "uma": -0.0338,
+    "diff": -0.0104,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiAl5O8",
+    "id": "mp-530399",
+    "mp": -0.0267,
+    "uma": -0.0285,
+    "diff": -0.0018,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiAlO2",
+    "id": "mp-8001",
+    "mp": -0.0725,
+    "uma": -0.0712,
+    "diff": 0.0013,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiMn2O4",
+    "id": "mp-1272804",
+    "mp": -0.0034,
+    "uma": -0.0036,
+    "diff": -0.0002,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiMnO2",
+    "id": "mp-754656",
+    "mp": -0.0307,
+    "uma": -0.0277,
+    "diff": 0.0029,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiO8",
+    "id": "mp-1235059",
+    "mp": -0.0604,
+    "uma": -0.0482,
+    "diff": 0.0121,
+    "polysulfide": false
+   },
+   {
+    "formula": "Mn2O3",
+    "id": "mp-1172875",
+    "mp": -0.0419,
+    "uma": -0.0489,
+    "diff": -0.0071,
+    "polysulfide": false
+   },
+   {
+    "formula": "Mn3Al10",
+    "id": "mp-16511",
+    "mp": 0.002,
+    "uma": -0.0017,
+    "diff": -0.0037,
+    "polysulfide": false
+   },
+   {
+    "formula": "Mn3O4",
+    "id": "mp-18759",
+    "mp": -0.0472,
+    "uma": -0.0485,
+    "diff": -0.0013,
+    "polysulfide": false
+   },
+   {
+    "formula": "Mn4Al11",
+    "id": "mp-2856",
+    "mp": -0.0347,
+    "uma": -0.0333,
+    "diff": 0.0013,
+    "polysulfide": false
+   },
+   {
+    "formula": "MnAl",
+    "id": "mp-771",
+    "mp": -0.0834,
+    "uma": -0.0708,
+    "diff": 0.0127,
+    "polysulfide": false
+   },
+   {
+    "formula": "MnAl2O4",
+    "id": "mp-755882",
+    "mp": -0.0355,
+    "uma": -0.0389,
+    "diff": -0.0034,
+    "polysulfide": false
+   },
+   {
+    "formula": "MnO",
+    "id": "mp-1232659",
+    "mp": -0.1824,
+    "uma": -0.1526,
+    "diff": 0.0298,
+    "polysulfide": false
+   },
+   {
+    "formula": "MnO2",
+    "id": "mp-644514",
+    "mp": -0.111,
+    "uma": -0.1078,
+    "diff": 0.0032,
+    "polysulfide": false
+   }
+  ],
+  "reason": null,
+  "method": "decomposition energy of each known compound against the other phases, UMA + MP2020 vs MP",
+  "compounds": {
+   "n": 24,
+   "mae": 0.0061,
+   "rmse": 0.009,
+   "max_abs": 0.0298,
+   "bias": 0.0014
+  },
+  "polysulfides": {
+   "n": 0,
+   "mae": null,
+   "rmse": null,
+   "max_abs": null,
+   "bias": null
+  }
+ },
+ {
+  "system": "Li-Mn-O-Ti",
+  "available": true,
+  "rows": [
+   {
+    "formula": "Li2MnO3",
+    "id": "mp-18988",
+    "mp": -0.1239,
+    "uma": -0.1181,
+    "diff": 0.0058,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2O",
+    "id": "mp-1960",
+    "mp": -0.9615,
+    "uma": -0.9789,
+    "diff": -0.0174,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2O2",
+    "id": "mp-841",
+    "mp": -0.0789,
+    "uma": -0.078,
+    "diff": 0.0009,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2Ti3MnO8",
+    "id": "mp-775865",
+    "mp": -0.0082,
+    "uma": -0.0118,
+    "diff": -0.0036,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2TiO3",
+    "id": "mp-2931",
+    "mp": -0.0775,
+    "uma": -0.0728,
+    "diff": 0.0046,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li4Mn5O12",
+    "id": "mp-691115",
+    "mp": -0.0085,
+    "uma": -0.0119,
+    "diff": -0.0034,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li4TiO4",
+    "id": "mp-9172",
+    "mp": -0.0324,
+    "uma": -0.0346,
+    "diff": -0.0022,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li5Mn7O16",
+    "id": "mp-530177",
+    "mp": -0.0098,
+    "uma": -0.0076,
+    "diff": 0.0022,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li7Ti11O24",
+    "id": "mp-766823",
+    "mp": -0.0036,
+    "uma": -0.0064,
+    "diff": -0.0028,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiMn2O4",
+    "id": "mp-1272804",
+    "mp": -0.0034,
+    "uma": -0.0036,
+    "diff": -0.0002,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiMnO2",
+    "id": "mp-754656",
+    "mp": -0.0307,
+    "uma": -0.0277,
+    "diff": 0.0029,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiO8",
+    "id": "mp-1235059",
+    "mp": -0.0604,
+    "uma": -0.0482,
+    "diff": 0.0121,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiTi2O4",
+    "id": "mp-5670",
+    "mp": -0.0227,
+    "uma": -0.0238,
+    "diff": -0.0011,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiTiO2",
+    "id": "mp-38280",
+    "mp": -0.0159,
+    "uma": -0.0249,
+    "diff": -0.009,
+    "polysulfide": false
+   },
+   {
+    "formula": "Mn2O3",
+    "id": "mp-1172875",
+    "mp": -0.0419,
+    "uma": -0.0489,
+    "diff": -0.0071,
+    "polysulfide": false
+   },
+   {
+    "formula": "Mn3O4",
+    "id": "mp-18759",
+    "mp": -0.0472,
+    "uma": -0.0485,
+    "diff": -0.0013,
+    "polysulfide": false
+   },
+   {
+    "formula": "MnO",
+    "id": "mp-1232659",
+    "mp": -0.1824,
+    "uma": -0.1526,
+    "diff": 0.0298,
+    "polysulfide": false
+   },
+   {
+    "formula": "MnO2",
+    "id": "mp-644514",
+    "mp": -0.111,
+    "uma": -0.1078,
+    "diff": 0.0032,
+    "polysulfide": false
+   },
+   {
+    "formula": "Ti2O",
+    "id": "mp-1215",
+    "mp": -0.0196,
+    "uma": -0.0304,
+    "diff": -0.0108,
+    "polysulfide": false
+   },
+   {
+    "formula": "Ti2O3",
+    "id": "mp-458",
+    "mp": -0.022,
+    "uma": -0.0194,
+    "diff": 0.0026,
+    "polysulfide": false
+   },
+   {
+    "formula": "Ti3O",
+    "id": "mp-2591",
+    "mp": -0.0239,
+    "uma": -0.0262,
+    "diff": -0.0024,
+    "polysulfide": false
+   },
+   {
+    "formula": "Ti3O5",
+    "id": "mp-8057",
+    "mp": 0.0005,
+    "uma": -0.0024,
+    "diff": -0.0029,
+    "polysulfide": false
+   },
+   {
+    "formula": "Ti6O",
+    "id": "mp-554098",
+    "mp": -0.0196,
+    "uma": -0.0107,
+    "diff": 0.0089,
+    "polysulfide": false
+   },
+   {
+    "formula": "TiMn2",
+    "id": "mp-1949",
+    "mp": -0.2722,
+    "uma": -0.2618,
+    "diff": 0.0103,
+    "polysulfide": false
+   },
+   {
+    "formula": "TiMnO3",
+    "id": "mp-19082",
+    "mp": -0.0669,
+    "uma": -0.0731,
+    "diff": -0.0062,
+    "polysulfide": false
+   },
+   {
+    "formula": "TiO",
+    "id": "mp-1071163",
+    "mp": -0.08,
+    "uma": -0.0565,
+    "diff": 0.0235,
+    "polysulfide": false
+   },
+   {
+    "formula": "TiO2",
+    "id": "mp-390",
+    "mp": -0.4954,
+    "uma": -0.4989,
+    "diff": -0.0035,
+    "polysulfide": false
+   }
+  ],
+  "reason": null,
+  "method": "decomposition energy of each known compound against the other phases, UMA + MP2020 vs MP",
+  "compounds": {
+   "n": 27,
+   "mae": 0.0067,
+   "rmse": 0.0096,
+   "max_abs": 0.0298,
+   "bias": 0.0012
+  },
+  "polysulfides": {
+   "n": 0,
+   "mae": null,
+   "rmse": null,
+   "max_abs": null,
+   "bias": null
+  }
+ },
+ {
+  "system": "Li-Mn-O-P-Si",
+  "available": true,
+  "rows": [
+   {
+    "formula": "Li13Si4",
+    "id": "mp-672287",
+    "mp": -0.0077,
+    "uma": -0.0076,
+    "diff": 0.0,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li15Si4",
+    "id": "mp-569849",
+    "mp": -0.0102,
+    "uma": -0.0121,
+    "diff": -0.0019,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2MnO3",
+    "id": "mp-18988",
+    "mp": -0.1239,
+    "uma": -0.1181,
+    "diff": 0.0058,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2MnP2O7",
+    "id": "mp-1203394",
+    "mp": -0.0022,
+    "uma": -0.0013,
+    "diff": 0.0009,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2MnSiO4",
+    "id": "mp-559240",
+    "mp": -0.0338,
+    "uma": -0.0415,
+    "diff": -0.0077,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2O",
+    "id": "mp-1960",
+    "mp": -0.9615,
+    "uma": -0.9789,
+    "diff": -0.0174,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2O2",
+    "id": "mp-841",
+    "mp": -0.0789,
+    "uma": -0.078,
+    "diff": 0.0009,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2Si2O5",
+    "id": "mp-4117",
+    "mp": -0.0084,
+    "uma": -0.0106,
+    "diff": -0.0022,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2SiO3",
+    "id": "mp-5012",
+    "mp": -0.0375,
+    "uma": -0.0365,
+    "diff": 0.001,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3P",
+    "id": "mp-736",
+    "mp": -0.4349,
+    "uma": -0.4417,
+    "diff": -0.0068,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3P7",
+    "id": "mp-28336",
+    "mp": -0.0326,
+    "uma": -0.031,
+    "diff": 0.0016,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3PO4",
+    "id": "mp-13725",
+    "mp": -0.1376,
+    "uma": -0.1375,
+    "diff": 0.0,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li4Mn5O12",
+    "id": "mp-691115",
+    "mp": -0.0085,
+    "uma": -0.0119,
+    "diff": -0.0034,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li4P2O7",
+    "id": "mp-28450",
+    "mp": -0.0097,
+    "uma": -0.0103,
+    "diff": -0.0006,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li4SiO4",
+    "id": "mp-11737",
+    "mp": -0.0408,
+    "uma": -0.0398,
+    "diff": 0.001,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li5Mn7O16",
+    "id": "mp-530177",
+    "mp": -0.0098,
+    "uma": -0.0076,
+    "diff": 0.0022,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li5SiP3",
+    "id": "mp-685991",
+    "mp": -0.0385,
+    "uma": -0.0406,
+    "diff": -0.0021,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li7Si3",
+    "id": "mp-1201871",
+    "mp": -0.0298,
+    "uma": -0.0269,
+    "diff": 0.0028,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li8SiO6",
+    "id": "mp-28549",
+    "mp": -0.0055,
+    "uma": -0.0056,
+    "diff": -0.0001,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiMn(PO3)3",
+    "id": "mp-26019",
+    "mp": -0.0001,
+    "uma": 0.0004,
+    "diff": 0.0005,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiMn(PO3)4",
+    "id": "mp-26983",
+    "mp": -0.0088,
+    "uma": -0.0091,
+    "diff": -0.0002,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiMn2O4",
+    "id": "mp-1272804",
+    "mp": -0.0034,
+    "uma": -0.0036,
+    "diff": -0.0002,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiMn2P3O10",
+    "id": "mp-26977",
+    "mp": -0.0012,
+    "uma": -0.0018,
+    "diff": -0.0006,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiMn6P7O24",
+    "id": "mp-26005",
+    "mp": -0.0006,
+    "uma": -0.0007,
+    "diff": -0.0,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiMnO2",
+    "id": "mp-754656",
+    "mp": -0.0307,
+    "uma": -0.0277,
+    "diff": 0.0029,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiMnP",
+    "id": "mp-1176614",
+    "mp": -0.0059,
+    "uma": 0.0061,
+    "diff": 0.012,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiMnP2O7",
+    "id": "mp-31924",
+    "mp": -0.0249,
+    "uma": -0.0057,
+    "diff": 0.0191,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiMnPO4",
+    "id": "mp-18997",
+    "mp": -0.0112,
+    "uma": -0.0067,
+    "diff": 0.0045,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiO8",
+    "id": "mp-1235059",
+    "mp": -0.0604,
+    "uma": -0.0482,
+    "diff": 0.0121,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiP",
+    "id": "mp-9588",
+    "mp": -0.0139,
+    "uma": -0.0121,
+    "diff": 0.0018,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiP7",
+    "id": "mp-27687",
+    "mp": -0.0054,
+    "uma": -0.0127,
+    "diff": -0.0072,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiPO3",
+    "id": "mp-29195",
+    "mp": -0.0679,
+    "uma": -0.0662,
+    "diff": 0.0017,
+    "polysulfide": false
+   },
+   {
+    "formula": "Mn(PO3)2",
+    "id": "mp-542139",
+    "mp": -0.0294,
+    "uma": -0.0314,
+    "diff": -0.0019,
+    "polysulfide": false
+   },
+   {
+    "formula": "Mn(PO3)3",
+    "id": "mp-771905",
+    "mp": -0.0243,
+    "uma": -0.0266,
+    "diff": -0.0023,
+    "polysulfide": false
+   },
+   {
+    "formula": "Mn2O3",
+    "id": "mp-1172875",
+    "mp": -0.0419,
+    "uma": -0.0489,
+    "diff": -0.0071,
+    "polysulfide": false
+   },
+   {
+    "formula": "Mn2P",
+    "id": "mp-1849",
+    "mp": -0.103,
+    "uma": -0.1009,
+    "diff": 0.0021,
+    "polysulfide": false
+   },
+   {
+    "formula": "Mn2P2O7",
+    "id": "mp-755644",
+    "mp": -0.0175,
+    "uma": -0.0185,
+    "diff": -0.0011,
+    "polysulfide": false
+   },
+   {
+    "formula": "Mn2SiO4",
+    "id": "mp-18928",
+    "mp": -0.0692,
+    "uma": -0.0807,
+    "diff": -0.0115,
+    "polysulfide": false
+   },
+   {
+    "formula": "Mn3(PO4)2",
+    "id": "mp-558631",
+    "mp": -0.0536,
+    "uma": -0.0555,
+    "diff": -0.002,
+    "polysulfide": false
+   },
+   {
+    "formula": "Mn3O4",
+    "id": "mp-18759",
+    "mp": -0.0472,
+    "uma": -0.0485,
+    "diff": -0.0013,
+    "polysulfide": false
+   },
+   {
+    "formula": "Mn4Si7",
+    "id": "mp-680339",
+    "mp": -0.2004,
+    "uma": -0.1909,
+    "diff": 0.0095,
+    "polysulfide": false
+   },
+   {
+    "formula": "Mn5Si3",
+    "id": "mp-1111",
+    "mp": -0.0934,
+    "uma": -0.1065,
+    "diff": -0.0131,
+    "polysulfide": false
+   },
+   {
+    "formula": "Mn7SiO12",
+    "id": "mp-3224",
+    "mp": -0.0238,
+    "uma": -0.0268,
+    "diff": -0.003,
+    "polysulfide": false
+   },
+   {
+    "formula": "MnO",
+    "id": "mp-1232659",
+    "mp": -0.1824,
+    "uma": -0.1526,
+    "diff": 0.0298,
+    "polysulfide": false
+   },
+   {
+    "formula": "MnO2",
+    "id": "mp-644514",
+    "mp": -0.111,
+    "uma": -0.1078,
+    "diff": 0.0032,
+    "polysulfide": false
+   },
+   {
+    "formula": "MnP",
+    "id": "mp-2662",
+    "mp": -0.157,
+    "uma": -0.1552,
+    "diff": 0.0017,
+    "polysulfide": false
+   },
+   {
+    "formula": "MnP2O7",
+    "id": "mp-771660",
+    "mp": -0.0261,
+    "uma": -0.0165,
+    "diff": 0.0097,
+    "polysulfide": false
+   },
+   {
+    "formula": "MnP4",
+    "id": "mp-569522",
+    "mp": -0.1147,
+    "uma": -0.1159,
+    "diff": -0.0012,
+    "polysulfide": false
+   },
+   {
+    "formula": "MnP4O11",
+    "id": "mp-557042",
+    "mp": -0.0312,
+    "uma": -0.0294,
+    "diff": 0.0017,
+    "polysulfide": false
+   },
+   {
+    "formula": "P2O5",
+    "id": "mp-2173",
+    "mp": -2.4337,
+    "uma": -2.4253,
+    "diff": 0.0084,
+    "polysulfide": false
+   },
+   {
+    "formula": "Si5P6O25",
+    "id": "mp-3273",
+    "mp": -0.0121,
+    "uma": -0.0102,
+    "diff": 0.0019,
+    "polysulfide": false
+   },
+   {
+    "formula": "SiO2",
+    "id": "mp-7000",
+    "mp": -3.2566,
+    "uma": -3.2507,
+    "diff": 0.0059,
+    "polysulfide": false
+   },
+   {
+    "formula": "SiP",
+    "id": "mp-2798",
+    "mp": -0.0414,
+    "uma": -0.0355,
+    "diff": 0.0059,
+    "polysulfide": false
+   },
+   {
+    "formula": "SiP2",
+    "id": "mp-9996",
+    "mp": -0.035,
+    "uma": -0.0262,
+    "diff": 0.0088,
+    "polysulfide": false
+   },
+   {
+    "formula": "SiP2O7",
+    "id": "mp-18157",
+    "mp": -0.0313,
+    "uma": -0.0328,
+    "diff": -0.0015,
+    "polysulfide": false
+   }
+  ],
+  "reason": null,
+  "method": "decomposition energy of each known compound against the other phases, UMA + MP2020 vs MP",
+  "compounds": {
+   "n": 55,
+   "mae": 0.0047,
+   "rmse": 0.0073,
+   "max_abs": 0.0298,
+   "bias": 0.0011
+  },
+  "polysulfides": {
+   "n": 0,
+   "mae": null,
+   "rmse": null,
+   "max_abs": null,
+   "bias": null
+  }
+ },
+ {
+  "system": "Fe-Li-O-P",
+  "available": true,
+  "rows": [
+   {
+    "formula": "Fe(PO3)2",
+    "id": "mp-649683",
+    "mp": -0.0361,
+    "uma": -0.0389,
+    "diff": -0.0028,
+    "polysulfide": false
+   },
+   {
+    "formula": "Fe(PO3)3",
+    "id": "mp-541930",
+    "mp": -0.0889,
+    "uma": -0.0874,
+    "diff": 0.0015,
+    "polysulfide": false
+   },
+   {
+    "formula": "Fe2O3",
+    "id": "mp-19770",
+    "mp": -0.5219,
+    "uma": -0.4578,
+    "diff": 0.0641,
+    "polysulfide": false
+   },
+   {
+    "formula": "Fe2P",
+    "id": "mp-1189340",
+    "mp": -0.0224,
+    "uma": -0.012,
+    "diff": 0.0103,
+    "polysulfide": false
+   },
+   {
+    "formula": "Fe2P2O7",
+    "id": "mp-1102399",
+    "mp": -0.0052,
+    "uma": -0.0047,
+    "diff": 0.0005,
+    "polysulfide": false
+   },
+   {
+    "formula": "Fe3(PO4)2",
+    "id": "mp-19346",
+    "mp": -0.0604,
+    "uma": -0.0602,
+    "diff": 0.0002,
+    "polysulfide": false
+   },
+   {
+    "formula": "Fe3P",
+    "id": "mp-18708",
+    "mp": -0.011,
+    "uma": -0.0179,
+    "diff": -0.0069,
+    "polysulfide": false
+   },
+   {
+    "formula": "FeO",
+    "id": "mp-1274279",
+    "mp": -0.0589,
+    "uma": -0.1026,
+    "diff": -0.0437,
+    "polysulfide": false
+   },
+   {
+    "formula": "FeP",
+    "id": "mp-1005",
+    "mp": -0.1009,
+    "uma": -0.1068,
+    "diff": -0.0059,
+    "polysulfide": false
+   },
+   {
+    "formula": "FeP2",
+    "id": "mp-20027",
+    "mp": -0.0642,
+    "uma": -0.0632,
+    "diff": 0.001,
+    "polysulfide": false
+   },
+   {
+    "formula": "FeP4",
+    "id": "mp-570553",
+    "mp": -0.0497,
+    "uma": -0.0555,
+    "diff": -0.0057,
+    "polysulfide": false
+   },
+   {
+    "formula": "FeP4O11",
+    "id": "mp-759361",
+    "mp": -0.0228,
+    "uma": -0.0227,
+    "diff": 0.0001,
+    "polysulfide": false
+   },
+   {
+    "formula": "FePO4",
+    "id": "mp-753395",
+    "mp": -0.0598,
+    "uma": -0.0895,
+    "diff": -0.0297,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2Fe12P7",
+    "id": "mp-760680",
+    "mp": -0.0031,
+    "uma": -0.0168,
+    "diff": -0.0137,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2FeO3",
+    "id": "mp-774155",
+    "mp": -0.0321,
+    "uma": -0.0389,
+    "diff": -0.0068,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2O",
+    "id": "mp-1960",
+    "mp": -0.9615,
+    "uma": -0.9789,
+    "diff": -0.0174,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li2O2",
+    "id": "mp-841",
+    "mp": -0.0789,
+    "uma": -0.078,
+    "diff": 0.0009,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3P",
+    "id": "mp-736",
+    "mp": -0.4349,
+    "uma": -0.4417,
+    "diff": -0.0068,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3P7",
+    "id": "mp-28336",
+    "mp": -0.0326,
+    "uma": -0.031,
+    "diff": 0.0016,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li3PO4",
+    "id": "mp-13725",
+    "mp": -0.1376,
+    "uma": -0.1375,
+    "diff": 0.0,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li4P2O7",
+    "id": "mp-28450",
+    "mp": -0.0097,
+    "uma": -0.0103,
+    "diff": -0.0006,
+    "polysulfide": false
+   },
+   {
+    "formula": "Li5FeO4",
+    "id": "mp-19511",
+    "mp": -0.0276,
+    "uma": -0.0322,
+    "diff": -0.0046,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiFe(PO3)3",
+    "id": "mp-26003",
+    "mp": -0.0005,
+    "uma": 0.0012,
+    "diff": 0.0017,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiFe(PO3)4",
+    "id": "mp-25977",
+    "mp": -0.0087,
+    "uma": -0.009,
+    "diff": -0.0003,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiFe2P3O10",
+    "id": "mp-27007",
+    "mp": -0.0036,
+    "uma": -0.0049,
+    "diff": -0.0013,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiFeO2",
+    "id": "mp-755709",
+    "mp": -0.0691,
+    "uma": -0.103,
+    "diff": -0.0339,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiFeP",
+    "id": "mp-20049",
+    "mp": -0.0493,
+    "uma": -0.0455,
+    "diff": 0.0038,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiFeP2O7",
+    "id": "mp-19294",
+    "mp": -0.0286,
+    "uma": -0.0252,
+    "diff": 0.0034,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiFePO4",
+    "id": "mp-19017",
+    "mp": -0.0098,
+    "uma": -0.0045,
+    "diff": 0.0052,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiO8",
+    "id": "mp-1235059",
+    "mp": -0.0604,
+    "uma": -0.0482,
+    "diff": 0.0121,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiP",
+    "id": "mp-9588",
+    "mp": -0.0139,
+    "uma": -0.0121,
+    "diff": 0.0018,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiP7",
+    "id": "mp-27687",
+    "mp": -0.0054,
+    "uma": -0.0127,
+    "diff": -0.0072,
+    "polysulfide": false
+   },
+   {
+    "formula": "LiPO3",
+    "id": "mp-29195",
+    "mp": -0.0679,
+    "uma": -0.0662,
+    "diff": 0.0017,
+    "polysulfide": false
+   },
+   {
+    "formula": "P2O5",
+    "id": "mp-2173",
+    "mp": -2.4337,
+    "uma": -2.4253,
+    "diff": 0.0084,
+    "polysulfide": false
+   }
+  ],
+  "reason": null,
+  "method": "decomposition energy of each known compound against the other phases, UMA + MP2020 vs MP",
+  "compounds": {
+   "n": 34,
+   "mae": 0.009,
+   "rmse": 0.0165,
+   "max_abs": 0.0641,
+   "bias": -0.002
+  },
+  "polysulfides": {
+   "n": 0,
+   "mae": null,
+   "rmse": null,
+   "max_abs": null,
+   "bias": null
+  }
+ }
+]

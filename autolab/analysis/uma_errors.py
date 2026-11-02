@@ -53,7 +53,7 @@ def leave_one_out(entries: list) -> dict[str, float]:
 
 
 def system_errors(elements: Iterable[str], uma_entries: list | None = None, mp_energies: dict | None = None,
-                  refs: list | None = None) -> dict:
+                  refs: list | None = None, ehull_max: float = config.MP_REF_EHULL_MAX) -> dict:
     """UMA (+ MP2020) vs MP decomposition energies of the known compounds of a system and its sub-systems.
 
     Returns {"system", "available", "reason", "rows": [{formula, id, mp, uma, diff, polysulfide}], "compounds": stats,
@@ -69,14 +69,14 @@ def system_errors(elements: Iterable[str], uma_entries: list | None = None, mp_e
         from autolab.sim.backend import BudgetExceeded, RelaxBudget
 
         try:
-            uma_entries, _ = uma_reference_entries(elements, budget=RelaxBudget(0))
+            uma_entries, _ = uma_reference_entries(elements, budget=RelaxBudget(0), ehull_max=ehull_max)
         except BudgetExceeded as e:
             out["reason"] = f"references not all relaxed by UMA in the cache ({e})"
             return out
     if mp_energies is None or refs is None:
         from autolab.data.mp import get_reference_energies, get_references
 
-        refs = get_references(elements)
+        refs = get_references(elements, ehull_max=ehull_max)
         mp_energies = get_reference_energies(elements)
     mp_entries = [PDEntry(r["structure"].composition, mp_energies[r["material_id"]] * r["structure"].num_sites,
                           name=r["material_id"], attribute={"source": "mp"})
@@ -98,17 +98,18 @@ def system_errors(elements: Iterable[str], uma_entries: list | None = None, mp_e
     return out
 
 
-def cached_system_errors(elements: Iterable[str]) -> dict:
-    """system_errors with a disk cache (config.CACHE_DIR / uma_errors), recomputed only when missing."""
+def cached_system_errors(elements: Iterable[str], ehull_max: float = config.MP_REF_EHULL_MAX) -> dict:
+    """system_errors with a disk cache (config.CACHE_DIR / uma_errors), recomputed only when missing; `ehull_max`: the
+    hull references of the domain (the cathode domain uses the stable phases only)."""
     from autolab.data.mp import chemsys_key
     from autolab.store.cache import JsonCache
 
     cache = JsonCache(config.CACHE_DIR / "uma_errors")
-    key = chemsys_key(sorted(set(elements)))
+    key = chemsys_key(sorted(set(elements))) + ("" if ehull_max == config.MP_REF_EHULL_MAX else f"_e{ehull_max}")
     hit = cache.get(key)
     if hit is not None:
         return hit
-    res = system_errors(elements)
+    res = system_errors(elements, ehull_max=ehull_max)
     if res["available"]:  # an unavailable system may become available once its references are relaxed
         cache.set(key, res)
     return res

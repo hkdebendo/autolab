@@ -235,13 +235,13 @@ Drafting three short lessons from quoted comparison numbers and setting an empty
 
 Order: energy density (voltage x theoretical capacity), then E_hull per substitution. Candidates are computational predictions, not proven materials.
 
-1. it1-c3 Li8TiMn11(NiO8)4 **finalist**: 4.75 V, 147 mAh/g, 701 Wh/kg, volume change 3.4 %, E_hull 0.003 eV/atom (parent Li2Mn3NiO8: 4.72 V, 692 Wh/kg)
-2. it2-c3 Li8Mn11V(NiO8)4 **finalist**: 4.69 V, 147 mAh/g, 690 Wh/kg, volume change 3.4 %, E_hull 0.008 eV/atom (parent Li2Mn3NiO8: 4.72 V, 692 Wh/kg)
-3. it3-c2 Li8ZrMn11(NiO8)4 **finalist**: 4.72 V, 143 mAh/g, 676 Wh/kg, volume change 3.9 %, E_hull 0.016 eV/atom (parent Li2Mn3NiO8: 4.72 V, 692 Wh/kg)
-4. it3-c3 Li4Mn4SiP3O16: 3.92 V, 172 mAh/g, 674 Wh/kg, volume change 7.2 %, E_hull 0.028 eV/atom (parent LiMnPO4: 3.79 V, 648 Wh/kg)
-5. it1-c2 Li3Mn5NiO12: 4.39 V, 147 mAh/g, 646 Wh/kg, volume change 4.6 %, E_hull 0.005 eV/atom (parent LiMn2O4: 3.82 V, 567 Wh/kg)
-6. it3-c1 Li6TiMn11O24: 3.85 V, 149 mAh/g, 574 Wh/kg, volume change 6.0 %, E_hull 0.010 eV/atom (parent LiMn2O4: 3.82 V, 567 Wh/kg)
-7. it2-c2 Li6Mn11AlO24: 3.85 V, 127 mAh/g, 488 Wh/kg, volume change 4.7 %, E_hull 0.003 eV/atom (parent LiMn2O4: 3.82 V, 567 Wh/kg)
+1. it1-c3 Li8TiMn11(NiO8)4 **finalist**: 4.75 V, 147 mAh/g, 701 Wh/kg, volume change 3.4 %, E_hull 0.003 eV/atom (E_hull error bar ± 0.007 eV/atom) (parent Li2Mn3NiO8: 4.72 V, 692 Wh/kg)
+2. it2-c3 Li8Mn11V(NiO8)4 **finalist**: 4.69 V, 147 mAh/g, 690 Wh/kg, volume change 3.4 %, E_hull 0.008 eV/atom (E_hull error bar ± 0.007 eV/atom) (parent Li2Mn3NiO8: 4.72 V, 692 Wh/kg)
+3. it3-c2 Li8ZrMn11(NiO8)4 **finalist**: 4.72 V, 143 mAh/g, 676 Wh/kg, volume change 3.9 %, E_hull 0.016 eV/atom (E_hull error bar ± 0.010 eV/atom) (parent Li2Mn3NiO8: 4.72 V, 692 Wh/kg)
+4. it3-c3 Li4Mn4SiP3O16: 3.92 V, 172 mAh/g, 674 Wh/kg, volume change 7.2 %, E_hull 0.028 eV/atom (E_hull error bar ± 0.005 eV/atom) (parent LiMnPO4: 3.79 V, 648 Wh/kg)
+5. it1-c2 Li3Mn5NiO12: 4.39 V, 147 mAh/g, 646 Wh/kg, volume change 4.6 %, E_hull 0.005 eV/atom (E_hull error bar ± 0.008 eV/atom) (parent LiMn2O4: 3.82 V, 567 Wh/kg)
+6. it3-c1 Li6TiMn11O24: 3.85 V, 149 mAh/g, 574 Wh/kg, volume change 6.0 %, E_hull 0.010 eV/atom (E_hull error bar ± 0.007 eV/atom) (parent LiMn2O4: 3.82 V, 567 Wh/kg)
+7. it2-c2 Li6Mn11AlO24: 3.85 V, 127 mAh/g, 488 Wh/kg, volume change 4.7 %, E_hull 0.003 eV/atom (E_hull error bar ± 0.006 eV/atom) (parent LiMn2O4: 3.82 V, 567 Wh/kg)
 
 ## Novelty check (literature, web search)
 
@@ -308,13 +308,13 @@ Notes: no inline citation returned by the API: the relevant search results it re
 
 _5 web searches, 55 sources considered, ~$0.0507, 2026-11-02_
 
-Total: 4 calls, ~$0.1869.
+Total: 0 calls, ~$0.0000.
 
 ## Final scientific report
 
 ### Executive summary
 
-A computational search for cobalt-free cathodes found Li8TiMn11(NiO8)4 with 701.0 Wh/kg at 4.754 V and 147.4 mAh/g. Its voltage and energy density are comparable to its parent Li2Mn3NiO8 at 4.718 V and 692.0 Wh/kg within the model's error of 0.35 V. It shows 0.003 eV/atom above the hull and 3.44 % volume change on removal of 8 of 8 Li. Its close family is already studied. It remains a computational prediction that needs confirmation.
+The search aimed for cobalt-free cathodes with higher energy density than LiFePO4. The champion is Li8TiMn11(NiO8)4 with energy density 701.0 Wh/kg at voltage 4.754 V and capacity 147.4 mAh/g, volume change 3.44%, and energy above hull 0.003 eV/atom with error 0.007 eV/atom. Its voltage 4.754 V and energy density 701.0 Wh/kg are comparable to its parent Li2Mn3NiO8 at 4.718 V and 692.0 Wh/kg within the model's voltage error of 0.35 V. The other finalists are Li8Mn11V(NiO8)4 with 690.0 Wh/kg at 4.693 V and 147.1 mAh/g, volume change 3.37%, and 0.008 eV/atom with error 0.007 eV/atom, and Li8ZrMn11(NiO8)4 with 676.0 Wh/kg at 4.72 V and 143.1 mAh/g, volume change 3.89%, and 0.016 eV/atom with error 0.01 eV/atom. The champion belongs to a close family already studied. Two candidates were rejected as known: Li4MnFe3(PO4)4 already in Materials Project as mp-783919, mp-807965, mp-764613, mp-766043, mp-766130, and Li4Fe3Ni(PO4)4 already as mp-771063. DFT calculations, voltage profile beyond average voltage, oxygen redox, lithium diffusion and electronic conductivity, cycling and capacity fade, synthesis, cost of the elements, and experimental data were not computed.
 
 ### Comparison of the finalists
 
@@ -323,7 +323,7 @@ A computational search for cobalt-free cathodes found Li8TiMn11(NiO8)4 with 701.
 | Parent cathode | Li2Mn3NiO8 | Li2Mn3NiO8 | Li2Mn3NiO8 |
 | Substitution | Mn→Ti ×1 | Mn→V ×1 | Mn→Zr ×1 |
 | Space group | C2 | C2 | C2 |
-| E_hull (eV/atom) | 0.003 | 0.008 | 0.016 |
+| E_hull (eV/atom) | 0.003 ± 0.007 | 0.008 ± 0.007 | 0.016 ± 0.010 |
 | Li removed on charge | 8 of 8 | 8 of 8 | 8 of 8 |
 | Average voltage (V) | 4.75 (parent 4.72) | 4.69 (parent 4.72) | 4.72 (parent 4.72) |
 | Theoretical capacity (mAh/g) | 147 (parent 147) | 147 (parent 147) | 143 (parent 147) |
@@ -336,39 +336,38 @@ A computational search for cobalt-free cathodes found Li8TiMn11(NiO8)4 with 701.
 
 **Why it is preferred.**
 
-- Li8TiMn11(NiO8)4 has the highest energy density among the finalists with 701.0 Wh/kg at 4.754 V and 147.4 mAh/g, compared with 690.0 Wh/kg for Li8Mn11V(NiO8)4 and 676.0 Wh/kg for Li8ZrMn11(NiO8)4.
-- Its voltage of 4.754 V and energy density of 701.0 Wh/kg are comparable to its parent Li2Mn3NiO8 at 4.718 V and 692.0 Wh/kg within the model's error of 0.35 V, with a voltage difference of 0.036 V and an energy density difference of 9.0 Wh/kg.
-- The capacity of 147.4 mAh/g differs by 0.7 mAh/g from the parent capacity of 146.7 mAh/g, which comes from the composition.
-- It combines low instability of 0.003 eV/atom with small volume change of 3.44 % on removal of 8 of 8 Li, compared with 3.86 % for the parent.
+- Li8TiMn11(NiO8)4 has energy density 701.0 Wh/kg, which is the highest among the finalists at 701.0 Wh/kg, 690.0 Wh/kg and 676.0 Wh/kg.
+- It has energy above hull 0.003 eV/atom with error 0.007 eV/atom, volume change 3.44%, voltage 4.754 V and capacity 147.4 mAh/g.
+- Its voltage 4.754 V and energy density 701.0 Wh/kg are comparable to its parent Li2Mn3NiO8 at 4.718 V and 692.0 Wh/kg within the model's voltage error of 0.35 V, computed the same way, with capacity difference 0.7 mAh/g coming from the composition.
 
 **Trade-offs.**
 
-- Its average voltage of 4.754 V is high and may exceed electrolyte stability.
-- Its high Mn content risks Jahn-Teller distortion and Mn dissolution.
-- The Ni-Mn oxide spinel parent may have low electronic conductivity.
+- Average voltage 4.754 V is near the 4.8 V upper limit and may exceed electrolyte stability.
+- High Mn content risks Jahn-Teller Mn3+ distortion and Mn dissolution.
+- The Ni-Mn oxide spinel parent Li2Mn3NiO8 may have low electronic conductivity.
 
 **Uncertainties.**
 
-- Stability and voltage use approximate energies instead of DFT calculations, which limits confidence.
-- Only the average voltage over the whole charge was computed, not the full voltage profile.
-- The ordering of the substituted sites was sampled only partly and magnetism was not treated explicitly.
+- Energies are UMA energies instead of DFT, with error 0.007 eV/atom and voltage error 0.35 V.
+- Only the average voltage over the whole charge was computed.
+- Ordering of the substituted sites and magnetism were not explicit.
 
 **Validation to do.**
 
-- Recalculate voltage and stability with DFT+U for lithiated and delithiated structures. *(documented)*
-- Attempt synthesis and check the structure with XRD. *(documented)*
-- Measure capacity and fade with galvanostatic cycling. *(documented)*
+- Compute DFT+U voltages to confirm the average voltage of 4.754 V. *(documented)*
+- Attempt synthesis and confirm the structure with XRD. *(documented)*
+- Test galvanostatic cycling to measure capacity and stability. *(documented)*
 
 **Synthesis routes to consider.**
 
-- Solid-state reaction of lithium, manganese, nickel and titanium precursors with high-temperature firing may form this spinel phase. *(documented)*
-- Sol-gel synthesis may give better mixing for this spinel family. *(documented)*
+- Try solid-state reaction, a well-established route for spinels. *(documented)*
+- Try sol-gel synthesis, a well-established route for spinels. *(documented)*
 
 ### Methods
 
 - **Candidate proposals and decisions**: Meta Muse Spark (reasoning model), with comparisons computed by the code
 - **Structure relaxation and energies**: Meta FAIR UMA (uma-s-1p2, OMat head), atoms and cell relaxed, MP2020 corrections for the hull; references from Materials Project relaxed with UMA
-- **Thermodynamic stability**: energy above the convex hull of the stable known phases of the system; kept if <= 0.08 eV/atom
+- **Thermodynamic stability**: energy above the convex hull of the stable known phases of the system; kept if <= 0.08 eV/atom; error bar measured against DFT (Materials Project) on the known compounds of the same system
 - **Voltage, capacity, energy density**: the Li that charge neutrality allows removed, delithiated cell relaxed with UMA; average voltage from the UMA energies and Li metal; theoretical capacity from the Li removed (calibrated on four known cathodes)
 - **Volume change**: lithiated and delithiated cells, both relaxed with UMA
 - **Independent reviews**: Meta Muse Spark Open, one review per passed candidate, in parallel
@@ -378,9 +377,9 @@ A computational search for cobalt-free cathodes found Li8TiMn11(NiO8)4 with 701.
 
 ### Limitations
 
-- Lithium diffusion, electronic conductivity, oxygen redox, cycling and capacity fade were not computed.
-- Synthesis, cost of the elements and experimental data were not studied.
-- These candidates are computational predictions, not proven materials.
+- Oxygen redox, lithium diffusion, electronic conductivity, cycling and capacity fade, synthesis, cost, and experimental data were not studied.
+- Any value not reported was not computed.
+- The candidates are computational predictions, not proven materials.
 - Not computed: DFT calculations (UMA energies; the voltage of four known cathodes within 0.31 V of experiment), the voltage profile (only the average voltage over the whole charge), oxygen redox, lithium diffusion and electronic conductivity in the cathode, cycling and capacity fade, synthesis, cost of the elements, experimental data.
 - The candidates are computational predictions, not proven materials.
 
@@ -391,9 +390,9 @@ Model ranking (last analysis): ['it3-c2', 'it3-c3', 'it3-c1']
 
 - meta: 7 calls, 28653 in / 22130 out tokens, ~$0.1299
 - baseten: 0 calls, 0 in / 0 out tokens, ~$0.0000
-- meta (rerun): 1 calls, 2988 in / 4761 out tokens, ~$0.0240
+- meta (rerun): 1 calls, 3165 in / 3887 out tokens, ~$0.0205
 - candidate analyses (analyst): 0 calls, ~$0.0000
-- novelty web search: 4 calls, ~$0.1869
+- novelty web search: 0 calls, ~$0.0000
 - molecular dynamics launched in this research (all iterations): estimate 0.00 $ on Modal H100
 - UMA relaxations: 142 new / 160 allowed
 - events: 79; duration 22.8 min

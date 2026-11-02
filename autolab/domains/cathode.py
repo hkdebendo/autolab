@@ -61,6 +61,12 @@ def _default_hull_entries(elements, budget):
     return uma_reference_entries(elements, budget=budget, ehull_max=config.CATHODE_HULL_REF_EHULL_MAX)
 
 
+def _default_ehull_error(formula: str) -> dict | None:
+    from autolab.analysis.uma_errors import cached_system_errors, ehull_uncertainty
+
+    return ehull_uncertainty(formula, errors=lambda els: cached_system_errors(els, ehull_max=config.CATHODE_HULL_REF_EHULL_MAX))
+
+
 def _default_li_energy(budget) -> float:
     """Energy of one Li atom in bcc Li metal, relaxed with UMA (cached)."""
     from autolab.data.mp import get_structure
@@ -77,6 +83,7 @@ _PARENTS: dict[str, dict] = {}  # parent id -> its own metrics (computed once pe
 class CathodeTools(Tools):
     hull_entries: Callable = _default_hull_entries  # (elements, budget) -> (UMA entries of the stable phases, skipped)
     li_energy: Callable = _default_li_energy  # (budget) -> eV per Li in Li metal
+    ehull_error: Callable = _default_ehull_error  # (formula) -> UMA-vs-DFT error bar of its system (stable phases)
 
     def parent_metrics(self, parent_id: str, parent: Structure, budget) -> dict:
         """The parent cathode through the same relaxation and delithiation as a candidate (cached per parent)."""
@@ -138,7 +145,6 @@ def delithiation_view(lith: Structure, m: dict) -> dict:
 # --- the funnel of one candidate ------------------------------------------------------------------------------------
 
 def evaluate(candidate_id: str, parent_id: str, parent: Structure, substitution: dict, tools, events, budget=None) -> dict:
-    from autolab.analysis.stability import e_hull, uma_entry
     from autolab.chem.generator import generate_candidates
 
     t0 = time.perf_counter()
@@ -165,6 +171,8 @@ def evaluate(candidate_id: str, parent_id: str, parent: Structure, substitution:
          arrangements=len(gen["candidates"]), reason=gen["reason"])
     if not gen["accepted"]:
         return finish(step="generate", reason=gen["reason"])
+    if removable_li(Structure.from_dict(gen["candidates"][0]["structure"])) == 0:  # known from the composition alone
+        return finish(step="voltage", reason=NO_LI)
     out["n_modified"] = n_modified(parent, substitution)
 
     # 2. a composition already in Materials Project is reported, not recomputed
@@ -179,8 +187,22 @@ def evaluate(candidate_id: str, parent_id: str, parent: Structure, substitution:
         out["known_in_mp"] = [k["material_id"] for k in known]
         return finish(step="known", reason=f"composition already in Materials Project: {', '.join(out['known_in_mp'])}")
 
-    # 3. UMA relaxation of every arrangement; the lowest converged one is kept
     structures = [Structure.from_dict(c["structure"]) for c in gen["candidates"]]
+    return evaluate_structures(out, structures, substitution, tools, emit, finish, budget, parent=(parent_id, parent))
+
+
+NO_LI = "no Li can be removed: no element can be oxidised further (oxygen fixed at -2)"
+
+
+def evaluate_structures(out: dict, structures: list[Structure], substitution: dict | None, tools, emit: Callable,
+                        finish: Callable, budget=None, hidden_formulas: frozenset[str] = frozenset(),
+                        parent: tuple | None = None) -> dict:
+    """Steps 3-5 of the funnel on ready structures (arrangements of one composition): relaxation, E_hull, charge.
+    `hidden_formulas`: reduced formulas removed from the hull references (blind benchmark of a known cathode);
+    `parent`: (id, structure) of the parent the candidate is compared with (none in the benchmark)."""
+    from autolab.analysis.stability import e_hull, uma_entry
+
+    # 3. UMA relaxation of every arrangement; the lowest converged one is kept
     out["arrangements"] = len(structures)
     results = tools.relax(structures, budget)
     converged = [r for r in results if r["converged"]]
@@ -195,12 +217,15 @@ def evaluate(candidate_id: str, parent_id: str, parent: Structure, substitution:
         return finish(step="relax", reason="no arrangement converged")
     lith = _relaxed_structure(best)
     out.update(energy=best["energy"], relaxed_atoms=best["atoms"], n_atoms=len(lith))
+    out.setdefault("n_modified", len(lith))  # a known compound (benchmark): its E_hull per site is its E_hull
 
     # 4. stability against the stable phases of the system, all relaxed with UMA (never MP energies)
     elements = sorted(el.symbol for el in lith.composition.elements)
     entries, skipped = tools.hull_entries(elements, budget)
+    if hidden_formulas:
+        entries = [e for e in entries if e.composition.reduced_formula not in hidden_formulas]
     out["skipped_references"] = skipped
-    hull = e_hull(uma_entry(Composition(lith.composition), best["energy"], candidate_id, structure=lith), entries)
+    hull = e_hull(uma_entry(Composition(lith.composition), best["energy"], out["id"], structure=lith), entries)
     out.update(e_hull=hull["e_hull"], decomposition=hull["decomposition"][:4],
                e_hull_per_substitution=round(hull["e_hull"] * out["n_atoms"] / out["n_modified"], 4))
     emit("hull", e_hull=hull["e_hull"], e_hull_per_substitution=out["e_hull_per_substitution"],
@@ -211,7 +236,7 @@ def evaluate(candidate_id: str, parent_id: str, parent: Structure, substitution:
 
     # 5. charge: Li removed, delithiated cell relaxed; voltage, capacity, energy density, volume change
     m = delithiation(best, lith, tools, budget)
-    pm = tools.parent_metrics(parent_id, parent, budget)
+    pm = tools.parent_metrics(parent[0], parent[1], budget) if parent else {}
     for key in ("voltage_V", "capacity_mAh_g", "energy_density_Wh_kg", "volume_change_pct"):
         out[key] = m.get(key)
         out[f"parent_{key}"] = pm.get(key)
@@ -225,8 +250,7 @@ def evaluate(candidate_id: str, parent_id: str, parent: Structure, substitution:
                  "capacity_min": config.CATHODE_CAPACITY_MIN, "volume_change_max": config.CATHODE_VOLUME_CHANGE_MAX},
          structure=delithiation_view(lith, m) if m.get("delithiated_atoms") else None)
     if m["li_removed"] == 0:
-        return finish(step="voltage", reason="no Li can be removed: no element can be oxidised further "
-                                             "(oxygen fixed at -2)")
+        return finish(step="voltage", reason=NO_LI)
     if m.get("error"):
         return finish(step="voltage", reason=m["error"])
     v = m["voltage_V"]
@@ -456,6 +480,16 @@ def render_candidate_analyses(out: dict, result: dict) -> list[str]:
 def ranking(camp: Campaign) -> dict:
     """Passed candidates by energy density (voltage x capacity), then E_hull per substitution."""
     ranked = sorted(camp.passed(), key=rank_key)
+    errors, error_bar = {}, getattr(getattr(camp.agent, "tools", None), "ehull_error", None)
+    for c in ranked:  # error bar of the E_hull: UMA vs DFT on the known compounds of its system (cached per system)
+        f = c.get("formula")
+        if f not in errors:
+            try:
+                errors[f] = error_bar(f) if error_bar and f else None
+            except Exception:  # e.g. references not relaxed in the cache: the E_hull stays, without its error bar
+                errors[f] = None
+        e = errors[f]
+        c["e_hull_error"] = e if e and e.get("available", True) else None
     out = {"ranking": [c["id"] for c in ranked], "finalists": [c["id"] for c in ranked[:config.CATHODE_FINALISTS_MAX]],
            "excluded": {}}
     out["summary"] = {"finalists": out["finalists"]}
@@ -514,7 +548,9 @@ def render_ranking(out: dict, result: dict) -> list[str]:
     for i, cid in enumerate(out["ranking"], 1):
         c = pool[cid]
         star = " **finalist**" if cid in out["finalists"] else ""
-        lines.append(f"{i}. {cid} {c['formula']}{star}: {_numbers(c)} (parent {c.get('parent_formula')}: "
+        err = c.get("e_hull_error")
+        pm = f" (E_hull error bar ± {err['mae_eV_per_atom']:.3f} eV/atom)" if err else ""
+        lines.append(f"{i}. {cid} {c['formula']}{star}: {_numbers(c)}{pm} (parent {c.get('parent_formula')}: "
                      f"{_n(c.get('parent_voltage_V'), '.2f')} V, {_n(c.get('parent_energy_density_Wh_kg'), '.0f')} Wh/kg)")
     return lines + [""]
 
@@ -524,7 +560,8 @@ METHODS = [
     ("Structure relaxation and energies", "Meta FAIR UMA (uma-s-1p2, OMat head), atoms and cell relaxed, MP2020 "
                                          "corrections for the hull; references from Materials Project relaxed with UMA"),
     ("Thermodynamic stability", "energy above the convex hull of the stable known phases of the system; kept if <= "
-                                f"{config.CATHODE_EHULL_MAX} eV/atom"),
+                                f"{config.CATHODE_EHULL_MAX} eV/atom; error bar measured against DFT (Materials Project) "
+                                "on the known compounds of the same system"),
     ("Voltage, capacity, energy density", "the Li that charge neutrality allows removed, delithiated cell relaxed with "
                                           "UMA; average voltage from the UMA energies and Li metal; theoretical "
                                           "capacity from the Li removed (calibrated on four known cathodes)"),
@@ -539,6 +576,7 @@ METHODS = [
 REPORT_SYSTEM = """You write the final report of a computational search for cobalt-free cathode materials, for scientists and for readers who are not specialists. The code gives you the comparison table of the finalists (the first one is the champion: the highest energy density among those that passed every filter), the candidates rejected with their reasons, and what was not computed.
 Rules:
 - Use only the numbers of the table, quoted exactly with their units; never invent or estimate a value. A missing value was not computed: say so.
+- The energy above the hull comes with its error bar when given (e_hull_error_eV_per_atom: mean UMA-vs-DFT difference on the known compounds of its system): quote it with the value.
 - champion_reasons: why the champion is preferred, each reason tied to numbers of the table, including the comparison with its parent computed the same way.
 - Compare a finalist with its parent only through vs_parent: when voltage_difference_beyond_model_error is false, write that its voltage and energy density are comparable to the parent within the model's error (quote model_voltage_error_V), never that it improves on it; the capacity difference comes from the composition and may be stated as it is.
 - novelty (when given): "published" (already reported), "related" (close family already studied) or "none_found" (this search found nothing; never "new to science").
@@ -564,6 +602,9 @@ def report(camp: Campaign) -> dict:
         return {"id": c["id"], "formula": c["formula"], "parent": c.get("parent_formula") or c.get("parent"),
                 "substitution": c.get("substitution"), **_structure_info(c),
                 "e_hull_eV_per_atom": c.get("e_hull"), "e_hull_per_substitution_eV": c.get("e_hull_per_substitution"),
+                "e_hull_error_eV_per_atom": (c.get("e_hull_error") or {}).get("mae_eV_per_atom"),
+                "e_hull_error_basis": (f"mean absolute UMA-vs-DFT difference on {c['e_hull_error']['n']} known compounds "
+                                       f"of {c['e_hull_error']['system']}" if c.get("e_hull_error") else None),
                 "decomposition": c.get("decomposition"), "li_removed": c.get("li_removed"), "li_total": c.get("li_total"),
                 "voltage_V": c.get("voltage_V"), "capacity_mAh_g": c.get("capacity_mAh_g"),
                 "energy_density_Wh_kg": c.get("energy_density_Wh_kg"), "volume_change_pct": c.get("volume_change_pct"),
@@ -608,7 +649,8 @@ def render_report(out: dict, result: dict) -> list[str]:
     sub = lambda s: f"{s.get('remove')}→{s.get('add')} ×{s.get('count')}" + (f", −{s['li_vacancies']} Li" if s.get("li_vacancies") else "")
     fields = [("Parent cathode", lambda r: r.get("parent") or "—"), ("Substitution", lambda r: sub(r.get("substitution") or {})),
               ("Space group", lambda r: r.get("space_group") or "—"),
-              ("E_hull (eV/atom)", lambda r: _n(r.get("e_hull_eV_per_atom"), ".3f")),
+              ("E_hull (eV/atom)", lambda r: _n(r.get("e_hull_eV_per_atom"), ".3f") + (
+                  f" ± {r['e_hull_error_eV_per_atom']:.3f}" if r.get("e_hull_error_eV_per_atom") is not None else "")),
               ("Li removed on charge", lambda r: f"{r.get('li_removed')} of {r.get('li_total')}"),
               ("Average voltage (V)", lambda r: f"{_n(r.get('voltage_V'), '.2f')} (parent {_n(r.get('parent_voltage_V'), '.2f')})"),
               ("Theoretical capacity (mAh/g)", lambda r: f"{_n(r.get('capacity_mAh_g'), '.0f')} (parent {_n(r.get('parent_capacity_mAh_g'), '.0f')})"),

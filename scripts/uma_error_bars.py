@@ -1,6 +1,7 @@
 """UMA vs DFT error bars on known compounds, per chemical system (limit "UMA, not DFT"; SPEC 5.7).
 
     python scripts/uma_error_bars.py --out results/<dir>
+    python scripts/uma_error_bars.py --out results/<dir> --systems Li-Mn-Ni-O-Ti Li-Mn-Al-O --ehull 0.0   (cathodes)
 
 For every system whose MP references are cached (config.MP_CACHE_DIR / references, near-hull phases): each known
 compound is left out of its hull and its decomposition energy is computed with UMA + MP2020 and with MP energies,
@@ -61,11 +62,14 @@ def render(rows: list[dict]) -> str:
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--out", type=Path, required=True)
+    ap.add_argument("--systems", nargs="*", help="systems to measure (default: every system with cached references)")
+    ap.add_argument("--ehull", type=float, default=config.MP_REF_EHULL_MAX,
+                    help="hull references of the domain (cathodes: 0.0, the stable phases only)")
     args = ap.parse_args()
     rows = []
-    for els in systems():
+    for els in ([x.split("-") for x in args.systems] if args.systems else systems()):
         try:
-            r = cached_system_errors(els)
+            r = cached_system_errors(els, ehull_max=args.ehull)
         except Exception as e:  # reported, not retried
             r = {"system": "-".join(els), "available": False, "reason": f"{type(e).__name__}: {e}"[:200], "rows": []}
         print(f"{r['system']}: {'n = ' + str(r['compounds']['n']) + ', MAE ' + str(r['compounds']['mae']) if r['available'] else r['reason']}",

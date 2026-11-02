@@ -147,3 +147,43 @@ def test_the_literature_check_asks_about_a_cathode_with_a_known_cathode_as_contr
     assert messages_for({**c, "kind": None})[0]["content"] == SYSTEM  # electrolyte questions unchanged (cache kept)
     assert config.CATHODE_NOVELTY_CONTROL["kind"] == "cathode"
     assert [s.name for s in dom.make_domain().stages] == ["candidate_analyses", "ranking", "novelty", "report"]
+
+
+def test_a_known_compound_goes_through_the_blind_benchmark_with_its_own_composition_hidden():
+    from autolab.agent.cathode_benchmark import evaluate_known, outcome, summarize
+
+    seen = {}
+
+    def hull(els, b):
+        seen["called"] = True
+        return [], []
+
+    tools = _tools()
+    tools.hull_entries = hull
+    res = evaluate_known({"id": "mp-x"}, PARENT, tools, EventLog())
+    assert outcome(res) == "passed" and seen["called"] and res["n_modified"] == len(PARENT)
+    bad = Structure(Lattice.cubic(4.0), ["Li", "Al", "O", "O"], [[0, 0, 0], [.5, .5, .5], [.25, .25, .25], [.75, .75, .75]])
+    assert outcome(evaluate_known({"id": "mp-y"}, bad, tools, EventLog())) == "voltage"  # decided before any simulation
+    rows = [{"group": "good", "expected": "passed", "outcome": "passed"},
+            {"group": "bad", "expected": "voltage", "outcome": "generate"}]
+    s = summarize(rows)
+    assert s["as_expected"] == 1 and s["groups"]["good"] == {"n": 1, "as_expected": 1}
+
+
+def test_cathode_error_bars_use_the_stable_phases_and_a_separate_cache_entry(monkeypatch, tmp_path):
+    from autolab.analysis import uma_errors
+
+    calls = []
+    monkeypatch.setattr(config, "CACHE_DIR", tmp_path)
+    monkeypatch.setattr(uma_errors, "system_errors", lambda els, ehull_max: calls.append(ehull_max) or
+                        {"available": True, "compounds": {"n": 3, "mae": 0.007}, "system": "Li-Mn-O"})
+    uma_errors.cached_system_errors(["Li", "Mn", "O"], ehull_max=0.0)
+    uma_errors.cached_system_errors(["Li", "Mn", "O"])
+    assert calls == [0.0, config.MP_REF_EHULL_MAX]  # two hulls, two cache entries
+    assert (tmp_path / "uma_errors" / "Li-Mn-O_e0.0.json").exists()
+
+
+def test_the_cathode_research_is_in_the_local_preview():
+    from autolab.agent.importer import RECORDED
+
+    assert any(folder.endswith("cathode_run") for folder, *_ in RECORDED)

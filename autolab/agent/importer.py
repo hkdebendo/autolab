@@ -45,6 +45,8 @@ def import_run(svc, run_dir: Path, cid: str, title: str, request: str, file_path
 
 
 RECORDED = [  # (folder, conversation id, title, request as it was given)
+    ("results/2026-11-02_cathode_run", "cathode-2026-11-02", "Higher energy cobalt-free cathodes",
+     "Find new cobalt-free cathodes for lithium-ion batteries with a higher energy density than LiFePO4."),
     ("results/2026-11-01_feedback_run", "feedback-2026-11-01", "Fast stable sulfide electrolytes (error-driven research)",
      "Find new sulfide solid electrolytes for lithium-metal batteries, derived from Li7P3S11 or beta-Li3PS4, that conduct "
      "lithium at least as fast as their parent and stay stable against lithium metal. Learn from the candidates that "

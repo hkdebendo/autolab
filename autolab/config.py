@@ -374,6 +374,25 @@ CATHODE_VOLTAGE_TRUTH_TOL_V = 0.4
 # A candidate's voltage is called different from its parent's only beyond this margin (the largest error of the truth
 # test, 0.31 V, rounded up); the capacity comes from the stoichiometry and is exact.
 CATHODE_VOLTAGE_SIGNIFICANT_V = 0.35
+# Blind benchmark of the cathode funnel (fixed before the runs, 2026-11-02): known compounds go through steps 3-5 of the
+# funnel with their own composition removed from the hull; expected outcome of each, from experiment.
+CATHODE_BENCHMARK = [
+    {"id": "mp-865631", "formula": "LiNiO2", "group": "good", "expected": "passed",
+     "why": "layered Ni cathode, about 3.8 V"},
+    {"id": "mp-6396", "formula": "Li3V2(PO4)3", "group": "good", "expected": "passed",
+     "why": "NASICON V cathode, 3.6-4.6 V plateaus"},
+    {"id": "mp-38280", "formula": "LiTiO2", "group": "hard negative", "expected": "voltage",
+     "why": "Ti3+/Ti4+ couple far below 3 V"},
+    {"id": "mp-18968", "formula": "Li2FeSiO4", "group": "hard negative", "expected": "voltage",
+     "why": "real cathode at 2.8 V after cycling (Nyten 2005): below the 3.0 V window"},
+    {"id": "mp-22526", "formula": "LiCoO2", "group": "bad", "expected": "generate", "why": "contains cobalt"},
+    {"id": "mp-18988", "formula": "Li2MnO3", "group": "bad", "expected": "voltage", "why": "Mn4+: no Li can leave"},
+    {"id": "mp-19419", "formula": "LiFeO2", "group": "bad", "expected": "voltage", "why": "Fe3+: no Li can leave"},
+    {"id": "mp-13725", "formula": "Li3PO4", "group": "bad", "expected": "voltage", "why": "no redox element"},
+    {"id": "mp-8001", "formula": "LiAlO2", "group": "bad", "expected": "voltage", "why": "no redox element"},
+    {"id": "mp-685194", "formula": "Li4Ti5O12", "group": "bad", "expected": "voltage", "why": "Ti4+: an anode, no Li can leave"},
+]
+CATHODE_BENCHMARK_MAX_RELAXATIONS = 120
 CATHODE_NOT_COMPUTED = ("DFT calculations (UMA energies; the voltage of four known cathodes within 0.31 V of experiment), "
                         "the voltage profile (only the average voltage over the whole charge), oxygen redox, lithium "
                         "diffusion and electronic conductivity in the cathode, cycling and capacity fade, synthesis, cost "
