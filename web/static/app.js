@@ -1662,7 +1662,7 @@ const STAGES = {
   conductivity: { title: "Ionic conductivity at 300 K", actor: ["AutoLab", "Arrhenius fit 500–700 K and Nernst–Einstein relation", "compute"],
     done: (d) => `${d.computed ?? 0} structures · parents: ${Object.entries(d.parents || {}).map(([k, v]) => `${L.parents[k] || k} ${v} mS/cm`).join(", ")}` },
   ranking: { title: "Ranking by explicit rules", actor: ["AutoLab", "level against the parent at 300 K, then a stated convention", "plan"], done: null },
-  novelty: { title: "Literature check", actor: ["Muse Spark", "searching the web; a known electrolyte is checked first as a control", "think"], done: null },
+  novelty: { title: "Literature check", actor: ["Muse Spark", "searching the web; a known material is checked first as a control", "think"], done: null },
   report: { title: "Final scientific report", actor: ["Muse Spark", "writing the report from the numbers computed by the code", "think"],
     done: (d) => `champion: ${fname(d.champion)} · ${d.completeness}` },
 };
@@ -1714,7 +1714,7 @@ function playStage(e) {
     return 4200;
   }
   if (name === "novelty") {
-    cardAdd(card, `${d.control_ok ? `<span class="ok">control passed: LGPS found as known</span>` : `<span class="no">control not passed</span>`}
+    cardAdd(card, `${d.control_ok ? `<span class="ok">control passed: ${L.domain === "cathode" ? "LiNi₀.₅Mn₁.₅O₄" : "LGPS"} found as published</span>` : `<span class="no">control not passed</span>`}
       <ul class="lc-list">${Object.entries(d.levels || {}).map(([id, lv]) => `<li><b>${tx(fname(id))}</b> <span class="chip">${tx(lv)}</span></li>`).join("")}</ul>`);
     return 3200;
   }

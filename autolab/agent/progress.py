@@ -96,6 +96,8 @@ CATHODE_STEPS = (
          stage="candidate_analyses"),
     Step("ranking", "Ranking the candidates", "Candidates are ordered by energy density (voltage x capacity), then "
          "by their stability cost per substitution.", stage="ranking"),
+    Step("literature", "Literature check", "A web search tells whether each finalist, or its close family, is "
+         "already published; a known cathode is checked first as a control.", stage="novelty"),
     Step("report", "Final scientific report", "The finalists are compared with their parents and the best one "
          "analysed in detail, with its limits and the validations still needed.", stage="report"),
 )

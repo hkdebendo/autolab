@@ -1,0 +1,5755 @@
+{
+ "goal": "Find new cobalt-free cathodes for lithium-ion batteries with a higher energy density than LiFePO4.",
+ "prior": [],
+ "usage": {
+  "md": null,
+  "llm": {
+   "meta": {
+    "calls": 7,
+    "cost_usd": 0.12987,
+    "by_provider": {
+     "meta": {
+      "calls": 7,
+      "cost_usd": 0.12987,
+      "input_tokens": 28653,
+      "output_tokens": 22130
+     }
+    },
+    "input_tokens": 28653,
+    "output_tokens": 22130
+   },
+   "baseten": {
+    "calls": 0,
+    "cost_usd": 0.0,
+    "by_provider": {},
+    "input_tokens": 0,
+    "output_tokens": 0
+   }
+  },
+  "events": 79,
+  "md_usd": 0.0,
+  "analyst": {
+   "calls": 10,
+   "cost_usd": 0.12795,
+   "by_provider": {
+    "baseten": {
+     "calls": 10,
+     "cost_usd": 0.12795,
+     "input_tokens": 16074,
+     "output_tokens": 25378
+    }
+   },
+   "input_tokens": 16074,
+   "output_tokens": 25378
+  },
+  "novelty": {
+   "calls": 0,
+   "cost_usd": 0.0,
+   "by_provider": {},
+   "input_tokens": 0,
+   "output_tokens": 0
+  },
+  "seconds": 1369.0,
+  "summaries": {
+   "calls": 18,
+   "cost_usd": 0.0,
+   "by_provider": {
+    "fireworks": {
+     "calls": 18,
+     "cost_usd": 0.0,
+     "input_tokens": 2951,
+     "output_tokens": 2567
+    }
+   },
+   "input_tokens": 2951,
+   "output_tokens": 2567
+  },
+  "relaxations": {
+   "new": 142,
+   "limit": 160
+  }
+ },
+ "domain": "cathode",
+ "stages": {
+  "report": {
+   "status": "done",
+   "methods": [
+    {
+     "step": "Candidate proposals and decisions",
+     "method": "Meta Muse Spark (reasoning model), with comparisons computed by the code"
+    },
+    {
+     "step": "Structure relaxation and energies",
+     "method": "Meta FAIR UMA (uma-s-1p2, OMat head), atoms and cell relaxed, MP2020 corrections for the hull; references from Materials Project relaxed with UMA"
+    },
+    {
+     "step": "Thermodynamic stability",
+     "method": "energy above the convex hull of the stable known phases of the system; kept if <= 0.08 eV/atom"
+    },
+    {
+     "step": "Voltage, capacity, energy density",
+     "method": "the Li that charge neutrality allows removed, delithiated cell relaxed with UMA; average voltage from the UMA energies and Li metal; theoretical capacity from the Li removed (calibrated on four known cathodes)"
+    },
+    {
+     "step": "Volume change",
+     "method": "lithiated and delithiated cells, both relaxed with UMA"
+    },
+    {
+     "step": "Independent reviews",
+     "method": "Meta Muse Spark Open, one review per passed candidate, in parallel"
+    },
+    {
+     "step": "Error-driven loop",
+     "method": "each iteration's failures, with their numbers, go back to the proposing model, which explains them as hypotheses and corrects its next proposals"
+    },
+    {
+     "step": "Plain-language summaries",
+     "method": "Meta Muse Glimmer"
+    }
+   ],
+   "summary": {
+    "champion": "it1-c3",
+    "narrative": true,
+    "completeness": "complete"
+   },
+   "champion": "it1-c3",
+   "excluded": {
+    "it1-c1": "Li4MnFe3(PO4)4: known: composition already in Materials Project: mp-783919, mp-807965, mp-764613, mp-766043, mp-766130",
+    "it2-c1": "Li4Fe3Ni(PO4)4: known: composition already in Materials Project: mp-771063"
+   },
+   "finalists": [
+    {
+     "id": "it1-c3",
+     "a_A": 8.286,
+     "b_A": 8.287,
+     "c_A": 8.287,
+     "beta": 90.0,
+     "alpha": 90.0,
+     "gamma": 90.0,
+     "parent": "Li2Mn3NiO8",
+     "review": {
+      "risks": [
+       "Average voltage 4.754 V is near 4.8 V upper limit and may exceed electrolyte stability.",
+       "High Mn content in Li8TiMn11(NiO8)4 risks Jahn-Teller Mn3+ distortion and Mn dissolution.",
+       "Ni-Mn oxide spinel parent Li2Mn3NiO8 may have low electronic conductivity."
+      ],
+      "summary": "Li8TiMn11(NiO8)4 is Co-free with 701.0 Wh/kg at 4.754 V, 0.002615 eV/atom and 3.44% volume change, warranting DFT/experimental follow-up despite high-voltage risks.",
+      "strengths": [
+       "E_hull 0.002615 eV/atom is well below 0.08 eV/atom limit and lowest at 0.003 eV/atom among Ti/V/Zr on mp-771112.",
+       "Energy density 701.0 Wh/kg at 4.754 V and 147.4 mAh/g meets all voltage and capacity filters.",
+       "Volume change 3.44% is well below 10% limit and near lowest among same-parent substitutions."
+      ],
+      "md_priority": "high"
+     },
+     "formula": "Li8TiMn11(NiO8)4",
+     "li_total": 8,
+     "voltage_V": 4.754,
+     "volume_A3": 569.1,
+     "li_removed": 8,
+     "space_group": "C2",
+     "substitution": {
+      "add": "Ti",
+      "count": 1,
+      "remove": "Mn",
+      "li_vacancies": 0
+     },
+     "atoms_in_cell": 56,
+     "decomposition": [
+      {
+       "id": "mp-771112",
+       "formula": "Li2Mn3NiO8",
+       "fraction": 0.917
+      },
+      {
+       "id": "mp-775326",
+       "formula": "Li2Ti3NiO8",
+       "fraction": 0.083
+      }
+     ],
+     "capacity_mAh_g": 147.4,
+     "parent_voltage_V": 4.718,
+     "volume_change_pct": 3.44,
+     "e_hull_eV_per_atom": 0.003,
+     "energy_density_Wh_kg": 701.0,
+     "parent_capacity_mAh_g": 146.7,
+     "parent_volume_change_pct": 3.86,
+     "e_hull_per_substitution_eV": 0.146,
+     "parent_energy_density_Wh_kg": 692.0
+    },
+    {
+     "id": "it2-c3",
+     "a_A": 8.284,
+     "b_A": 8.285,
+     "c_A": 8.285,
+     "beta": 90.0,
+     "alpha": 90.0,
+     "gamma": 90.0,
+     "parent": "Li2Mn3NiO8",
+     "review": {
+      "risks": [
+       "E_hull per substitution of 0.4618 eV per modified site is higher than the Ti analogue at 0.146 eV on same parent mp-771112, indicating less favorable V incorporation.",
+       "Average voltage of 4.693 V is near the 4.8 V electrolyte stability limit, with no voltage profile or electrolyte compatibility computed.",
+       "Mn-rich Li2Mn3NiO8-type framework with Mn11 stoichiometry risks Mn3+ Jahn-Teller distortion and Mn dissolution, and energy density 690.0 Wh/kg shows no gain over parent 692.0 Wh/kg."
+      ],
+      "summary": "Stable cobalt-free spinel with low 3.37% strain and 690 Wh/kg but outperformed by Ti analogue on same parent and with high 0.4618 eV per substitution cost, making it a medium-priority DFT follow-up backup.",
+      "strengths": [
+       "E_hull of 0.008247 eV/atom is well below the 0.08 eV/atom filter and decomposition is dominated by parent Li2Mn3NiO8 fraction 0.85.",
+       "Volume change of 3.37 % on removal of 8 of 8 Li is low, best among the three substitutions on mp-771112 (3.37 % vs 3.44 % and 3.89 %).",
+       "Cobalt-free composition delivers 690.0 Wh/kg at 4.693 V with 147.1 mAh/g and meets capacity >=120 mAh/g and voltage 3.0-4.8 V filters."
+      ],
+      "md_priority": "medium"
+     },
+     "formula": "Li8Mn11V(NiO8)4",
+     "li_total": 8,
+     "voltage_V": 4.693,
+     "volume_A3": 568.7,
+     "li_removed": 8,
+     "space_group": "C2",
+     "substitution": {
+      "add": "V",
+      "count": 1,
+      "remove": "Mn",
+      "li_vacancies": 0
+     },
+     "atoms_in_cell": 56,
+     "decomposition": [
+      {
+       "id": "mp-771112",
+       "formula": "Li2Mn3NiO8",
+       "fraction": 0.85
+      },
+      {
+       "id": "mp-19219",
+       "formula": "Li3VO4",
+       "fraction": 0.057
+      },
+      {
+       "id": "mp-542151",
+       "formula": "V2Ni3O8",
+       "fraction": 0.046
+      },
+      {
+       "id": "mp-1172875",
+       "formula": "Mn2O3",
+       "fraction": 0.027
+      }
+     ],
+     "capacity_mAh_g": 147.1,
+     "parent_voltage_V": 4.718,
+     "volume_change_pct": 3.37,
+     "e_hull_eV_per_atom": 0.008,
+     "energy_density_Wh_kg": 690.0,
+     "parent_capacity_mAh_g": 146.7,
+     "parent_volume_change_pct": 3.86,
+     "e_hull_per_substitution_eV": 0.462,
+     "parent_energy_density_Wh_kg": 692.0
+    },
+    {
+     "id": "it3-c2",
+     "a_A": 8.324,
+     "b_A": 8.336,
+     "c_A": 8.336,
+     "beta": 90.2,
+     "alpha": 90.3,
+     "gamma": 89.8,
+     "parent": "Li2Mn3NiO8",
+     "review": {
+      "risks": [
+       "E_hull per substitution of 0.869 eV per modified site is higher than Ti analogue 0.146 eV per modified site and V analogue 0.462 eV per modified site.",
+       "Energy density 676.000 Wh/kg is lowest among variants on mp-771112 (it1-c3 701.000, it2-c3 690.000, it3-c2 676.000) and capacity 143.100 mAh/g is lowest (it1-c3 147.400, it2-c3 147.100).",
+       "High average voltage 4.72 V risks electrolyte oxidation and Mn-rich spinel chemistry raises well-known Jahn-Teller Mn3+ distortion and Mn dissolution risks."
+      ],
+      "summary": "Zr-substituted Li2Mn3NiO8 passes stability and volume filters but is outperformed by Ti and V analogues on the same parent in energy density, capacity and substitution energetics, warranting low priority for follow-up.",
+      "strengths": [
+       "E_hull of 0.015522 eV/atom passes the <=0.08 eV/atom filter and volume change on charge is low at 3.89%.",
+       "Cobalt-free Li8ZrMn11(NiO8)4 meets screening filters with average voltage 4.72 V, capacity 143.1 mAh/g and energy density 676.0 Wh/kg."
+      ],
+      "md_priority": "low"
+     },
+     "formula": "Li8ZrMn11(NiO8)4",
+     "li_total": 8,
+     "voltage_V": 4.72,
+     "volume_A3": 578.4,
+     "li_removed": 8,
+     "space_group": "C2",
+     "substitution": {
+      "add": "Zr",
+      "count": 1,
+      "remove": "Mn",
+      "li_vacancies": 0
+     },
+     "atoms_in_cell": 56,
+     "decomposition": [
+      {
+       "id": "mp-771112",
+       "formula": "Li2Mn3NiO8",
+       "fraction": 0.875
+      },
+      {
+       "id": "mp-18988",
+       "formula": "Li2MnO3",
+       "fraction": 0.054
+      },
+      {
+       "id": "mp-2858",
+       "formula": "ZrO2",
+       "fraction": 0.054
+      },
+      {
+       "id": "mp-19009",
+       "formula": "NiO",
+       "fraction": 0.018
+      }
+     ],
+     "capacity_mAh_g": 143.1,
+     "parent_voltage_V": 4.718,
+     "volume_change_pct": 3.89,
+     "e_hull_eV_per_atom": 0.016,
+     "energy_density_Wh_kg": 676.0,
+     "parent_capacity_mAh_g": 146.7,
+     "parent_volume_change_pct": 3.86,
+     "e_hull_per_substitution_eV": 0.869,
+     "parent_energy_density_Wh_kg": 692.0
+    }
+   ],
+   "narrative": {
+    "synthesis": [
+     {
+      "text": "Try solid-state reaction of lithium, manganese, nickel and titanium precursors with high-temperature firing.",
+      "basis": "documented"
+     },
+     {
+      "text": "Try sol-gel mixing of the cations followed by calcination to form the spinel phase.",
+      "basis": "documented"
+     }
+    ],
+    "tradeoffs": [
+     "Its average voltage of 4.754 V is high and may exceed electrolyte stability.",
+     "Its high Mn content risks Jahn-Teller Mn3+ distortion and Mn dissolution during cycling.",
+     "Its Ni-Mn oxide framework may have low electronic conductivity."
+    ],
+    "validation": [
+     {
+      "text": "Recalculate stability and average voltage with DFT+U for Mn, Ni and Ti oxides.",
+      "basis": "documented"
+     },
+     {
+      "text": "Attempt synthesis and check the structure with X-ray diffraction.",
+      "basis": "documented"
+     },
+     {
+      "text": "Test lithium storage with galvanostatic cycling to measure capacity, voltage and volume change.",
+      "basis": "documented"
+     }
+    ],
+    "limitations": [
+     "Lithium diffusion, ionic conductivity, voltage profiles, rate capability and cycling were not computed.",
+     "Synthesis routes, element cost and experimental data were not computed.",
+     "The candidates are computational predictions, not proven materials."
+    ],
+    "uncertainties": [
+     "Energies and voltages use UMA energies instead of DFT, so stability and voltage carry modelling error.",
+     "Only the average voltage over full removal of 8 of 8 Li was computed, not the full voltage profile.",
+     "Only one ordering of the substituted sites was computed, not all possible arrangements.",
+     "Magnetism was not treated explicitly, which can affect transition-metal energies."
+    ],
+    "champion_reasons": [
+     "It has the highest energy density among finalists at 701.0 Wh/kg, compared with 690.0 Wh/kg and 676.0 Wh/kg.",
+     "It improves on its parent computed the same way, with 701.0 Wh/kg versus 692.0 Wh/kg, 4.754 V versus 4.718 V, and 147.4 mAh/g versus 146.7 mAh/g.",
+     "Its stability value of 0.003 eV/atom is the lowest among finalists, compared with 0.008 eV/atom and 0.016 eV/atom.",
+     "Its substitution cost of 0.146 eV is lower than 0.462 eV and 0.869 eV for the other finalists on the same parent.",
+     "Its volume change of 3.44% on removal of 8 of 8 Li is small and lower than 3.86% for its parent computed the same way."
+    ],
+    "executive_summary": "The search looked for cobalt-free cathodes with higher energy density than LiFePO4. The champion is Li8TiMn11(NiO8)4, derived from Li2Mn3NiO8. It has 701.0 Wh/kg at 4.754 V and 147.4 mAh/g, with 0.003 eV/atom and 3.44% volume change. Its parent computed the same way has 692.0 Wh/kg at 4.718 V and 146.7 mAh/g, with 3.86% volume change. Two backup finalists on the same parent have 690.0 Wh/kg and 676.0 Wh/kg. Two phosphate candidates were rejected as already known. Ionic conductivity, diffusion, voltage profiles, rate capability, cycling, synthesis, cost and experimental data were not computed."
+   },
+   "completeness": "complete",
+   "not_computed": "measured ionic conductivity (room-temperature values are extrapolated estimates from molecular dynamics at 500-700 K, with their range), DFT calculations (UMA energies carry an error bar measured against DFT on known compounds), synthesis routes, cost of the elements, experimental data, for cathodes: voltage profiles and rate capability (only the average voltage over full delithiation), lithium diffusion in the cathode, cycling",
+   "missing_steps": []
+  },
+  "ranking": {
+   "status": "done",
+   "ranking": [
+    "it1-c3",
+    "it2-c3",
+    "it3-c2",
+    "it3-c3",
+    "it1-c2",
+    "it3-c1",
+    "it2-c2"
+   ],
+   "summary": {
+    "finalists": [
+     "it1-c3",
+     "it2-c3",
+     "it3-c2"
+    ]
+   },
+   "excluded": {},
+   "finalists": [
+    "it1-c3",
+    "it2-c3",
+    "it3-c2"
+   ]
+  },
+  "candidate_analyses": {
+   "failed": {},
+   "status": "done",
+   "skipped": null,
+   "summary": {
+    "failed": [],
+    "analysed": 6,
+    "provider": "baseten"
+   },
+   "analysed": [
+    "it1-c3",
+    "it2-c3",
+    "it3-c2",
+    "it3-c3",
+    "it1-c2",
+    "it3-c1"
+   ],
+   "provider": "baseten"
+  }
+ },
+ "parents": [
+  {
+   "id": "mp-19017",
+   "nsites": 28,
+   "formula": "LiFePO4",
+   "cell_formula": "Li4Fe4P4O16"
+  },
+  {
+   "id": "mp-18997",
+   "nsites": 28,
+   "formula": "LiMnPO4",
+   "cell_formula": "Li4Mn4P4O16"
+  },
+  {
+   "id": "mp-22584",
+   "nsites": 42,
+   "formula": "LiMn2O4",
+   "cell_formula": "Li6Mn12O24"
+  },
+  {
+   "id": "mp-771112",
+   "nsites": 56,
+   "formula": "Li2Mn3NiO8",
+   "cell_formula": "Li8Mn12Ni4O32"
+  }
+ ],
+ "settings": {
+  "brain": "meta",
+  "analyst": "baseten",
+  "fallback": "baseten",
+  "summarizer": "fireworks",
+  "thresholds": {
+   "CATHODE_EHULL_MAX": 0.08,
+   "CATHODE_FORBIDDEN": [
+    "Co"
+   ],
+   "CATHODE_REVIEW_MAX": 6,
+   "CATHODE_VOLTAGE_MAX": 4.8,
+   "CATHODE_VOLTAGE_MIN": 3.0,
+   "CATHODE_CAPACITY_MIN": 120.0,
+   "CATHODE_FINALISTS_MAX": 3,
+   "CATHODE_N_ARRANGEMENTS": 4,
+   "CATHODE_VOLUME_CHANGE_MAX": 10.0,
+   "CATHODE_HULL_REF_EHULL_MAX": 0.0,
+   "CANDIDATE_ANALYSIS_PROVIDER": "baseten"
+  },
+  "n_iterations": 3,
+  "max_candidates": 3,
+  "max_relaxations": 160
+ },
+ "summaries": [
+  {
+   "kind": "iteration",
+   "text": "The agent proposed Li4MnFe3(PO4)4 to raise olivine voltage with Mn and Li3Mn5NiO12 and Li8TiMn11(NiO8)4 to raise spinel voltage and stability with Ni and Ti. Li4MnFe3(PO4)4 was rejected as the composition is already in Materials Project, while Li3Mn5NiO12 passed all filters with about 4.4 V, 646 Wh per kg and energy above hull about 0.01 eV per atom, and Li8TiMn11(NiO8)4 passed with about 4.8 V, 701 Wh per kg, 3.4 percent volume change and energy above hull about 0.00 eV per atom. The agent concluded Ni substitution in Mn spinel enables high voltage with acceptable stability and will continue optimizing Ni/Ti substituted Mn-spinels for higher energy density.",
+   "label": "iteration 1",
+   "cached": false,
+   "seconds": 147.1,
+   "provider": "fireworks",
+   "output_tokens": 669
+  },
+  {
+   "kind": "iteration",
+   "text": "The agent tried a Ni-doped Fe olivine and two Mn-rich spinels with Al pillar and V redox doping to raise voltage beyond LiFePO4. Li4Fe3Ni(PO4)4 was rejected because the composition already exists in Materials Project, while Li6Mn11AlO24 and Li8Mn11V(NiO8)4 passed all filters with energy above hull about 0.00 eV per atom and about 0.01 eV per atom, 3.85 V and 488 Wh per kg versus 4.69 V and 690 Wh per kg. The agent concluded the Ni-for-Fe olivine at that ratio is a known ordering and will prioritize dilute Ti/Ni substitutions on Mn-rich spinels over Al pillaring and V doping.",
+   "label": "iteration 2",
+   "cached": false,
+   "seconds": 3.8,
+   "provider": "fireworks",
+   "output_tokens": 675
+  },
+  {
+   "kind": "iteration",
+   "text": "In iteration three the agent tested dilute tetravalent and polyanion doping of Mn hosts to avoid Fe-Mn/Ni olivine orderings and low-energy Al/V routes, proposing Li6TiMn11O24, Li8ZrMn11(NiO8)4 and Li4Mn4SiP3O16. All three candidates passed every filter, with Li6TiMn11O24 showing 3.85 V, 574 Wh/kg and energy above the hull 0.01 eV per atom, Li8ZrMn11(NiO8)4 showing 4.72 V, 676 Wh/kg and energy above the hull 0.02 eV per atom, and Li4Mn4SiP3O16 showing 3.92 V, 674 Wh/kg and energy above the hull 0.03 eV per atom. The agent concluded Ti and Ni dilutions give higher energy density than Zr and Al on the Ni-Mn spinel and Si-doped Mn-olivine is promising, and will prioritize dilute Ti/Ni variants on the Ni-Mn spinel and Si-doped Mn-olivine while avoiding Zr and Al dilution.",
+   "label": "iteration 3",
+   "cached": false,
+   "seconds": 145.4,
+   "provider": "fireworks",
+   "output_tokens": 734
+  },
+  {
+   "kind": "whole run",
+   "text": "The agent searched for cobalt-free cathode candidates with higher energy density than LiFePO4 and proposed nine new compositions. Seven of them passed the initial stability funnel. The three most stable finalists were Li8TiMn11(NiO8)4 with energy above the hull of about 0.00 eV per atom, Li8Mn11V(NiO8)4 with about 0.01 eV per atom, and Li8ZrMn11(NiO8)4 with about 0.02 eV per atom. No band gap or energy density values were reported for the finalists in this run, so a comparative assessment versus LiFePO4 could not be completed. The run stopped after the planned iterations with stable candidates identified but without confirmed electronic or performance metrics.",
+   "label": "run",
+   "cached": false,
+   "seconds": 5.5,
+   "provider": "fireworks",
+   "output_tokens": 489
+  }
+ ],
+ "iterations": [
+  {
+   "analysis": {
+    "reply": {
+     "stop": false,
+     "lessons": [
+      "Ni substitution in Mn-spinel enables high average voltage while passing stability filters.",
+      "Dilute Ti substitution in Ni-Mn spinel preserves capacity with low volume change."
+     ],
+     "ranking": [
+      "it1-c3",
+      "it1-c2"
+     ],
+     "next_direction": "Continue optimizing Ni/Ti substituted Mn-spinels for higher energy density.",
+     "failure_analysis": [
+      {
+       "id": "it1-c1",
+       "correction": "Propose novel olivine ratios or different substituents to avoid known Materials Project compositions.",
+       "hypothesis": "Mn-for-Fe olivine composition overlaps heavily explored chemistry stabilizing known orderings."
+      }
+     ]
+    },
+    "cached": false,
+    "seconds": 7.7,
+    "attempts": 1,
+    "cost_usd": 0.00843,
+    "provider": "meta",
+    "reasoning": "Interpreting JSON schema requirements to include rejected candidates in failure analysis with hypotheses and corrections.\n\nDeriving candidate ranking from passed status and energy density while avoiding self-generated comparisons.",
+    "input_tokens": 2436,
+    "output_tokens": 1266
+   },
+   "feedback": [
+    {
+     "id": "it1-c1",
+     "test": "novelty (already in Materials Project)",
+     "parent": "mp-19017",
+     "reason": "composition already in Materials Project: mp-783919, mp-807965, mp-764613, mp-766043, mp-766130",
+     "formula": "Li4MnFe3(PO4)4",
+     "message": "Negative result: Li4MnFe3(PO4)4 (it1-c1) failed the novelty (already in Materials Project): composition already in Materials Project: mp-783919, mp-807965, mp-764613, mp-766043, mp-766130.",
+     "outcome": "failed",
+     "measured": {},
+     "substitution": {
+      "add": "Mn",
+      "count": 1,
+      "remove": "Fe",
+      "li_vacancies": 0
+     }
+    },
+    {
+     "id": "it1-c2",
+     "test": "every filter",
+     "parent": "mp-22584",
+     "reason": "4.39 V, 147 mAh/g, 646 Wh/kg, volume change 4.6 %, E_hull 0.005 eV/atom",
+     "formula": "Li3Mn5NiO12",
+     "message": "Result: Li3Mn5NiO12 (it1-c2) passed every filter: 4.39 V, 147 mAh/g, 646 Wh/kg, volume change 4.6 %, E_hull 0.005 eV/atom; parent LiMn2O4: 3.82 V, 148 mAh/g, 567 Wh/kg.",
+     "outcome": "passed",
+     "measured": {
+      "e_hull": 0.005409,
+      "li_total": 6,
+      "voltage_V": 4.391,
+      "li_removed": 6,
+      "decomposition": [
+       {
+        "id": "mp-771112",
+        "formula": "Li2Mn3NiO8",
+        "fraction": 0.666667
+       },
+       {
+        "id": "mp-1272804",
+        "formula": "LiMn2O4",
+        "fraction": 0.333333
+       }
+      ],
+      "capacity_mAh_g": 147.2,
+      "parent_voltage_V": 3.822,
+      "volume_change_pct": 4.61,
+      "energy_density_Wh_kg": 646.0,
+      "parent_capacity_mAh_g": 148.2,
+      "parent_energy_density_Wh_kg": 567.0
+     },
+     "substitution": {
+      "add": "Ni",
+      "count": 2,
+      "remove": "Mn",
+      "li_vacancies": 0
+     }
+    },
+    {
+     "id": "it1-c3",
+     "test": "every filter",
+     "parent": "mp-771112",
+     "reason": "4.75 V, 147 mAh/g, 701 Wh/kg, volume change 3.4 %, E_hull 0.003 eV/atom",
+     "formula": "Li8TiMn11(NiO8)4",
+     "message": "Result: Li8TiMn11(NiO8)4 (it1-c3) passed every filter: 4.75 V, 147 mAh/g, 701 Wh/kg, volume change 3.4 %, E_hull 0.003 eV/atom; parent Li2Mn3NiO8: 4.72 V, 147 mAh/g, 692 Wh/kg.",
+     "outcome": "passed",
+     "measured": {
+      "e_hull": 0.002615,
+      "li_total": 8,
+      "voltage_V": 4.754,
+      "li_removed": 8,
+      "decomposition": [
+       {
+        "id": "mp-771112",
+        "formula": "Li2Mn3NiO8",
+        "fraction": 0.916667
+       },
+       {
+        "id": "mp-775326",
+        "formula": "Li2Ti3NiO8",
+        "fraction": 0.083333
+       }
+      ],
+      "capacity_mAh_g": 147.4,
+      "parent_voltage_V": 4.718,
+      "volume_change_pct": 3.44,
+      "energy_density_Wh_kg": 701.0,
+      "parent_capacity_mAh_g": 146.7,
+      "parent_energy_density_Wh_kg": 692.0
+     },
+     "substitution": {
+      "add": "Ti",
+      "count": 1,
+      "remove": "Mn",
+      "li_vacancies": 0
+     }
+    }
+   ],
+   "proposal": {
+    "reply": {
+     "proposals": [
+      {
+       "parent": "mp-19017",
+       "rationale": "Mn2+/Mn3+ at ~4.1V raises average voltage over Fe2+/Fe3+ while keeping olivine capacity and small volume change.",
+       "substitution": {
+        "add": "Mn",
+        "count": 1,
+        "remove": "Fe",
+        "li_vacancies": 0
+       }
+      },
+      {
+       "parent": "mp-22584",
+       "rationale": "Ni2+ to Ni4+ introduces high-voltage ~4.7V redox to LiMn2O4 spinel to boost energy density.",
+       "substitution": {
+        "add": "Ni",
+        "count": 2,
+        "remove": "Mn",
+        "li_vacancies": 0
+       }
+      },
+      {
+       "parent": "mp-771112",
+       "rationale": "Ti4+ for Mn4+ in high-voltage spinel stabilizes the lattice and lowers E_hull without removing Ni redox capacity.",
+       "substitution": {
+        "add": "Ti",
+        "count": 1,
+        "remove": "Mn",
+        "li_vacancies": 0
+       }
+      }
+     ],
+     "hypothesis": "Raising olivine voltage with Mn and raising spinel voltage/stability with Ni and Ti will exceed LiFePO4 energy density."
+    },
+    "cached": false,
+    "seconds": 25.4,
+    "attempts": 1,
+    "cost_usd": 0.02103,
+    "provider": "meta",
+    "reasoning": "Analyzing parent cathode structures and proposing up to three cobalt-free chemical substitutions to exceed LiFePO4 energy density while maintaining charge neutrality.\n\nEvaluating oxidation states and Li vacancy adjustments to preserve charge neutrality across substitutions.\n\nGenerating olivine and spinel substitution variants while balancing voltage, capacity, and stability constraints.\n\nEvaluating Ni and Al spinel substitutions and F-doping tradeoffs against voltage and capacity limits.\n\nFinalizing three chemically distinct partial substitutions with charge-balanced Li vacancies and rationale.\n\nSelecting three parent IDs and substitution counts while avoiding composition overlap and confirming redox activity.",
+    "input_tokens": 1041,
+    "output_tokens": 4643
+   },
+   "iteration": 1,
+   "candidates": [
+    {
+     "id": "it1-c1",
+     "e_hull": null,
+     "parent": "mp-19017",
+     "reason": "composition already in Materials Project: mp-783919, mp-807965, mp-764613, mp-766043, mp-766130",
+     "status": "rejected",
+     "formula": "Li4MnFe3(PO4)4",
+     "seconds": 2.1,
+     "rationale": "Mn2+/Mn3+ at ~4.1V raises average voltage over Fe2+/Fe3+ while keeping olivine capacity and small volume change.",
+     "voltage_V": null,
+     "n_modified": 1,
+     "known_in_mp": [
+      "mp-783919",
+      "mp-807965",
+      "mp-764613",
+      "mp-766043",
+      "mp-766130"
+     ],
+     "rejected_at": "known",
+     "substitution": {
+      "add": "Mn",
+      "count": 1,
+      "remove": "Fe",
+      "li_vacancies": 0
+     },
+     "decomposition": null,
+     "capacity_mAh_g": null,
+     "parent_formula": "LiFePO4",
+     "new_relaxations": 0,
+     "volume_change_pct": null,
+     "energy_density_Wh_kg": null,
+     "e_hull_per_substitution": null
+    },
+    {
+     "id": "it1-c2",
+     "e_hull": 0.005409,
+     "energy": -276.8331266681751,
+     "parent": "mp-22584",
+     "reason": null,
+     "status": "passed",
+     "formula": "Li3Mn5NiO12",
+     "n_atoms": 42,
+     "seconds": 182.7,
+     "analysis": {
+      "risks": [
+       "Average voltage of 4.391 V is near the upper limit of conventional electrolyte stability.",
+       "Modeling assumes removal of 6 of 6 Li, corresponding to full delithiation that may be difficult to achieve reversibly.",
+       "Mn-rich spinel parent LiMn2O4 chemistry carries well-known risks of Mn dissolution and Jahn-Teller Mn3+ distortion."
+      ],
+      "summary": "Li3Mn5NiO12 combines low E_hull of 0.005409 eV/atom with high energy density of 646.0 Wh/kg and low 4.61% volume change, supporting high priority for follow-up despite high voltage and full delithiation.",
+      "strengths": [
+       "E_hull of 0.005409 eV/atom is well below the 0.08 eV/atom stability threshold.",
+       "Energy density of 646.0 Wh/kg is ranked highest among the three variants on this parent in the provided comparison.",
+       "Volume change of 4.61% meets the <=10% criterion and is ranked lowest among the three variants on this parent."
+      ],
+      "md_priority": "high"
+     },
+     "li_total": 6,
+     "converged": 4,
+     "rationale": "Ni2+ to Ni4+ introduces high-voltage ~4.7V redox to LiMn2O4 spinel to boost energy density.",
+     "voltage_V": 4.391,
+     "li_removed": 6,
+     "n_modified": 2,
+     "known_in_mp": [],
+     "rejected_at": null,
+     "arrangements": 4,
+     "substitution": {
+      "add": "Ni",
+      "count": 2,
+      "remove": "Mn",
+      "li_vacancies": 0
+     },
+     "decomposition": [
+      {
+       "id": "mp-771112",
+       "formula": "Li2Mn3NiO8",
+       "fraction": 0.666667
+      },
+      {
+       "id": "mp-1272804",
+       "formula": "LiMn2O4",
+       "fraction": 0.333333
+      }
+     ],
+     "relaxed_atoms": {
+      "pbc": [
+       true,
+       true,
+       true
+      ],
+      "cell": [
+       [
+        -5.863084037255268,
+        0.03299430151322186,
+        -0.16855580981978752
+       ],
+       [
+        -0.022667021314750027,
+        -8.29242059283283,
+        -0.00594269444513957
+       ],
+       [
+        2.716288344596461,
+        4.113892739135985,
+        8.898876249886765
+       ]
+      ],
+      "numbers": [
+       3,
+       3,
+       3,
+       3,
+       3,
+       3,
+       25,
+       25,
+       25,
+       28,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       28,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8
+      ],
+      "positions": [
+       [
+        -3.0754535580495235,
+        3.143741998079457,
+        7.262032749376226
+       ],
+       [
+        -2.957128147614425,
+        -5.136510093973142,
+        1.4020707466531719
+       ],
+       [
+        -0.05238672490925823,
+        -7.295250535923612,
+        1.4818648041082465
+       ],
+       [
+        -3.086880529992953,
+        -3.1254089786131267,
+        4.301202065573483
+       ],
+       [
+        -0.22784508667964748,
+        0.9994668565153897,
+        7.345174508688783
+       ],
+       [
+        -0.1271732247289211,
+        -1.0008049233081862,
+        4.3907759423883075
+       ],
+       [
+        -4.427495406989752,
+        -2.049241702897477,
+        1.3053580033141414
+       ],
+       [
+        -2.9082542431592073,
+        -8.28501532819524,
+        -0.07222297073165895
+       ],
+       [
+        -1.6631754315030038,
+        -2.074451328166977,
+        7.300543699741118
+       ],
+       [
+        -0.0877655566780507,
+        -4.147391918701994,
+        2.935776895990574
+       ],
+       [
+        1.269169313242882,
+        -2.090944904757873,
+        7.386690530829151
+       ],
+       [
+        -0.017205423508906782,
+        -4.121292332083801,
+        -0.0068572710912258176
+       ],
+       [
+        1.3191591598679941,
+        -6.225679816135376,
+        4.467138989379035
+       ],
+       [
+        -1.4992143454423719,
+        -2.0697255843493108,
+        1.4044969642638094
+       ],
+       [
+        -3.1353207327577497,
+        0.0223309127357779,
+        5.7745418765542995
+       ],
+       [
+        -1.6156829992294062,
+        -6.212823536996658,
+        4.396649958497893
+       ],
+       [
+        -0.16183889076781058,
+        -4.174795481716081,
+        5.879175023369322
+       ],
+       [
+        -3.01251611137966,
+        0.015202321679936901,
+        2.85390052281372
+       ],
+       [
+        -3.102634097312281,
+        1.9816473752418908,
+        5.672281079964785
+       ],
+       [
+        1.3955763985778136,
+        -0.133945945043282,
+        7.404974797558796
+       ],
+       [
+        -2.9178310416967723,
+        -1.951754399443751,
+        0.03558779981198913
+       ],
+       [
+        -0.07356671341994803,
+        -2.259801539404349,
+        8.76222734207258
+       ],
+       [
+        -4.423816041476886,
+        0.18628062129851541,
+        4.380862823128149
+       ],
+       [
+        -1.5982806549244108,
+        -0.15714430080983896,
+        1.329384042425802
+       ],
+       [
+        -1.4763452742760763,
+        -4.285410970300789,
+        4.5035178292109
+       ],
+       [
+        -0.004272063403970012,
+        -2.180432782525614,
+        0.11513430199968587
+       ],
+       [
+        -1.3767675014049965,
+        -3.991206905466978,
+        1.3219341144367955
+       ],
+       [
+        -3.037616840915991,
+        -6.19288862712691,
+        3.1031127680355906
+       ],
+       [
+        -0.06224392520316542,
+        -2.070175741373864,
+        2.6892754393569205
+       ],
+       [
+        -0.15225126372062492,
+        2.1763157112879177,
+        5.76192021897419
+       ],
+       [
+        -3.0068623218095705,
+        -2.0694664149514606,
+        2.599610910290082
+       ],
+       [
+        -1.460611453199504,
+        -4.086814698730475,
+        7.337905497098623
+       ],
+       [
+        -3.1568449781901307,
+        -1.9387495399699706,
+        8.556676568491552
+       ],
+       [
+        -0.16837090929257423,
+        -2.20993368858191,
+        6.046091795095962
+       ],
+       [
+        1.1977204180884622,
+        -4.303144683412055,
+        4.55095571162874
+       ],
+       [
+        -0.11657091242076367,
+        -6.224717161040223,
+        3.1823205103116696
+       ],
+       [
+        -1.8653040845969346,
+        -0.06203244007648767,
+        7.262248649176543
+       ],
+       [
+        1.1406491871168694,
+        -4.049848740992049,
+        7.368432494186196
+       ],
+       [
+        -4.5652170743529705,
+        -3.9776830134436074,
+        1.1983543521278734
+       ],
+       [
+        -4.284619423871571,
+        -0.12247519932777046,
+        1.2265604062857842
+       ],
+       [
+        -3.251507846252597,
+        -1.886834393171552,
+        5.839420275283731
+       ],
+       [
+        -1.7375726313047333,
+        0.15259626083838218,
+        4.480917205812975
+       ]
+      ]
+     },
+     "capacity_mAh_g": 147.2,
+     "parent_formula": "LiMn2O4",
+     "new_relaxations": 30,
+     "parent_voltage_V": 3.822,
+     "delithiated_atoms": {
+      "pbc": [
+       true,
+       true,
+       true
+      ],
+      "cell": [
+       [
+        -5.791562640635679,
+        0.025918532106158278,
+        -0.16103715929357706
+       ],
+       [
+        -0.0315687909665128,
+        -8.165541901389826,
+        -0.009330221673242815
+       ],
+       [
+        2.6813733841314074,
+        4.057723194239289,
+        8.726198953063076
+       ]
+      ],
+      "numbers": [
+       25,
+       25,
+       25,
+       28,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       28,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8
+      ],
+      "positions": [
+       [
+        -4.399692736144344,
+        -2.017801651455172,
+        1.3714377539903628
+       ],
+       [
+        -2.9315318691922445,
+        -8.159505484189971,
+        -0.07152146704011841
+       ],
+       [
+        -1.6506813215077234,
+        -2.0413785347203426,
+        7.158455728093293
+       ],
+       [
+        -0.09507592279179597,
+        -4.08317549081596,
+        2.877166175441815
+       ],
+       [
+        1.245023172478223,
+        -2.0541976094903798,
+        7.241512569108702
+       ],
+       [
+        -0.018630935855301643,
+        -4.069326704780872,
+        0.011401861004065702
+       ],
+       [
+        1.3130730023578614,
+        -6.128632872479786,
+        4.300999564542001
+       ],
+       [
+        -1.5037675672337332,
+        -2.0375345344821456,
+        1.4524444613741125
+       ],
+       [
+        -3.054290659273241,
+        0.019239099574291284,
+        5.664774948797307
+       ],
+       [
+        -1.58268069405636,
+        -6.1226575699387285,
+        4.222887076123045
+       ],
+       [
+        -0.16908724521314603,
+        -4.0970109043943586,
+        5.743050455366197
+       ],
+       [
+        -2.9757478921570337,
+        0.01254704112235626,
+        2.801317011504669
+       ],
+       [
+        -3.037209403641713,
+        1.9482407463811477,
+        5.478826771347967
+       ],
+       [
+        1.4205394068064492,
+        -0.12026522529617903,
+        7.249132528541279
+       ],
+       [
+        -2.9165967879149197,
+        -1.922961486348676,
+        0.1236892233708968
+       ],
+       [
+        -0.2382933269660298,
+        -2.170648885888734,
+        8.47984736918298
+       ],
+       [
+        -4.284447786856748,
+        0.13831957055476407,
+        4.1730487268431835
+       ],
+       [
+        -1.669576258037422,
+        -0.11242709709358617,
+        1.4276033803229906
+       ],
+       [
+        -1.3997585388662575,
+        -4.199486186512227,
+        4.253900576477142
+       ],
+       [
+        -0.020071426871155394,
+        -2.1404261135631812,
+        0.2037190612905067
+       ],
+       [
+        -1.3267206177342765,
+        -3.962863753962623,
+        1.4333285666404767
+       ],
+       [
+        -2.993370279192439,
+        -6.253424560662643,
+        2.9119131796312305
+       ],
+       [
+        -0.09310450363265821,
+        -2.184029534939769,
+        2.761129289348071
+       ],
+       [
+        -0.13610350987744438,
+        2.1396745528810004,
+        5.560085188107121
+       ],
+       [
+        -2.9855242257425956,
+        -1.8871150481960064,
+        2.6815156383163536
+       ],
+       [
+        -1.4868039667318946,
+        -3.9778683458681985,
+        7.163640040305833
+       ],
+       [
+        -3.132499103565669,
+        -1.9141843347912038,
+        8.39847343661208
+       ],
+       [
+        -0.1670596950435432,
+        -2.168458404821588,
+        5.921050069561478
+       ],
+       [
+        1.1390290021250988,
+        -4.204026095899436,
+        4.319194100004146
+       ],
+       [
+        -0.10103297663779984,
+        -5.982334698464796,
+        2.9931563739865417
+       ],
+       [
+        -1.8143648593330908,
+        -0.10486499497275197,
+        7.152488805381041
+       ],
+       [
+        1.069659108732111,
+        -3.988157670029361,
+        7.234868459143113
+       ],
+       [
+        -4.579560923650773,
+        -3.9403941365913924,
+        1.3414226027205234
+       ],
+       [
+        -4.209067150744144,
+        -0.09479717441386681,
+        1.3589774016691758
+       ],
+       [
+        -3.0650405843965265,
+        -1.9118920758836147,
+        5.839577359733601
+       ],
+       [
+        -1.7450876480952227,
+        0.1191995900962901,
+        4.245693150122658
+       ]
+      ]
+     },
+     "energy_spread_meV": 14.2,
+     "volume_change_pct": 4.61,
+     "skipped_references": [],
+     "delithiated_formula": "Mn5NiO12",
+     "energy_density_Wh_kg": 646.0,
+     "parent_capacity_mAh_g": 148.2,
+     "e_hull_per_substitution": 0.1136,
+     "parent_volume_change_pct": 5.81,
+     "parent_energy_density_Wh_kg": 567.0
+    },
+    {
+     "id": "it1-c3",
+     "e_hull": 0.002615,
+     "energy": -366.4315961095605,
+     "parent": "mp-771112",
+     "reason": null,
+     "status": "passed",
+     "formula": "Li8TiMn11(NiO8)4",
+     "n_atoms": 56,
+     "seconds": 45.8,
+     "analysis": {
+      "risks": [
+       "Average voltage 4.754 V is near 4.8 V upper limit and may exceed electrolyte stability.",
+       "High Mn content in Li8TiMn11(NiO8)4 risks Jahn-Teller Mn3+ distortion and Mn dissolution.",
+       "Ni-Mn oxide spinel parent Li2Mn3NiO8 may have low electronic conductivity."
+      ],
+      "summary": "Li8TiMn11(NiO8)4 is Co-free with 701.0 Wh/kg at 4.754 V, 0.002615 eV/atom and 3.44% volume change, warranting DFT/experimental follow-up despite high-voltage risks.",
+      "strengths": [
+       "E_hull 0.002615 eV/atom is well below 0.08 eV/atom limit and lowest at 0.003 eV/atom among Ti/V/Zr on mp-771112.",
+       "Energy density 701.0 Wh/kg at 4.754 V and 147.4 mAh/g meets all voltage and capacity filters.",
+       "Volume change 3.44% is well below 10% limit and near lowest among same-parent substitutions."
+      ],
+      "md_priority": "high"
+     },
+     "li_total": 8,
+     "converged": 1,
+     "rationale": "Ti4+ for Mn4+ in high-voltage spinel stabilizes the lattice and lowers E_hull without removing Ni redox capacity.",
+     "voltage_V": 4.754,
+     "li_removed": 8,
+     "n_modified": 1,
+     "known_in_mp": [],
+     "rejected_at": null,
+     "arrangements": 1,
+     "substitution": {
+      "add": "Ti",
+      "count": 1,
+      "remove": "Mn",
+      "li_vacancies": 0
+     },
+     "decomposition": [
+      {
+       "id": "mp-771112",
+       "formula": "Li2Mn3NiO8",
+       "fraction": 0.916667
+      },
+      {
+       "id": "mp-775326",
+       "formula": "Li2Ti3NiO8",
+       "fraction": 0.083333
+      }
+     ],
+     "relaxed_atoms": {
+      "pbc": [
+       true,
+       true,
+       true
+      ],
+      "cell": [
+       [
+        8.286412184517093,
+        0.00022253789762088257,
+        -0.00022253845678124235
+       ],
+       [
+        0.00022255073926565077,
+        8.287259974620873,
+        -0.0009006477149069314
+       ],
+       [
+        -0.000222551298358213,
+        -0.0009006477147673857,
+        8.287259974025694
+       ]
+      ],
+      "numbers": [
+       3,
+       3,
+       3,
+       3,
+       3,
+       3,
+       3,
+       3,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       22,
+       25,
+       28,
+       28,
+       28,
+       28,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8
+      ],
+      "positions": [
+       [
+        0.014639988117386048,
+        0.019978948277426103,
+        0.030074516352367325
+       ],
+       [
+        2.0494739958485164,
+        2.0453569376597756,
+        2.0419170787603926
+       ],
+       [
+        2.1149950439814114,
+        6.2499415455391025,
+        6.190872826179643
+       ],
+       [
+        4.099925369704214,
+        8.263079842712122,
+        4.177734415297696
+       ],
+       [
+        4.165223891927342,
+        4.113223479187546,
+        8.26040989777063
+       ],
+       [
+        6.200057899314335,
+        2.1013808797497586,
+        6.235031870874084
+       ],
+       [
+        6.232419601401487,
+        6.186789428341761,
+        2.063490188991476
+       ],
+       [
+        8.268913092297579,
+        4.13591974359879,
+        4.1143597926707525
+       ],
+       [
+        1.0020487752528713,
+        1.0778705937851252,
+        5.180412565039454
+       ],
+       [
+        1.0360859166445309,
+        3.1421161324981175,
+        7.2208230238251785
+       ],
+       [
+        1.0713979258051027,
+        5.18086262833422,
+        1.0061379403906487
+       ],
+       [
+        3.0747212684171226,
+        3.107854161982329,
+        5.1482889612680625
+       ],
+       [
+        3.1074601855740216,
+        5.149544021616328,
+        3.077337032348516
+       ],
+       [
+        3.1401991500488355,
+        7.2204959396712605,
+        1.035647078594942
+       ],
+       [
+        5.143522547813589,
+        3.078344939198196,
+        3.1086556099546625
+       ],
+       [
+        5.1786121165644055,
+        1.005769913019756,
+        1.0708096078335985
+       ],
+       [
+        5.21264912465774,
+        7.251719151903897,
+        7.292923437839984
+       ],
+       [
+        7.222235937348096,
+        1.0577800933674122,
+        3.134889695721233
+       ],
+       [
+        7.250666218075692,
+        7.2103098568938835,
+        5.137880228337696
+       ],
+       [
+        7.278874016661209,
+        5.206418788032307,
+        7.27261035443415
+       ],
+       [
+        1.0503904102638002,
+        7.261108941265679,
+        3.1033088445843866
+       ],
+       [
+        3.107237719021709,
+        1.0353324426018287,
+        7.251286140345914
+       ],
+       [
+        5.164530089572999,
+        5.175515995361468,
+        5.188901881285492
+       ],
+       [
+        7.2506663753127905,
+        3.105981839497971,
+        1.033552340534546
+       ],
+       [
+        0.8433741696287641,
+        1.0344978770338036,
+        3.245178529331398
+       ],
+       [
+        0.9220082707910556,
+        7.4635552492686,
+        5.19594465273985
+       ],
+       [
+        0.9510738015943085,
+        5.100402520711691,
+        7.3389153041983946
+       ],
+       [
+        1.044345274463243,
+        3.2540006794390877,
+        0.8394789964368014
+       ],
+       [
+        1.0333690399912747,
+        1.2388449798098338,
+        7.107089822668212
+       ],
+       [
+        1.1219348716199755,
+        3.0305914502834495,
+        5.262875089598351
+       ],
+       [
+        1.1781699833308708,
+        5.184758014114728,
+        2.9142867723271486
+       ],
+       [
+        1.2337767935413173,
+        7.1072749358126845,
+        1.0358597736651936
+       ],
+       [
+        2.9134742274764434,
+        1.1896289892064642,
+        5.178576075066465
+       ],
+       [
+        2.9636960349532924,
+        3.1120802259557325,
+        7.053327395454198
+       ],
+       [
+        3.0251685268952313,
+        5.261188735551535,
+        1.1196987305790027
+       ],
+       [
+        3.112878393860707,
+        7.053240179132377,
+        2.965533174257603
+       ],
+       [
+        3.1020420750031423,
+        5.037740165966573,
+        4.981032958946548
+       ],
+       [
+        3.1897518264958755,
+        3.191905593251456,
+        3.188981694271031
+       ],
+       [
+        3.2510016288460353,
+        0.8382744643472048,
+        1.040773750154424
+       ],
+       [
+        3.3012236082019952,
+        7.2498825560624285,
+        7.404682086872916
+       ],
+       [
+        4.981143682125127,
+        3.1080668020633624,
+        5.035067798151381
+       ],
+       [
+        5.036750284790022,
+        4.986493849728655,
+        3.1125508735128347
+       ],
+       [
+        5.0929854373658925,
+        7.335082341631951,
+        0.9583843648567489
+       ],
+       [
+        5.181106153191619,
+        0.8911360993700962,
+        7.454798778420496
+       ],
+       [
+        5.170575308983095,
+        2.9116862317311982,
+        1.181793573153961
+       ],
+       [
+        5.263624240076533,
+        1.1238623158973349,
+        3.0290962009436972
+       ],
+       [
+        5.292912320958249,
+        7.268151703838073,
+        5.391348293135012
+       ],
+       [
+        5.371323789743049,
+        5.316485156551263,
+        7.249550919948391
+       ],
+       [
+        7.053393982174018,
+        2.969934483083268,
+        3.1014856436456815
+       ],
+       [
+        7.1041126665929335,
+        1.0471774083973544,
+        1.2288586429526682
+       ],
+       [
+        7.153199942550989,
+        7.152502696863065,
+        7.2061191682386365
+       ],
+       [
+        7.267500464469804,
+        5.3202948733014095,
+        5.324834153026826
+       ],
+       [
+        7.233832133211263,
+        7.397263683830187,
+        3.2478651227325566
+       ],
+       [
+        7.347909904867939,
+        0.9912888546297581,
+        5.080973711058647
+       ],
+       [
+        7.39699729347072,
+        3.300387615099675,
+        7.262007828479901
+       ],
+       [
+        7.447938404897289,
+        5.173915282060389,
+        0.8975048724813145
+       ]
+      ]
+     },
+     "capacity_mAh_g": 147.4,
+     "parent_formula": "Li2Mn3NiO8",
+     "new_relaxations": 26,
+     "parent_voltage_V": 4.718,
+     "delithiated_atoms": {
+      "pbc": [
+       true,
+       true,
+       true
+      ],
+      "cell": [
+       [
+        8.189723620377395,
+        0.0068489412153461314,
+        -0.006848949665981289
+       ],
+       [
+        0.006850023118550508,
+        8.191440843543937,
+        -0.008522103384302445
+       ],
+       [
+        -0.006850031569647643,
+        -0.008522103384629344,
+        8.191440817348491
+       ]
+      ],
+      "numbers": [
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       22,
+       25,
+       28,
+       28,
+       28,
+       28,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8
+      ],
+      "positions": [
+       [
+        1.0454969219577546,
+        0.9971759917182359,
+        5.114006071050756
+       ],
+       [
+        1.0150318072774507,
+        3.039826780238733,
+        7.190502030287275
+       ],
+       [
+        1.000420649046122,
+        5.126546968244914,
+        1.041599588058658
+       ],
+       [
+        3.087276197316951,
+        3.0662024780165904,
+        5.142258693422178
+       ],
+       [
+        3.0728598862041023,
+        5.1490150530559475,
+        3.0938902282491085
+       ],
+       [
+        3.0584439624234863,
+        7.197388981366624,
+        1.0110716355554634
+       ],
+       [
+        5.145294246299312,
+        3.0967292136007405,
+        3.07142167645422
+       ],
+       [
+        5.123833531293672,
+        1.0541862501366874,
+        0.993218837195671
+       ],
+       [
+        5.093369745467091,
+        7.160613562268763,
+        7.1334895550788
+       ],
+       [
+        7.200942357765772,
+        1.0408264393886242,
+        3.0341348330356386
+       ],
+       [
+        7.167721315281189,
+        7.095136859685454,
+        5.03315987897966
+       ],
+       [
+        7.127650685312751,
+        5.087588435774424,
+        7.1702928877041705
+       ],
+       [
+        1.0444502177561161,
+        7.1819204150679505,
+        3.047564402693189
+       ],
+       [
+        3.0660096706049385,
+        1.0204587842735908,
+        7.165297226998873
+       ],
+       [
+        5.101265858658045,
+        5.102691630842225,
+        5.126791779148754
+       ],
+       [
+        7.167721901871853,
+        3.0820936462718342,
+        1.020113816355596
+       ],
+       [
+        0.9337410090469522,
+        0.8886751843752393,
+        3.180922647032751
+       ],
+       [
+        0.9545717983221043,
+        7.271092931545623,
+        4.946902453605094
+       ],
+       [
+        0.8776245875793227,
+        4.977639789748041,
+        7.300610472879354
+       ],
+       [
+        0.8784455426440283,
+        3.1961282933413266,
+        0.9269251480500401
+       ],
+       [
+        1.164921020333695,
+        1.1182846185862467,
+        7.045705262751545
+       ],
+       [
+        1.1529465572461004,
+        2.93483369632952,
+        5.2533946339908155
+       ],
+       [
+        1.143954247464757,
+        5.285678424682671,
+        2.9665191078050035
+       ],
+       [
+        1.1348852486826013,
+        7.059606328400746,
+        1.153051387304174
+       ],
+       [
+        2.9712569649782656,
+        1.1418480669817426,
+        5.264927447888465
+       ],
+       [
+        2.9469061678535997,
+        2.922352365587274,
+        7.066914527072843
+       ],
+       [
+        2.9409905090699926,
+        5.257193488467297,
+        1.156297980258527
+       ],
+       [
+        2.9361547049916483,
+        7.076369667674082,
+        2.9440744909060585
+       ],
+       [
+        3.2095633176281444,
+        4.9992006782209435,
+        5.021241189828855
+       ],
+       [
+        3.2047281709988553,
+        3.211425990638476,
+        3.202066565613534
+       ],
+       [
+        3.1919619926344187,
+        0.9306007436067011,
+        0.8757471448321739
+       ],
+       [
+        3.1676108151348443,
+        7.311533223521248,
+        7.278161692957481
+       ],
+       [
+        5.01083209840464,
+        3.2081784226815153,
+        5.004478559452172
+       ],
+       [
+        5.001763725899475,
+        5.021646617610356,
+        3.230550777646885
+       ],
+       [
+        4.992771124184133,
+        7.308523300095316,
+        0.8797062015163781
+       ],
+       [
+        4.967097089104888,
+        0.9008685744228937,
+        7.263120745923145
+       ],
+       [
+        5.267271744588372,
+        2.982052291954189,
+        1.1410007729318705
+       ],
+       [
+        5.261242873432808,
+        1.1642967932062864,
+        2.931034309522661
+       ],
+       [
+        5.191146025861597,
+        7.002030178469383,
+        5.2159649293714425
+       ],
+       [
+        5.205126022746303,
+        5.227526915005892,
+        7.024989831665381
+       ],
+       [
+        7.0705900408161995,
+        2.9660591405992194,
+        2.9213102175114467
+       ],
+       [
+        7.053012708851014,
+        1.1863102107566523,
+        1.110594092731872
+       ],
+       [
+        7.0231397369458675,
+        7.015435423668608,
+        7.043328080239813
+       ],
+       [
+        7.005045970860937,
+        5.158005379459032,
+        5.239726425108783
+       ],
+       [
+        7.33039598032038,
+        7.301703805901125,
+        3.0960287865830347
+       ],
+       [
+        7.30545094126414,
+        0.9138633499552771,
+        4.961980473646284
+       ],
+       [
+        7.275577753547509,
+        3.164048266667403,
+        7.315775027025145
+       ],
+       [
+        7.264851386633901,
+        4.98328571890224,
+        0.904083452903978
+       ]
+      ]
+     },
+     "energy_spread_meV": 0.0,
+     "volume_change_pct": 3.44,
+     "skipped_references": [],
+     "delithiated_formula": "TiMn11(NiO8)4",
+     "energy_density_Wh_kg": 701.0,
+     "parent_capacity_mAh_g": 146.7,
+     "e_hull_per_substitution": 0.1464,
+     "parent_volume_change_pct": 3.86,
+     "parent_energy_density_Wh_kg": 692.0
+    }
+   ],
+   "comparisons": []
+  },
+  {
+   "analysis": {
+    "reply": {
+     "stop": false,
+     "lessons": [
+      "On mp-771112 Mn->Ti (it1-c3 701.000 Wh/kg) outperforms Mn->V (it2-c3 690.000 Wh/kg) in energy density.",
+      "On mp-22584 Ni substitution (it1-c2 646.000 Wh/kg) retains energy density better than Al substitution (it2-c2 488.000 Wh/kg)."
+     ],
+     "ranking": [
+      "it2-c3",
+      "it2-c2"
+     ],
+     "next_direction": "Prioritize dilute Ti/Ni substitutions on Mn-rich spinels over Al pillaring and V doping.",
+     "failure_analysis": [
+      {
+       "id": "it2-c1",
+       "correction": "Try different Ni counts or co-substitutions to avoid known Fe-Ni olivine compositions.",
+       "hypothesis": "Hypothesis: Ni-for-Fe olivine at Fe3Ni ratio falls into a well-known stable ordering already in Materials Project."
+      }
+     ]
+    },
+    "cached": false,
+    "seconds": 11.3,
+    "attempts": 1,
+    "cost_usd": 0.01571,
+    "provider": "meta",
+    "reasoning": "Ranking two passed cobalt-free cathode candidates by energy density and drafting brief lessons, next direction, and stop flag.\n\nDrafting a failure analysis for the rejected candidate and setting the stop flag to false.\n\nExtracting quoted metrics from comparison statements to write lessons and the next direction.",
+    "input_tokens": 5206,
+    "output_tokens": 2166
+   },
+   "feedback": [
+    {
+     "id": "it2-c1",
+     "test": "novelty (already in Materials Project)",
+     "parent": "mp-19017",
+     "reason": "composition already in Materials Project: mp-771063",
+     "formula": "Li4Fe3Ni(PO4)4",
+     "message": "Negative result: Li4Fe3Ni(PO4)4 (it2-c1) failed the novelty (already in Materials Project): composition already in Materials Project: mp-771063.",
+     "outcome": "failed",
+     "measured": {},
+     "substitution": {
+      "add": "Ni",
+      "count": 1,
+      "remove": "Fe",
+      "li_vacancies": 0
+     }
+    },
+    {
+     "id": "it2-c2",
+     "test": "every filter",
+     "parent": "mp-22584",
+     "reason": "3.85 V, 127 mAh/g, 488 Wh/kg, volume change 4.7 %, E_hull 0.003 eV/atom",
+     "formula": "Li6Mn11AlO24",
+     "message": "Result: Li6Mn11AlO24 (it2-c2) passed every filter: 3.85 V, 127 mAh/g, 488 Wh/kg, volume change 4.7 %, E_hull 0.003 eV/atom; parent LiMn2O4: 3.82 V, 148 mAh/g, 567 Wh/kg.",
+     "outcome": "passed",
+     "measured": {
+      "e_hull": 0.0027,
+      "li_total": 6,
+      "voltage_V": 3.851,
+      "li_removed": 5,
+      "decomposition": [
+       {
+        "id": "mp-1272804",
+        "formula": "LiMn2O4",
+        "fraction": 0.8
+       },
+       {
+        "id": "mp-530177",
+        "formula": "Li5Mn7O16",
+        "fraction": 0.133333
+       },
+       {
+        "id": "mp-530399",
+        "formula": "LiAl5O8",
+        "fraction": 0.066667
+       }
+      ],
+      "capacity_mAh_g": 126.8,
+      "parent_voltage_V": 3.822,
+      "volume_change_pct": 4.68,
+      "energy_density_Wh_kg": 488.0,
+      "parent_capacity_mAh_g": 148.2,
+      "parent_energy_density_Wh_kg": 567.0
+     },
+     "substitution": {
+      "add": "Al",
+      "count": 1,
+      "remove": "Mn",
+      "li_vacancies": 0
+     }
+    },
+    {
+     "id": "it2-c3",
+     "test": "every filter",
+     "parent": "mp-771112",
+     "reason": "4.69 V, 147 mAh/g, 690 Wh/kg, volume change 3.4 %, E_hull 0.008 eV/atom",
+     "formula": "Li8Mn11V(NiO8)4",
+     "message": "Result: Li8Mn11V(NiO8)4 (it2-c3) passed every filter: 4.69 V, 147 mAh/g, 690 Wh/kg, volume change 3.4 %, E_hull 0.008 eV/atom; parent Li2Mn3NiO8: 4.72 V, 147 mAh/g, 692 Wh/kg.",
+     "outcome": "passed",
+     "measured": {
+      "e_hull": 0.008247,
+      "li_total": 8,
+      "voltage_V": 4.693,
+      "li_removed": 8,
+      "decomposition": [
+       {
+        "id": "mp-771112",
+        "formula": "Li2Mn3NiO8",
+        "fraction": 0.85
+       },
+       {
+        "id": "mp-19219",
+        "formula": "Li3VO4",
+        "fraction": 0.057143
+       },
+       {
+        "id": "mp-542151",
+        "formula": "V2Ni3O8",
+        "fraction": 0.046429
+       },
+       {
+        "id": "mp-1172875",
+        "formula": "Mn2O3",
+        "fraction": 0.026786
+       }
+      ],
+      "capacity_mAh_g": 147.1,
+      "parent_voltage_V": 4.718,
+      "volume_change_pct": 3.37,
+      "energy_density_Wh_kg": 690.0,
+      "parent_capacity_mAh_g": 146.7,
+      "parent_energy_density_Wh_kg": 692.0
+     },
+     "substitution": {
+      "add": "V",
+      "count": 1,
+      "remove": "Mn",
+      "li_vacancies": 0
+     }
+    }
+   ],
+   "proposal": {
+    "reply": {
+     "proposals": [
+      {
+       "parent": "mp-19017",
+       "rationale": "Ni2+/Ni4+ raises olivine voltage over Fe2+/Fe3+ with similar radius while avoiding known Fe-Mn compositions.",
+       "substitution": {
+        "add": "Ni",
+        "count": 1,
+        "remove": "Fe",
+        "li_vacancies": 0
+       }
+      },
+      {
+       "parent": "mp-22584",
+       "rationale": "Al3+ suppresses Jahn-Teller distortion and volume change in Mn-spinel while retaining Mn redox capacity.",
+       "substitution": {
+        "add": "Al",
+        "count": 1,
+        "remove": "Mn",
+        "li_vacancies": 0
+       }
+      },
+      {
+       "parent": "mp-771112",
+       "rationale": "V4+/V5+ adds extra redox and high inductive effect to Ni-Mn spinel to build on Ti success beyond it1-c3.",
+       "substitution": {
+        "add": "V",
+        "count": 1,
+        "remove": "Mn",
+        "li_vacancies": 0
+       }
+      }
+     ],
+     "hypothesis": "Avoiding the known Fe-Mn olivine orderings that caused it1-c1 to fail by using Ni doping plus Al pillar and V redox doping to stabilize high-voltage spinels will exceed LiFePO4 energy density."
+    },
+    "cached": false,
+    "seconds": 28.0,
+    "attempts": 1,
+    "cost_usd": 0.02293,
+    "provider": "meta",
+    "reasoning": "Evaluating prior substitution results to propose three new chemically distinct, charge-neutral dopants that avoid repeats and cobalt while aiming to exceed the LiFePO4 baseline energy density.\n\nGenerating three novel charge-neutral olivine dopants without cobalt or prior substitutions while preserving redox balance and lithium stoichiometry.\n\nEvaluating isovalent versus aliovalent spinel substitutions and lithium vacancy requirements for charge neutrality.\n\nShifting to charge-neutral F-doped olivine and Ni/Fe olivine variants while assessing voltage and novelty risks.\n\nExtending the substitution set with Al and V dopants while validating charge balance and voltage limits.",
+    "input_tokens": 2960,
+    "output_tokens": 4524
+   },
+   "iteration": 2,
+   "candidates": [
+    {
+     "id": "it2-c1",
+     "e_hull": null,
+     "parent": "mp-19017",
+     "reason": "composition already in Materials Project: mp-771063",
+     "status": "rejected",
+     "formula": "Li4Fe3Ni(PO4)4",
+     "seconds": 1.7,
+     "rationale": "Ni2+/Ni4+ raises olivine voltage over Fe2+/Fe3+ with similar radius while avoiding known Fe-Mn compositions.",
+     "voltage_V": null,
+     "n_modified": 1,
+     "known_in_mp": [
+      "mp-771063"
+     ],
+     "rejected_at": "known",
+     "substitution": {
+      "add": "Ni",
+      "count": 1,
+      "remove": "Fe",
+      "li_vacancies": 0
+     },
+     "decomposition": null,
+     "capacity_mAh_g": null,
+     "parent_formula": "LiFePO4",
+     "new_relaxations": 0,
+     "volume_change_pct": null,
+     "energy_density_Wh_kg": null,
+     "e_hull_per_substitution": null
+    },
+    {
+     "id": "it2-c2",
+     "e_hull": 0.0027,
+     "energy": -288.92462000318767,
+     "parent": "mp-22584",
+     "reason": null,
+     "status": "passed",
+     "formula": "Li6Mn11AlO24",
+     "n_atoms": 42,
+     "seconds": 149.2,
+     "li_total": 6,
+     "converged": 2,
+     "rationale": "Al3+ suppresses Jahn-Teller distortion and volume change in Mn-spinel while retaining Mn redox capacity.",
+     "voltage_V": 3.851,
+     "li_removed": 5,
+     "n_modified": 1,
+     "known_in_mp": [],
+     "rejected_at": null,
+     "arrangements": 2,
+     "substitution": {
+      "add": "Al",
+      "count": 1,
+      "remove": "Mn",
+      "li_vacancies": 0
+     },
+     "decomposition": [
+      {
+       "id": "mp-1272804",
+       "formula": "LiMn2O4",
+       "fraction": 0.8
+      },
+      {
+       "id": "mp-530177",
+       "formula": "Li5Mn7O16",
+       "fraction": 0.133333
+      },
+      {
+       "id": "mp-530399",
+       "formula": "LiAl5O8",
+       "fraction": 0.066667
+      }
+     ],
+     "relaxed_atoms": {
+      "pbc": [
+       true,
+       true,
+       true
+      ],
+      "cell": [
+       [
+        -5.823831538213887,
+        0.02447896273448622,
+        -0.1591138638431846
+       ],
+       [
+        -0.03563117460947421,
+        -8.567401576565844,
+        -0.005517433530421315
+       ],
+       [
+        2.6929810493319932,
+        4.255223282714025,
+        8.804880268810228
+       ]
+      ],
+      "numbers": [
+       3,
+       3,
+       3,
+       3,
+       3,
+       3,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       13,
+       25,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8
+      ],
+      "positions": [
+       [
+        -3.1005950043503256,
+        3.2962582263695994,
+        7.291613223014061
+       ],
+       [
+        -2.9777611349751543,
+        -5.360587818004819,
+        1.388046690264582
+       ],
+       [
+        -0.07398299406833003,
+        -7.475999877876052,
+        1.434713783657228
+       ],
+       [
+        -3.0432660163138503,
+        -3.2858054379705783,
+        4.182577084929255
+       ],
+       [
+        -0.19510351779454352,
+        1.0287138533461353,
+        7.255670909833787
+       ],
+       [
+        -0.12514320754684138,
+        -1.0426480898027672,
+        4.377456225638423
+       ],
+       [
+        -4.419157515313645,
+        -2.121951110212503,
+        1.3352956361056478
+       ],
+       [
+        -2.950620044876826,
+        -8.527445214629333,
+        -0.08515400346959641
+       ],
+       [
+        -1.6815667760896975,
+        -2.23923561812446,
+        7.172399529866616
+       ],
+       [
+        -0.09969728429428613,
+        -4.308906443238075,
+        2.907527800603698
+       ],
+       [
+        1.2644923987636605,
+        -2.2518345647792706,
+        7.252017016541352
+       ],
+       [
+        -0.022623459482507605,
+        -4.372786322705853,
+        0.030138502227562387
+       ],
+       [
+        1.323702927622549,
+        -6.342280416309089,
+        4.456247894633211
+       ],
+       [
+        -1.5070307139001735,
+        -2.1351770798678307,
+        1.4134144770312946
+       ],
+       [
+        -3.0706500667627443,
+        0.005280221904849107,
+        5.736951565144958
+       ],
+       [
+        -1.623196107212887,
+        -6.33004295465314,
+        4.374698908857407
+       ],
+       [
+        -0.17874125316217915,
+        -4.290594004753038,
+        5.813997018777239
+       ],
+       [
+        -2.993263880422964,
+        0.10364546940670355,
+        2.7982794265921624
+       ],
+       [
+        -3.0608195141292818,
+        2.2204284615086674,
+        5.609264558093162
+       ],
+       [
+        1.3812411584161817,
+        -0.2910453178026607,
+        7.295328699694273
+       ],
+       [
+        -2.9254085885411887,
+        -1.8834733260108467,
+        -0.012059395354878715
+       ],
+       [
+        -0.24418254498973221,
+        -2.3068227668296033,
+        8.519375855298385
+       ],
+       [
+        -4.3623907465872795,
+        0.2881936687906921,
+        4.265660526585285
+       ],
+       [
+        -1.6780527545518855,
+        0.050863082898628995,
+        1.3755811786229377
+       ],
+       [
+        -1.4211225549868425,
+        -4.401741533093958,
+        4.362562212726717
+       ],
+       [
+        -0.015958183631748103,
+        -2.1851032152636947,
+        0.1877155653634529
+       ],
+       [
+        -1.337202948163468,
+        -4.321686365113443,
+        1.4526142751754993
+       ],
+       [
+        -3.0268815751248557,
+        -6.299869640432658,
+        3.0857463407609305
+       ],
+       [
+        -0.09018983309168677,
+        -2.3858285963216455,
+        2.8403086703219853
+       ],
+       [
+        -0.1483673072815904,
+        2.326718625046621,
+        5.713138000866641
+       ],
+       [
+        -2.9963066093991357,
+        -2.084157061792844,
+        2.640705799245649
+       ],
+       [
+        -1.49716957895902,
+        -4.16876985481374,
+        7.195388935364493
+       ],
+       [
+        -3.154057357138485,
+        -2.257118133368054,
+        8.382922194499754
+       ],
+       [
+        -0.17303722899141152,
+        -2.34069885180699,
+        5.920043748668723
+       ],
+       [
+        1.1394643303578673,
+        -4.412820047516844,
+        4.432428529359598
+       ],
+       [
+        -0.11358273063794663,
+        -6.274610321522076,
+        3.108229706671855
+       ],
+       [
+        -1.782191447464297,
+        -0.27726837569581847,
+        7.211074604622381
+       ],
+       [
+        1.0633622684543558,
+        -4.179328666958283,
+        7.2650336816071235
+       ],
+       [
+        -4.609907744706924,
+        -4.30669494281623,
+        1.3627291687527179
+       ],
+       [
+        -4.2292949802678725,
+        0.06350476727158169,
+        1.3064882657566095
+       ],
+       [
+        -3.085866838268838,
+        -2.2098966821199606,
+        5.864697151454571
+       ],
+       [
+        -1.70183202959021,
+        0.2765915818405282,
+        4.335135078635628
+       ]
+      ]
+     },
+     "capacity_mAh_g": 126.8,
+     "parent_formula": "LiMn2O4",
+     "new_relaxations": 11,
+     "parent_voltage_V": 3.822,
+     "delithiated_atoms": {
+      "pbc": [
+       true,
+       true,
+       true
+      ],
+      "cell": [
+       [
+        -5.792647485727197,
+        0.02425355979048185,
+        -0.15791602115141753
+       ],
+       [
+        -0.03480968196711174,
+        -8.263095857506604,
+        0.006109348382962347
+       ],
+       [
+        2.677925080943817,
+        4.091999384969542,
+        8.742802353282798
+       ]
+      ],
+      "numbers": [
+       3,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       13,
+       25,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8
+      ],
+      "positions": [
+       [
+        -3.0289311745135414,
+        -3.134559616085321,
+        4.236338749003242
+       ],
+       [
+        -4.401591084335584,
+        -2.0461944351599684,
+        1.3152700626145488
+       ],
+       [
+        -2.9326969739517206,
+        -8.256159656312132,
+        -0.10026621187406698
+       ],
+       [
+        -1.640408930934931,
+        -2.108562709722983,
+        7.171492900416083
+       ],
+       [
+        -0.09845060828504465,
+        -4.128480719822546,
+        2.8968052059638865
+       ],
+       [
+        1.2230270487944794,
+        -2.119344963016576,
+        7.249278586629296
+       ],
+       [
+        -0.02034093303000163,
+        -4.15228565950659,
+        -0.0071391661429827565
+       ],
+       [
+        1.2894060758667916,
+        -6.2034817768107375,
+        4.394901252160648
+       ],
+       [
+        -1.4916206154879894,
+        -2.058371086485068,
+        1.3947827138268782
+       ],
+       [
+        -3.0565642392667325,
+        0.005210799864251515,
+        5.700089641432821
+       ],
+       [
+        -1.5847562516111615,
+        -6.191040584571521,
+        4.316050061178867
+       ],
+       [
+        -0.1778203787154357,
+        -4.15668219354571,
+        5.798746458372702
+       ],
+       [
+        -2.9776538274321127,
+        0.029600914324265357,
+        2.804563701477063
+       ],
+       [
+        -3.044105461364234,
+        1.933948324642252,
+        5.546736366850945
+       ],
+       [
+        1.4207511320970065,
+        -0.16351994717287902,
+        7.263418253863832
+       ],
+       [
+        -2.9113472378613543,
+        -1.93436631040626,
+        0.08654888440368604
+       ],
+       [
+        -0.24409888588116602,
+        -2.2231396017305287,
+        8.495471979327709
+       ],
+       [
+        -4.298538724023559,
+        0.1466092666143191,
+        4.218405461867191
+       ],
+       [
+        -1.658571949223932,
+        -0.1321401239244223,
+        1.4017117492776199
+       ],
+       [
+        -1.4305513450700214,
+        -4.244326698747158,
+        4.314734701443872
+       ],
+       [
+        -0.016326723979604166,
+        -2.19230615389164,
+        0.16804590055108362
+       ],
+       [
+        -1.3400771589302354,
+        -3.995467335101151,
+        1.4238091416336092
+       ],
+       [
+        -3.0096693887762527,
+        -6.320103802672814,
+        2.983070714209723
+       ],
+       [
+        -0.08615450001743197,
+        -2.193709283281264,
+        2.727495875128432
+       ],
+       [
+        -0.1470140726379466,
+        2.195454137739961,
+        5.603007273047101
+       ],
+       [
+        -2.981615264245694,
+        -1.9406176333805167,
+        2.665054037563534
+       ],
+       [
+        -1.4964161084754666,
+        -4.017246009513342,
+        7.187305603783784
+       ],
+       [
+        -3.13904312085757,
+        -1.9493801446144943,
+        8.41431121676194
+       ],
+       [
+        -0.17477074561747005,
+        -2.2263560280905574,
+        5.944085364584876
+       ],
+       [
+        1.1536991352651726,
+        -4.255909944804299,
+        4.385780267867573
+       ],
+       [
+        -0.11144412139489589,
+        -6.059717334782458,
+        3.065436712178357
+       ],
+       [
+        -1.8216760724845897,
+        -0.15018558156205755,
+        7.175079847460853
+       ],
+       [
+        1.064253453834372,
+        -4.027639326328554,
+        7.256699295383451
+       ],
+       [
+        -4.570094806984553,
+        -3.9811162921584704,
+        1.335040906204576
+       ],
+       [
+        -4.218880680680778,
+        -0.12112325709615847,
+        1.3322949999463904
+       ],
+       [
+        -3.0690350394705184,
+        -1.9594108709678033,
+        5.824375582645154
+       ],
+       [
+        -1.735095079330134,
+        0.1360106595045714,
+        4.2887451682534925
+       ]
+      ]
+     },
+     "energy_spread_meV": 3.2,
+     "volume_change_pct": 4.68,
+     "skipped_references": [],
+     "delithiated_formula": "LiMn11AlO24",
+     "energy_density_Wh_kg": 488.0,
+     "parent_capacity_mAh_g": 148.2,
+     "e_hull_per_substitution": 0.1134,
+     "parent_volume_change_pct": 5.81,
+     "parent_energy_density_Wh_kg": 567.0
+    },
+    {
+     "id": "it2-c3",
+     "e_hull": 0.008247,
+     "energy": -362.9187569154695,
+     "parent": "mp-771112",
+     "reason": null,
+     "status": "passed",
+     "formula": "Li8Mn11V(NiO8)4",
+     "n_atoms": 56,
+     "seconds": 166.2,
+     "analysis": {
+      "risks": [
+       "E_hull per substitution of 0.4618 eV per modified site is higher than the Ti analogue at 0.146 eV on same parent mp-771112, indicating less favorable V incorporation.",
+       "Average voltage of 4.693 V is near the 4.8 V electrolyte stability limit, with no voltage profile or electrolyte compatibility computed.",
+       "Mn-rich Li2Mn3NiO8-type framework with Mn11 stoichiometry risks Mn3+ Jahn-Teller distortion and Mn dissolution, and energy density 690.0 Wh/kg shows no gain over parent 692.0 Wh/kg."
+      ],
+      "summary": "Stable cobalt-free spinel with low 3.37% strain and 690 Wh/kg but outperformed by Ti analogue on same parent and with high 0.4618 eV per substitution cost, making it a medium-priority DFT follow-up backup.",
+      "strengths": [
+       "E_hull of 0.008247 eV/atom is well below the 0.08 eV/atom filter and decomposition is dominated by parent Li2Mn3NiO8 fraction 0.85.",
+       "Volume change of 3.37 % on removal of 8 of 8 Li is low, best among the three substitutions on mp-771112 (3.37 % vs 3.44 % and 3.89 %).",
+       "Cobalt-free composition delivers 690.0 Wh/kg at 4.693 V with 147.1 mAh/g and meets capacity >=120 mAh/g and voltage 3.0-4.8 V filters."
+      ],
+      "md_priority": "medium"
+     },
+     "li_total": 8,
+     "converged": 1,
+     "rationale": "V4+/V5+ adds extra redox and high inductive effect to Ni-Mn spinel to build on Ti success beyond it1-c3.",
+     "voltage_V": 4.693,
+     "li_removed": 8,
+     "n_modified": 1,
+     "known_in_mp": [],
+     "rejected_at": null,
+     "arrangements": 1,
+     "substitution": {
+      "add": "V",
+      "count": 1,
+      "remove": "Mn",
+      "li_vacancies": 0
+     },
+     "decomposition": [
+      {
+       "id": "mp-771112",
+       "formula": "Li2Mn3NiO8",
+       "fraction": 0.85
+      },
+      {
+       "id": "mp-19219",
+       "formula": "Li3VO4",
+       "fraction": 0.057143
+      },
+      {
+       "id": "mp-542151",
+       "formula": "V2Ni3O8",
+       "fraction": 0.046429
+      },
+      {
+       "id": "mp-1172875",
+       "formula": "Mn2O3",
+       "fraction": 0.026786
+      }
+     ],
+     "relaxed_atoms": {
+      "pbc": [
+       true,
+       true,
+       true
+      ],
+      "cell": [
+       [
+        8.283906217685459,
+        0.00010612019156341988,
+        -0.0001061175681571132
+       ],
+       [
+        0.00010612231878539786,
+        8.285334253089761,
+        -0.0008152108022775275
+       ],
+       [
+        -0.00010611969531321155,
+        -0.0008152108021818425,
+        8.285334251250845
+       ]
+      ],
+      "numbers": [
+       3,
+       3,
+       3,
+       3,
+       3,
+       3,
+       3,
+       3,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       23,
+       25,
+       28,
+       28,
+       28,
+       28,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8
+      ],
+      "positions": [
+       [
+        0.015193593134186572,
+        0.021947136904080393,
+        0.03086790450897443
+       ],
+       [
+        2.044169802810026,
+        2.041607067685477,
+        2.0437263033022286
+       ],
+       [
+        2.10561268238593,
+        6.242157610129977,
+        6.187569289193172
+       ],
+       [
+        4.1073700220371805,
+        8.259186204333027,
+        4.170540670258509
+       ],
+       [
+        4.168706848760012,
+        4.114527977482992,
+        8.255324372757118
+       ],
+       [
+        6.1976830092545585,
+        2.1016696619955026,
+        6.235664423829233
+       ],
+       [
+        6.247364880347787,
+        6.187675381582193,
+        2.083518736508139
+       ],
+       [
+        8.24952399426916,
+        4.15524177045316,
+        4.115952321951737
+       ],
+       [
+        0.9978765106493174,
+        1.0858484868413703,
+        5.176579583038077
+       ],
+       [
+        1.0333587655013936,
+        3.141366026465072,
+        7.219565693080923
+       ],
+       [
+        1.0672786107980696,
+        5.178274363205265,
+        1.0031738142266464
+       ],
+       [
+        3.0747630872080003,
+        3.105992433114736,
+        5.145426699907534
+       ],
+       [
+        3.106491384349778,
+        5.146018370857873,
+        3.074401442887968
+       ],
+       [
+        3.138219676589315,
+        7.217043605297493,
+        1.0343754714110747
+       ],
+       [
+        5.145704064469781,
+        3.0747907926270326,
+        3.106657376504942
+       ],
+       [
+        5.1795178336530245,
+        1.0058483975136079,
+        1.0705641453829704
+       ],
+       [
+        5.21500010205626,
+        7.247381394613517,
+        7.299565893900985
+       ],
+       [
+        7.220818257871788,
+        1.0451644411142085,
+        3.1302391267529934
+       ],
+       [
+        7.248444510515593,
+        7.252117268364724,
+        5.18039411041431
+       ],
+       [
+        7.275964466003925,
+        5.201146950471912,
+        7.258775606520108
+       ],
+       [
+        1.036444752254784,
+        7.255278512753184,
+        3.0971683907065515
+       ],
+       [
+        3.1063852461517056,
+        1.0347771915445299,
+        7.249309702416757
+       ],
+       [
+        5.176537888511676,
+        5.16878529196506,
+        5.18366163930863
+       ],
+       [
+        7.248444481347626,
+        3.10659162058317,
+        1.0348684972656486
+       ],
+       [
+        0.8476271351028608,
+        1.0270338434751731,
+        3.2461652804074563
+       ],
+       [
+        0.8808770339678507,
+        7.461104625006254,
+        5.203462184626666
+       ],
+       [
+        0.9556517890630324,
+        5.09597690926159,
+        7.333488784266839
+       ],
+       [
+        1.0436298974166238,
+        3.2515963427695103,
+        0.8369003220431047
+       ],
+       [
+        1.033237670263024,
+        1.2374442494505697,
+        7.104664265678124
+       ],
+       [
+        1.1198792408944422,
+        3.0281760596094784,
+        5.257736163991297
+       ],
+       [
+        1.178030450091598,
+        5.183180220489956,
+        2.9105670701220188
+       ],
+       [
+        1.236652443669839,
+        7.105880867927597,
+        1.0288015865317217
+       ],
+       [
+        2.908033183373493,
+        1.1831231825980184,
+        5.176080409693983
+       ],
+       [
+        2.9627051485425646,
+        3.1089700872137107,
+        7.049776766430222
+       ],
+       [
+        3.0252970563457913,
+        5.25894129500115,
+        1.1175343521375636
+       ],
+       [
+        3.109304783142913,
+        7.050303365713146,
+        2.964449765529006
+       ],
+       [
+        3.1036779414349285,
+        5.036066688820352,
+        4.978686369357027
+       ],
+       [
+        3.1876857158363148,
+        3.1891512925398415,
+        3.187324379285781
+       ],
+       [
+        3.250171531181705,
+        0.8360594545995169,
+        1.0381682761363678
+       ],
+       [
+        3.304843377041921,
+        7.2468821721970125,
+        7.3968405164661295
+       ],
+       [
+        4.976330258895164,
+        3.100418578328471,
+        5.034263896832063
+       ],
+       [
+        5.034952344090341,
+        4.982183986285593,
+        3.1115631973037052
+       ],
+       [
+        5.0931034910576605,
+        7.3293530347713824,
+        0.9565590078985057
+       ],
+       [
+        5.179532816918483,
+        0.89013178598409,
+        7.451976750335182
+       ],
+       [
+        5.169352896578579,
+        2.9085172092260136,
+        1.1799794278208824
+       ],
+       [
+        5.257224825056475,
+        1.11977145535981,
+        3.025175206892157
+       ],
+       [
+        5.332105782084865,
+        7.275079163913843,
+        5.389487728139883
+       ],
+       [
+        5.365249478630042,
+        5.3169670229723245,
+        7.240751074191255
+       ],
+       [
+        7.04666558337719,
+        2.976161241052688,
+        3.0968054630444364
+       ],
+       [
+        7.10117092145003,
+        1.0463606811847308,
+        1.2216751167501085
+       ],
+       [
+        7.15042568899022,
+        7.1392388107320075,
+        7.214633767445945
+       ],
+       [
+        7.258008691317085,
+        5.324248302269344,
+        5.336887559395054
+       ],
+       [
+        7.238880177436579,
+        7.408610596884792,
+        3.2525251996417563
+       ],
+       [
+        7.346357081904643,
+        1.0010225626403733,
+        5.068330818460387
+       ],
+       [
+        7.395611877232472,
+        3.292583002522714,
+        7.259971792108365
+       ],
+       [
+        7.450223403074712,
+        5.168528541575513,
+        0.904438124224351
+       ]
+      ]
+     },
+     "capacity_mAh_g": 147.1,
+     "parent_formula": "Li2Mn3NiO8",
+     "new_relaxations": 21,
+     "parent_voltage_V": 4.718,
+     "delithiated_atoms": {
+      "pbc": [
+       true,
+       true,
+       true
+      ],
+      "cell": [
+       [
+        8.194047408627663,
+        -0.005037542129550702,
+        0.005037940273993894
+       ],
+       [
+        -0.00503695051768308,
+        8.189293904802348,
+        0.02526491453417584
+       ],
+       [
+        0.005037348278501544,
+        0.025264914267177346,
+        8.1892938229069
+       ]
+      ],
+      "numbers": [
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       23,
+       25,
+       28,
+       28,
+       28,
+       28,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8
+      ],
+      "positions": [
+       [
+        1.0084122213618927,
+        1.0139386818693479,
+        5.157385753017476
+       ],
+       [
+        1.0210119797848758,
+        3.0652106753130126,
+        7.21296662191968
+       ],
+       [
+        1.0272786019323463,
+        5.120238658850395,
+        1.053322037589121
+       ],
+       [
+        3.0588051612639053,
+        3.070337211645183,
+        5.139817307356784
+       ],
+       [
+        3.0715076490454676,
+        5.127801772598797,
+        3.0905760261988773
+       ],
+       [
+        3.084210931726745,
+        7.177047695768776,
+        1.0331062051770155
+       ],
+       [
+        5.115738546626046,
+        3.090552089881719,
+        3.083010182216
+       ],
+       [
+        5.127042149539212,
+        1.0609018516525097,
+        1.0027164550341945
+       ],
+       [
+        5.139642595201461,
+        7.219879466622772,
+        7.166004194902472
+       ],
+       [
+        7.168083673066161,
+        1.057458883443241,
+        3.080094099223865
+       ],
+       [
+        7.168533740567341,
+        7.052502304510182,
+        5.020317260643574
+       ],
+       [
+        7.174019206773263,
+        5.137549442534653,
+        7.214562080469811
+       ],
+       [
+        1.0415021437290681,
+        7.174847880716369,
+        3.087647697110131
+       ],
+       [
+        3.076546180585048,
+        1.0445380533240283,
+        7.17133910529721
+       ],
+       [
+        5.10151419243139,
+        5.124877295756439,
+        5.137618124734904
+       ],
+       [
+        7.168531807241033,
+        3.087979471510324,
+        1.0557878528266305
+       ],
+       [
+        0.8861422195261867,
+        0.9175924050653951,
+        3.229715484002073
+       ],
+       [
+        0.867513180240268,
+        7.272459504108608,
+        5.050551343187622
+       ],
+       [
+        0.9105538836767624,
+        5.00684714246492,
+        7.314814519043302
+       ],
+       [
+        0.8791894013203606,
+        3.191254410757263,
+        0.9487395086639161
+       ],
+       [
+        1.1652837525865398,
+        1.137990738886892,
+        7.084620154040802
+       ],
+       [
+        1.1215634918543502,
+        2.94111545602379,
+        5.274616697292316
+       ],
+       [
+        1.1543638021169333,
+        5.252016590019843,
+        2.9681382564859953
+       ],
+       [
+        1.1602444758091897,
+        7.047834912317605,
+        1.1607747897259237
+       ],
+       [
+        2.939669180309194,
+        1.1439932640205983,
+        5.274034350984047
+       ],
+       [
+        2.946093179659136,
+        2.942679972860766,
+        7.070465569998987
+       ],
+       [
+        2.958149187111406,
+        5.238853278818143,
+        1.153861670576009
+       ],
+       [
+        2.992850868105475,
+        7.046412945417165,
+        2.9545843323311005
+       ],
+       [
+        3.1501539645079433,
+        4.991810610012729,
+        5.00918083647716
+       ],
+       [
+        3.1848669788906614,
+        3.191091141484973,
+        3.2016238005358453
+       ],
+       [
+        3.2019612890544846,
+        0.9184009223936799,
+        0.8801859177548405
+       ],
+       [
+        3.2083858366443514,
+        7.3365276411728235,
+        7.296057671981298
+       ],
+       [
+        4.98277181265327,
+        3.1980043425700173,
+        5.010605887581123
+       ],
+       [
+        4.988650172572574,
+        5.005367878447242,
+        3.2147866535231295
+       ],
+       [
+        5.02145242966687,
+        7.311845095889653,
+        0.9038872662286914
+       ],
+       [
+        4.9878073743649125,
+        0.9578209034557535,
+        7.264790445321273
+       ],
+       [
+        5.263828120206318,
+        2.985968578877684,
+        1.1540251442893108
+       ],
+       [
+        5.237501467957832,
+        1.162748310039237,
+        2.9443541030349447
+       ],
+       [
+        5.275507036772842,
+        7.087781699347478,
+        5.235228453732981
+       ],
+       [
+        5.26191472482614,
+        5.292209910120029,
+        7.06965661807896
+       ],
+       [
+        7.054880526081111,
+        2.966352226539749,
+        2.9625875927699012
+       ],
+       [
+        7.058760019953415,
+        1.1901264784931656,
+        1.1536293025401092
+       ],
+       [
+        7.076008427638178,
+        7.07084384927077,
+        7.034522605353617
+       ],
+       [
+        7.115122184206369,
+        5.2431082850549915,
+        5.252682879097919
+       ],
+       [
+        7.221955838964454,
+        7.2848723041881325,
+        3.2109145021009495
+       ],
+       [
+        7.266095513512243,
+        0.8774207357082439,
+        5.013386828787465
+       ],
+       [
+        7.283341988950437,
+        3.2110847919301886,
+        7.347229523175858
+       ],
+       [
+        7.282184467254074,
+        4.994778488088867,
+        0.934161010073803
+       ]
+      ]
+     },
+     "energy_spread_meV": 0.0,
+     "volume_change_pct": 3.37,
+     "skipped_references": [],
+     "delithiated_formula": "Mn11V(NiO8)4",
+     "energy_density_Wh_kg": 690.0,
+     "parent_capacity_mAh_g": 146.7,
+     "e_hull_per_substitution": 0.4618,
+     "parent_volume_change_pct": 3.86,
+     "parent_energy_density_Wh_kg": 692.0
+    }
+   ],
+   "comparisons": [
+    {
+     "kind": "same parent, different added element",
+     "about": "on mp-771112: Mn->Ti vs Mn->V (x1, 0 Li vacancies)",
+     "statements": [
+      "energy density: Li8TiMn11(NiO8)4 (it1-c3) 701.000 > Li8Mn11V(NiO8)4 (it2-c3) 690.000 Wh/kg (better: it1-c3)",
+      "average voltage: Li8TiMn11(NiO8)4 (it1-c3) 4.754 > Li8Mn11V(NiO8)4 (it2-c3) 4.693 V (better: it1-c3)",
+      "theoretical capacity: Li8TiMn11(NiO8)4 (it1-c3) 147.400 > Li8Mn11V(NiO8)4 (it2-c3) 147.100 mAh/g (better: it1-c3)",
+      "E_hull per atom: Li8TiMn11(NiO8)4 (it1-c3) 0.003 < Li8Mn11V(NiO8)4 (it2-c3) 0.008 eV/atom (better: it1-c3)",
+      "E_hull per substitution: Li8TiMn11(NiO8)4 (it1-c3) 0.146 < Li8Mn11V(NiO8)4 (it2-c3) 0.462 eV per modified site (better: it1-c3)",
+      "volume change on charge: Li8Mn11V(NiO8)4 (it2-c3) 3.370 < Li8TiMn11(NiO8)4 (it1-c3) 3.440 % (better: it2-c3)"
+     ]
+    },
+    {
+     "kind": "ranking on one parent",
+     "about": "mp-22584",
+     "statements": [
+      "energy density (highest first): it1-c2 646.000, it2-c2 488.000",
+      "average voltage (highest first): it1-c2 4.391, it2-c2 3.851",
+      "theoretical capacity (highest first): it1-c2 147.200, it2-c2 126.800",
+      "E_hull per atom (lowest first): it2-c2 0.003, it1-c2 0.005",
+      "E_hull per substitution (lowest first): it2-c2 0.113, it1-c2 0.114",
+      "volume change on charge (lowest first): it1-c2 4.610, it2-c2 4.680"
+     ]
+    },
+    {
+     "kind": "ranking on one parent",
+     "about": "mp-771112",
+     "statements": [
+      "energy density (highest first): it1-c3 701.000, it2-c3 690.000",
+      "average voltage (highest first): it1-c3 4.754, it2-c3 4.693",
+      "theoretical capacity (highest first): it1-c3 147.400, it2-c3 147.100",
+      "E_hull per atom (lowest first): it1-c3 0.003, it2-c3 0.008",
+      "E_hull per substitution (lowest first): it1-c3 0.146, it2-c3 0.462",
+      "volume change on charge (lowest first): it2-c3 3.370, it1-c3 3.440"
+     ]
+    }
+   ]
+  },
+  {
+   "analysis": {
+    "reply": {
+     "stop": false,
+     "lessons": [
+      "On mp-771112 energy density ranks it1-c3 701.000 > it2-c3 690.000 > it3-c2 676.000 Wh/kg, favoring Ti over V over Zr.",
+      "On mp-22584 energy density ranks it1-c2 646.000 > it3-c1 574.000 > it2-c2 488.000 Wh/kg, favoring Ni over Ti over Al.",
+      "On mp-771112 E_hull per substitution ranks it1-c3 0.146 < it2-c3 0.462 < it3-c2 0.869 eV per modified site, showing Ti least destabilizing."
+     ],
+     "ranking": [
+      "it3-c2",
+      "it3-c3",
+      "it3-c1"
+     ],
+     "next_direction": "Prioritize dilute Ti/Ni variants on Ni-Mn spinel mp-771112 and Si-doped Mn-olivine while avoiding Zr and Al dilution.",
+     "failure_analysis": []
+    },
+    "cached": false,
+    "seconds": 9.9,
+    "attempts": 1,
+    "cost_usd": 0.01987,
+    "provider": "meta",
+    "reasoning": "Ranking passed candidates by energy density while noting comparison context does not override the order.\n\nDrafting three short lessons from quoted comparison numbers and setting an empty failure list.",
+    "input_tokens": 9335,
+    "output_tokens": 1930
+   },
+   "feedback": [
+    {
+     "id": "it3-c1",
+     "test": "every filter",
+     "parent": "mp-22584",
+     "reason": "3.85 V, 149 mAh/g, 574 Wh/kg, volume change 6.0 %, E_hull 0.010 eV/atom",
+     "formula": "Li6TiMn11O24",
+     "message": "Result: Li6TiMn11O24 (it3-c1) passed every filter: 3.85 V, 149 mAh/g, 574 Wh/kg, volume change 6.0 %, E_hull 0.010 eV/atom; parent LiMn2O4: 3.82 V, 148 mAh/g, 567 Wh/kg.",
+     "outcome": "passed",
+     "measured": {
+      "e_hull": 0.0103,
+      "li_total": 6,
+      "voltage_V": 3.847,
+      "li_removed": 6,
+      "decomposition": [
+       {
+        "id": "mp-1272804",
+        "formula": "LiMn2O4",
+        "fraction": 0.888889
+       },
+       {
+        "id": "mp-775865",
+        "formula": "Li2Ti3MnO8",
+        "fraction": 0.111111
+       }
+      ],
+      "capacity_mAh_g": 149.2,
+      "parent_voltage_V": 3.822,
+      "volume_change_pct": 6.0,
+      "energy_density_Wh_kg": 574.0,
+      "parent_capacity_mAh_g": 148.2,
+      "parent_energy_density_Wh_kg": 567.0
+     },
+     "substitution": {
+      "add": "Ti",
+      "count": 1,
+      "remove": "Mn",
+      "li_vacancies": 0
+     }
+    },
+    {
+     "id": "it3-c2",
+     "test": "every filter",
+     "parent": "mp-771112",
+     "reason": "4.72 V, 143 mAh/g, 676 Wh/kg, volume change 3.9 %, E_hull 0.016 eV/atom",
+     "formula": "Li8ZrMn11(NiO8)4",
+     "message": "Result: Li8ZrMn11(NiO8)4 (it3-c2) passed every filter: 4.72 V, 143 mAh/g, 676 Wh/kg, volume change 3.9 %, E_hull 0.016 eV/atom; parent Li2Mn3NiO8: 4.72 V, 147 mAh/g, 692 Wh/kg.",
+     "outcome": "passed",
+     "measured": {
+      "e_hull": 0.015522,
+      "li_total": 8,
+      "voltage_V": 4.72,
+      "li_removed": 8,
+      "decomposition": [
+       {
+        "id": "mp-771112",
+        "formula": "Li2Mn3NiO8",
+        "fraction": 0.875
+       },
+       {
+        "id": "mp-18988",
+        "formula": "Li2MnO3",
+        "fraction": 0.053571
+       },
+       {
+        "id": "mp-2858",
+        "formula": "ZrO2",
+        "fraction": 0.053571
+       },
+       {
+        "id": "mp-19009",
+        "formula": "NiO",
+        "fraction": 0.017857
+       }
+      ],
+      "capacity_mAh_g": 143.1,
+      "parent_voltage_V": 4.718,
+      "volume_change_pct": 3.89,
+      "energy_density_Wh_kg": 676.0,
+      "parent_capacity_mAh_g": 146.7,
+      "parent_energy_density_Wh_kg": 692.0
+     },
+     "substitution": {
+      "add": "Zr",
+      "count": 1,
+      "remove": "Mn",
+      "li_vacancies": 0
+     }
+    },
+    {
+     "id": "it3-c3",
+     "test": "every filter",
+     "parent": "mp-18997",
+     "reason": "3.92 V, 172 mAh/g, 674 Wh/kg, volume change 7.2 %, E_hull 0.028 eV/atom",
+     "formula": "Li4Mn4SiP3O16",
+     "message": "Result: Li4Mn4SiP3O16 (it3-c3) passed every filter: 3.92 V, 172 mAh/g, 674 Wh/kg, volume change 7.2 %, E_hull 0.028 eV/atom; parent LiMnPO4: 3.79 V, 171 mAh/g, 648 Wh/kg.",
+     "outcome": "passed",
+     "measured": {
+      "e_hull": 0.028158,
+      "li_total": 4,
+      "voltage_V": 3.925,
+      "li_removed": 4,
+      "decomposition": [
+       {
+        "id": "mp-18997",
+        "formula": "LiMnPO4",
+        "fraction": 0.625
+       },
+       {
+        "id": "mp-13725",
+        "formula": "Li3PO4",
+        "fraction": 0.142857
+       },
+       {
+        "id": "mp-3224",
+        "formula": "Mn7SiO12",
+        "fraction": 0.119048
+       },
+       {
+        "id": "mp-7000",
+        "formula": "SiO2",
+        "fraction": 0.071429
+       }
+      ],
+      "capacity_mAh_g": 171.7,
+      "parent_voltage_V": 3.794,
+      "volume_change_pct": 7.15,
+      "energy_density_Wh_kg": 674.0,
+      "parent_capacity_mAh_g": 170.9,
+      "parent_energy_density_Wh_kg": 648.0
+     },
+     "substitution": {
+      "add": "Si",
+      "count": 1,
+      "remove": "P",
+      "li_vacancies": 0
+     }
+    }
+   ],
+   "proposal": {
+    "reply": {
+     "proposals": [
+      {
+       "parent": "mp-22584",
+       "rationale": "Dilute Ti4+ for Mn suppresses Jahn-Teller distortion and lowers volume change while preserving Mn/Ni redox for high voltage as in it1-c3.",
+       "substitution": {
+        "add": "Ti",
+        "count": 1,
+        "remove": "Mn",
+        "li_vacancies": 0
+       }
+      },
+      {
+       "parent": "mp-771112",
+       "rationale": "Larger Zr4+ pillar extends the successful Ti strategy with stronger structural stabilization and higher voltage from lattice expansion.",
+       "substitution": {
+        "add": "Zr",
+        "count": 1,
+        "remove": "Mn",
+        "li_vacancies": 0
+       }
+      },
+      {
+       "parent": "mp-18997",
+       "rationale": "SiO4 mixing into Mn-olivine phosphate retains full Li and Mn2+/Mn4+ double redox for high capacity while creating a novel polyanion composition outside known olivines.",
+       "substitution": {
+        "add": "Si",
+        "count": 1,
+        "remove": "P",
+        "li_vacancies": 0
+       }
+      }
+     ],
+     "hypothesis": "Extending the high-energy Ti/Ni-spinel successes of it1-c2/it1-c3 while avoiding the known Fe-Mn/Ni olivine orderings of it1-c1/it2-c1 and the low-energy Al/V routes of it2-c2/it2-c3, dilute tetravalent and polyanion doping will stabilize high-voltage Mn hosts to exceed LiFePO4."
+    },
+    "cached": false,
+    "seconds": 28.5,
+    "attempts": 1,
+    "cost_usd": 0.02488,
+    "provider": "meta",
+    "reasoning": "Evaluating chemically diverse cobalt-free cathode substitutions while avoiding prior evaluated compositions and tracking energy density.\n\nProposing charge-neutral partial substitutions with Li vacancies and fluorine to generate novel compositions.\n\nEvaluating charge-neutral single-element substitutions and Li-vacancy balancing for novel spinel and olivine compositions.\n\nEvaluating F-for-O doping with Li-vacancy balancing for olivine and spinel to raise voltage while meeting capacity constraints.\n\nShifting to dilute Ti and Zr substitutions on Mn-rich spinels and an Al-stabilized Mn olivine with Li vacancies.\n\nFinalizing three dilute substitution proposals with redox and site-count validation and a hypothesis referencing prior failures.",
+    "input_tokens": 5035,
+    "output_tokens": 4374
+   },
+   "iteration": 3,
+   "candidates": [
+    {
+     "id": "it3-c1",
+     "e_hull": 0.0103,
+     "energy": -293.83786803367786,
+     "parent": "mp-22584",
+     "reason": null,
+     "status": "passed",
+     "formula": "Li6TiMn11O24",
+     "n_atoms": 42,
+     "seconds": 128.9,
+     "analysis": {
+      "risks": [
+       "E_hull per substitution of 0.433 eV per modified site is higher than the Al analogue on the same parent at 0.113 eV and the Ti analogue on mp-771112 at 0.146 eV.",
+       "High Mn content (Mn11) in a spinel derived from LiMn2O4 risks Jahn-Teller distortion from Mn3+ and associated Mn dissolution.",
+       "On parent mp-22584 it ranks second for energy density at 574.000 Wh/kg behind it1-c2 at 646.000 Wh/kg and has the largest volume change at 6.000%."
+      ],
+      "summary": "Li6TiMn11O24 is a thermodynamically stable cobalt-free spinel meeting all filters with competitive energy density but with a high substitution energy penalty and Mn-related degradation risks.",
+      "strengths": [
+       "E_hull of 0.0103 eV/atom is well below the 0.08 eV/atom stability filter indicating thermodynamic stability.",
+       "Cobalt-free composition delivers theoretical capacity of 149.2 mAh/g at average voltage of 3.847 V for energy density of 574.0 Wh/kg.",
+       "Volume change of 6.0% on charge meets the <=10% filter and is close to the parent LiMn2O4 value of 5.81%."
+      ],
+      "md_priority": "medium"
+     },
+     "li_total": 6,
+     "converged": 2,
+     "rationale": "Dilute Ti4+ for Mn suppresses Jahn-Teller distortion and lowers volume change while preserving Mn/Ni redox for high voltage as in it1-c3.",
+     "voltage_V": 3.847,
+     "li_removed": 6,
+     "n_modified": 1,
+     "known_in_mp": [],
+     "rejected_at": null,
+     "arrangements": 2,
+     "substitution": {
+      "add": "Ti",
+      "count": 1,
+      "remove": "Mn",
+      "li_vacancies": 0
+     },
+     "decomposition": [
+      {
+       "id": "mp-1272804",
+       "formula": "LiMn2O4",
+       "fraction": 0.888889
+      },
+      {
+       "id": "mp-775865",
+       "formula": "Li2Ti3MnO8",
+       "fraction": 0.111111
+      }
+     ],
+     "relaxed_atoms": {
+      "pbc": [
+       true,
+       true,
+       true
+      ],
+      "cell": [
+       [
+        -5.843214063953587,
+        0.024534773974266535,
+        -0.15946684985052875
+       ],
+       [
+        -0.03800361207785065,
+        -8.721560118701472,
+        0.05616911045317584
+       ],
+       [
+        2.702473527264011,
+        4.266106237635908,
+        8.805358867520795
+       ]
+      ],
+      "numbers": [
+       3,
+       3,
+       3,
+       3,
+       3,
+       3,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       22,
+       25,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8
+      ],
+      "positions": [
+       [
+        -3.112228357594225,
+        3.1743647152851895,
+        7.139068340578845
+       ],
+       [
+        -2.9872756976317367,
+        -5.411202865036357,
+        1.395829982201471
+       ],
+       [
+        -0.07688246625230126,
+        -7.679417469970648,
+        1.530804485148216
+       ],
+       [
+        -3.064221140716274,
+        -3.2520022437605545,
+        4.3756608055274056
+       ],
+       [
+        -0.1946195726669067,
+        1.1001490910852865,
+        7.263852385845527
+       ],
+       [
+        -0.1254715440257409,
+        -1.2030725971922196,
+        4.411244184468692
+       ],
+       [
+        -4.431042594359761,
+        -2.1726612781123382,
+        1.3537611695621887
+       ],
+       [
+        -2.9610823732255267,
+        -8.741954378094805,
+        -0.050554915157119594
+       ],
+       [
+        -1.6582329028626674,
+        -2.186846749850035,
+        7.311217158539934
+       ],
+       [
+        -0.10049706241841165,
+        -4.347280309448695,
+        2.976250952257532
+       ],
+       [
+        1.2313789041055665,
+        -2.1992050298722057,
+        7.390804744901693
+       ],
+       [
+        -0.01877205200278885,
+        -4.2583463158708135,
+        -0.007042286203894229
+       ],
+       [
+        1.2935782682170307,
+        -6.636673357358536,
+        4.418357607186049
+       ],
+       [
+        -1.5087511520905503,
+        -2.1837732502422784,
+        1.4354809160709647
+       ],
+       [
+        -3.082627336483686,
+        -0.03861947985796427,
+        5.757758535448268
+       ],
+       [
+        -1.5960598494921299,
+        -6.624296836466329,
+        4.340035963136875
+       ],
+       [
+        -0.18944781063094357,
+        -4.412246931809673,
+        5.865691200476875
+       ],
+       [
+        -3.00293379815556,
+        -0.10937788852389982,
+        2.876318592423365
+       ],
+       [
+        -3.0714030901730967,
+        1.915113797868135,
+        5.5479356881694
+       ],
+       [
+        1.4600842080537286,
+        0.017041385725767213,
+        7.341041911243709
+       ],
+       [
+        -2.936021446056417,
+        -2.2169833715253744,
+        0.15940653278085076
+       ],
+       [
+        -0.24919155287211456,
+        -2.273066063343877,
+        8.635915697984673
+       ],
+       [
+        -4.304253600787829,
+        -0.10832734409159359,
+        4.264225431525925
+       ],
+       [
+        -1.6517553911203695,
+        -0.23329106054354293,
+        1.4339356378751174
+       ],
+       [
+        -1.4558215247216104,
+        -4.395820213216176,
+        4.372095038340021
+       ],
+       [
+        -0.013995483425103289,
+        -2.2918071166640663,
+        0.17341015318598227
+       ],
+       [
+        -1.3681150557958905,
+        -4.134300033614848,
+        1.4375813538783189
+       ],
+       [
+        -3.035629158516638,
+        -6.889186513802481,
+        2.970599474055075
+       ],
+       [
+        -0.08116669614905084,
+        -2.1507508474646375,
+        2.7104562046354417
+       ],
+       [
+        -0.15058517840388044,
+        2.274492455770872,
+        5.649349047892414
+       ],
+       [
+        -3.005472891404976,
+        -2.076539881921842,
+        2.696534656249643
+       ],
+       [
+        -1.5356835440811774,
+        -4.415509548428059,
+        7.287639207950725
+       ],
+       [
+        -3.168725750762042,
+        -1.9099867675127578,
+        8.600183907097948
+       ],
+       [
+        -0.17903955874957403,
+        -2.376822122135438,
+        6.024856297727974
+       ],
+       [
+        1.1677292158132402,
+        -4.408143177012648,
+        4.444679015385611
+       ],
+       [
+        -0.1157680286925408,
+        -6.551214099980759,
+        3.094607708150647
+       ],
+       [
+        -1.8604923759429837,
+        0.030664366511404705,
+        7.249795554000764
+       ],
+       [
+        1.0879103196904518,
+        -4.427517098188598,
+        7.357745489865413
+       ],
+       [
+        -4.589476975157006,
+        -4.121264856040781,
+        1.3475013858359386
+       ],
+       [
+        -4.273571958856964,
+        -0.22276926944595843,
+        1.3614864386651968
+       ],
+       [
+        -3.098577498185114,
+        -1.9920769606428546,
+        5.966276853765395
+       ],
+       [
+        -1.7813075021852134,
+        -0.11893008060680402,
+        4.333749425025437
+       ]
+      ]
+     },
+     "capacity_mAh_g": 149.2,
+     "parent_formula": "LiMn2O4",
+     "new_relaxations": 3,
+     "parent_voltage_V": 3.822,
+     "delithiated_atoms": {
+      "pbc": [
+       true,
+       true,
+       true
+      ],
+      "cell": [
+       [
+        -5.7969501709256415,
+        0.024290264314739022,
+        -0.15790788931553687
+       ],
+       [
+        -0.03371882137019468,
+        -8.283774476721552,
+        -0.03637513533464757
+       ],
+       [
+        2.6777425191913795,
+        4.144537892049665,
+        8.829308459700677
+       ]
+      ],
+      "numbers": [
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       22,
+       25,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8
+      ],
+      "positions": [
+       [
+        -4.397600988899815,
+        -2.046696532845763,
+        1.3291415535042825
+       ],
+       [
+        -2.934200131694553,
+        -8.256936121972473,
+        -0.09747436773439407
+       ],
+       [
+        -1.6596510174506678,
+        -2.036734351988305,
+        7.248567880366521
+       ],
+       [
+        -0.0972655461118009,
+        -4.144178336015639,
+        2.877793337916685
+       ],
+       [
+        1.2383198717198862,
+        -2.047114473207253,
+        7.326834922533558
+       ],
+       [
+        -0.019472880913038185,
+        -4.124920341075247,
+        -0.020792824625986847
+       ],
+       [
+        1.3015279372768638,
+        -6.221575555692384,
+        4.361620757874032
+       ],
+       [
+        -1.4991373580757994,
+        -2.058500568450342,
+        1.4085962871032727
+       ],
+       [
+        -3.0596219995377063,
+        0.025759148596569744,
+        5.744024919824581
+       ],
+       [
+        -1.5963897775894635,
+        -6.207667030062241,
+        4.282007065683403
+       ],
+       [
+        -0.17835445398700933,
+        -4.128264411903225,
+        5.804767700892792
+       ],
+       [
+        -2.9806248216684477,
+        0.007593490156953754,
+        2.837435427122441
+       ],
+       [
+        -3.047191862824115,
+        1.9586692235152612,
+        5.560402386147895
+       ],
+       [
+        1.4185044148974506,
+        -0.11158868093224782,
+        7.322180516395697
+       ],
+       [
+        -2.9129700096358877,
+        -1.909354597093948,
+        0.08913201954816517
+       ],
+       [
+        -0.24544754998144025,
+        -2.1755049008950427,
+        8.566446355560254
+       ],
+       [
+        -4.298254046066796,
+        0.1495262044486016,
+        4.25415866285723
+       ],
+       [
+        -1.65988547008228,
+        -0.12147736395467731,
+        1.4222247215733783
+       ],
+       [
+        -1.4346399083228325,
+        -4.272159583015916,
+        4.273778292160172
+       ],
+       [
+        -0.015468595714431774,
+        -2.1880134497648243,
+        0.16495271834846278
+       ],
+       [
+        -1.3386788807784287,
+        -3.9955160874871147,
+        1.3954422870063747
+       ],
+       [
+        -3.012071907714436,
+        -6.340696317170382,
+        2.9627546991324065
+       ],
+       [
+        -0.08539918453012596,
+        -2.207986302442941,
+        2.7275551784619285
+       ],
+       [
+        -0.14900391154895018,
+        2.175696269335605,
+        5.639890210587394
+       ],
+       [
+        -2.9827863782970705,
+        -1.929325367457726,
+        2.6517417669577488
+       ],
+       [
+        -1.514802291064385,
+        -3.9735267059573154,
+        7.265183740002083
+       ],
+       [
+        -3.1438718606077223,
+        -1.8915659661412254,
+        8.488825084012825
+       ],
+       [
+        -0.17703519654560762,
+        -2.1484493260201596,
+        6.005952787822558
+       ],
+       [
+        1.1600977381265183,
+        -4.2853390404569,
+        4.345769256128155
+       ],
+       [
+        -0.11144251217359644,
+        -6.081058506965,
+        3.0431024007698566
+       ],
+       [
+        -1.82154731023061,
+        -0.09964411945882756,
+        7.233916539947479
+       ],
+       [
+        1.0800249512989686,
+        -3.9820932005567102,
+        7.33446615647781
+       ],
+       [
+        -4.573576986445339,
+        -3.982306567850054,
+        1.3062914079947952
+       ],
+       [
+        -4.221884950990662,
+        -0.11109083453726469,
+        1.3514972403106635
+       ],
+       [
+        -3.073336074124677,
+        -1.9071433748184992,
+        5.927601288247868
+       ],
+       [
+        -1.7413401986988746,
+        0.140444575171891,
+        4.323718308402152
+       ]
+      ]
+     },
+     "energy_spread_meV": 9.8,
+     "volume_change_pct": 6.0,
+     "skipped_references": [],
+     "delithiated_formula": "TiMn11O24",
+     "energy_density_Wh_kg": 574.0,
+     "parent_capacity_mAh_g": 148.2,
+     "e_hull_per_substitution": 0.4326,
+     "parent_volume_change_pct": 5.81,
+     "parent_energy_density_Wh_kg": 567.0
+    },
+    {
+     "id": "it3-c2",
+     "e_hull": 0.015522,
+     "energy": -367.51590597373774,
+     "parent": "mp-771112",
+     "reason": null,
+     "status": "passed",
+     "formula": "Li8ZrMn11(NiO8)4",
+     "n_atoms": 56,
+     "seconds": 146.0,
+     "analysis": {
+      "risks": [
+       "E_hull per substitution of 0.869 eV per modified site is higher than Ti analogue 0.146 eV per modified site and V analogue 0.462 eV per modified site.",
+       "Energy density 676.000 Wh/kg is lowest among variants on mp-771112 (it1-c3 701.000, it2-c3 690.000, it3-c2 676.000) and capacity 143.100 mAh/g is lowest (it1-c3 147.400, it2-c3 147.100).",
+       "High average voltage 4.72 V risks electrolyte oxidation and Mn-rich spinel chemistry raises well-known Jahn-Teller Mn3+ distortion and Mn dissolution risks."
+      ],
+      "summary": "Zr-substituted Li2Mn3NiO8 passes stability and volume filters but is outperformed by Ti and V analogues on the same parent in energy density, capacity and substitution energetics, warranting low priority for follow-up.",
+      "strengths": [
+       "E_hull of 0.015522 eV/atom passes the <=0.08 eV/atom filter and volume change on charge is low at 3.89%.",
+       "Cobalt-free Li8ZrMn11(NiO8)4 meets screening filters with average voltage 4.72 V, capacity 143.1 mAh/g and energy density 676.0 Wh/kg."
+      ],
+      "md_priority": "low"
+     },
+     "li_total": 8,
+     "converged": 1,
+     "rationale": "Larger Zr4+ pillar extends the successful Ti strategy with stronger structural stabilization and higher voltage from lattice expansion.",
+     "voltage_V": 4.72,
+     "li_removed": 8,
+     "n_modified": 1,
+     "known_in_mp": [],
+     "rejected_at": null,
+     "arrangements": 1,
+     "substitution": {
+      "add": "Zr",
+      "count": 1,
+      "remove": "Mn",
+      "li_vacancies": 0
+     },
+     "decomposition": [
+      {
+       "id": "mp-771112",
+       "formula": "Li2Mn3NiO8",
+       "fraction": 0.875
+      },
+      {
+       "id": "mp-18988",
+       "formula": "Li2MnO3",
+       "fraction": 0.053571
+      },
+      {
+       "id": "mp-2858",
+       "formula": "ZrO2",
+       "fraction": 0.053571
+      },
+      {
+       "id": "mp-19009",
+       "formula": "NiO",
+       "fraction": 0.017857
+      }
+     ],
+     "relaxed_atoms": {
+      "pbc": [
+       true,
+       true,
+       true
+      ],
+      "cell": [
+       [
+        8.323820529750565,
+        0.01157840223517851,
+        -0.01157839729889559
+       ],
+       [
+        0.011580504463815765,
+        8.335767621134027,
+        -0.022291827204282567
+       ],
+       [
+        -0.011580499518128924,
+        -0.022291827181216452,
+        8.335767604901175
+       ]
+      ],
+      "numbers": [
+       3,
+       3,
+       3,
+       3,
+       3,
+       3,
+       3,
+       3,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       40,
+       25,
+       28,
+       28,
+       28,
+       28,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8
+      ],
+      "positions": [
+       [
+        0.0010379299511826007,
+        0.010483217701397431,
+        0.021616832438395125
+       ],
+       [
+        2.085656215568461,
+        2.086080961000333,
+        2.040749014746767
+       ],
+       [
+        2.129786391980833,
+        6.2798191224014905,
+        6.222048008511311
+       ],
+       [
+        4.1188694097077425,
+        8.320246372822247,
+        4.181620441531109
+       ],
+       [
+        4.151418952775577,
+        4.116655961384659,
+        8.323649864992788
+       ],
+       [
+        6.236036919011635,
+        2.0975238883350857,
+        6.248052143347643
+       ],
+       [
+        6.256437294912726,
+        6.226506686424922,
+        2.0128696123333616
+       ],
+       [
+        8.316038635193326,
+        4.122646630770854,
+        4.116729495278334
+       ],
+       [
+        1.0293538885916844,
+        1.0958781625245486,
+        5.183783112625462
+       ],
+       [
+        1.0348373355322158,
+        3.135586363656849,
+        7.264095785896955
+       ],
+       [
+        1.0828034547673309,
+        5.217433807590016,
+        1.003910996244776
+       ],
+       [
+        3.083715885415654,
+        3.1242178233140097,
+        5.1750685510933545
+       ],
+       [
+        3.1243277901744455,
+        5.193103365999894,
+        3.0949048404052046
+       ],
+       [
+        3.164940367475528,
+        7.273267083121629,
+        1.0260191910086585
+       ],
+       [
+        5.1658524198736275,
+        3.1021093073246746,
+        3.1192351012296404
+       ],
+       [
+        5.202237918683653,
+        1.0265267475534283,
+        1.0596797221022134
+       ],
+       [
+        5.207721190581696,
+        7.259689756102323,
+        7.333447423759257
+       ],
+       [
+        7.2743897732488785,
+        1.0934803977542826,
+        3.0919648895766336
+       ],
+       [
+        7.286237691713269,
+        7.219214284910321,
+        5.109437311785535
+       ],
+       [
+        7.286505463803151,
+        5.179450637335422,
+        7.319470719414203
+       ],
+       [
+        1.093491113122624,
+        7.34145092389185,
+        3.0591908546992124
+       ],
+       [
+        3.1127473712419738,
+        1.0236712162458894,
+        7.283532256672957
+       ],
+       [
+        5.155164987858812,
+        5.157389378342685,
+        5.24325192088372
+       ],
+       [
+        7.28623802100926,
+        3.1393234114247193,
+        1.0295464908208178
+       ],
+       [
+        0.8653550796192414,
+        1.071310041136856,
+        3.23959075447275
+       ],
+       [
+        1.029910081971718,
+        7.526440115191357,
+        5.1623986471219885
+       ],
+       [
+        0.9326744005489032,
+        5.097525765165121,
+        7.379745029244083
+       ],
+       [
+        1.0608886739642638,
+        3.2848549561490876,
+        0.8388492614735467
+       ],
+       [
+        1.0346784824156585,
+        1.226741014724009,
+        7.122640464143015
+       ],
+       [
+        1.131301485600782,
+        3.039007244964555,
+        5.297199846368682
+       ],
+       [
+        1.190483719367714,
+        5.241136512566732,
+        2.9194649982618475
+       ],
+       [
+        1.2586862803103154,
+        7.151670955998737,
+        1.0059336466787365
+       ],
+       [
+        2.9326347445569074,
+        1.2092341079149316,
+        5.201546154264253
+       ],
+       [
+        2.965369461248501,
+        3.1089582991596916,
+        7.089305318052398
+       ],
+       [
+        3.0418815242872057,
+        5.307185430166079,
+        1.1302817042947784
+       ],
+       [
+        3.1472636253791233,
+        7.104868603970827,
+        2.955984578586433
+       ],
+       [
+        3.1013921164482623,
+        5.054183174187322,
+        5.006670014494635
+       ],
+       [
+        3.2067742907161483,
+        3.228480181855322,
+        3.208986723747316
+       ],
+       [
+        3.2717055073265753,
+        0.851736361822634,
+        1.0330510260919625
+       ],
+       [
+        3.3044401648148876,
+        7.277453564637789,
+        7.44680303477079
+       ],
+       [
+        4.989969207782676,
+        3.1041320850598972,
+        5.053471957463076
+       ],
+       [
+        5.058172180485266,
+        5.0176638573648775,
+        3.1429378199631848
+       ],
+       [
+        5.11735399557619,
+        7.395398403399499,
+        0.9408084258358356
+       ],
+       [
+        5.190816321816143,
+        0.8627800296622031,
+        7.486601449666603
+       ],
+       [
+        5.18776730214154,
+        2.9370481045976393,
+        1.1866561797621018
+       ],
+       [
+        5.304401029779736,
+        1.1421760914809187,
+        3.0216187838171944
+       ],
+       [
+        5.218745607835708,
+        7.260597386645175,
+        5.428241324399533
+       ],
+       [
+        5.371720188429294,
+        5.315497573547081,
+        7.308878961252081
+       ],
+       [
+        7.080827376282889,
+        3.0027698108681484,
+        3.0883506480519616
+       ],
+       [
+        7.133899501198989,
+        1.0926734972218979,
+        1.1927494294401957
+       ],
+       [
+        7.160005758606909,
+        7.139768414141094,
+        7.268622103862721
+       ],
+       [
+        7.26175732998062,
+        5.201137308057625,
+        5.376562608842861
+       ],
+       [
+        7.310718288619036,
+        7.486339640311847,
+        3.091359972020523
+       ],
+       [
+        7.400889696229999,
+        1.0426312952157943,
+        5.052283346528586
+       ],
+       [
+        7.426996308522182,
+        3.2802342059328105,
+        7.318664218188924
+       ],
+       [
+        7.491648897337806,
+        5.198127810329657,
+        0.892992866502245
+       ]
+      ]
+     },
+     "capacity_mAh_g": 143.1,
+     "parent_formula": "Li2Mn3NiO8",
+     "new_relaxations": 14,
+     "parent_voltage_V": 4.718,
+     "delithiated_atoms": {
+      "pbc": [
+       true,
+       true,
+       true
+      ],
+      "cell": [
+       [
+        8.216365182543091,
+        0.0473513168674351,
+        -0.04735127250892214
+       ],
+       [
+        0.047442067468323086,
+        8.225756523512311,
+        -0.05772410028304462
+       ],
+       [
+        -0.047442023086489093,
+        -0.05772410024738292,
+        8.225756526711072
+       ]
+      ],
+      "numbers": [
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       25,
+       40,
+       25,
+       28,
+       28,
+       28,
+       28,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8
+      ],
+      "positions": [
+       [
+        1.074362202128865,
+        1.0167338848120897,
+        5.077902031647173
+       ],
+       [
+        0.9898941614387915,
+        3.0136452967099108,
+        7.191460929096324
+       ],
+       [
+        1.0172466731770513,
+        5.1569578429111465,
+        1.0093048433721767
+       ],
+       [
+        3.0861285951018926,
+        3.0686497261069374,
+        5.133779474373147
+       ],
+       [
+        3.092997495774826,
+        5.176791368224446,
+        3.070407659677087
+       ],
+       [
+        3.0998672536929517,
+        7.240163598578743,
+        0.962265920188126
+       ],
+       [
+        5.168748622311527,
+        3.1156879242818816,
+        3.050573926786947
+       ],
+       [
+        5.148658826028399,
+        1.0720880395340755,
+        0.9649861798865055
+       ],
+       [
+        5.0641906142051685,
+        7.1265609980823434,
+        7.136107492097018
+       ],
+       [
+        7.267892502168899,
+        1.109099351829806,
+        2.956581964082772
+       ],
+       [
+        7.20117989525025,
+        7.099810837020332,
+        4.946075807360465
+       ],
+       [
+        7.087025013469862,
+        5.052593147795485,
+        7.181120459630482
+       ],
+       [
+        1.1138890270640256,
+        7.244976146295904,
+        2.967201731435613
+       ],
+       [
+        3.0455557424754485,
+        0.9926004489472761,
+        7.169697644463401
+       ],
+       [
+        5.072105795791175,
+        5.073585159082907,
+        5.138593278231509
+       ],
+       [
+        7.2011797798984025,
+        3.1284408178072742,
+        0.9747065058923464
+       ],
+       [
+        0.980110834376952,
+        0.9169436375643181,
+        3.1379984263842635
+       ],
+       [
+        1.0752395338623653,
+        7.33347308658848,
+        4.85937909690256
+       ],
+       [
+        0.8196782003789408,
+        4.947424207340087,
+        7.308435715945227
+       ],
+       [
+        0.8914964104619817,
+        3.2182111983187274,
+        0.9042385229399545
+       ],
+       [
+        1.1491438212954121,
+        1.0974774407158143,
+        7.017414112299968
+       ],
+       [
+        1.156131909238225,
+        2.9471251733210213,
+        5.2483807142178875
+       ],
+       [
+        1.1650685810345032,
+        5.349324875387847,
+        2.935375429073255
+       ],
+       [
+        1.1782943421316385,
+        7.099407973144767,
+        1.0899368660855544
+       ],
+       [
+        2.990992058929426,
+        1.1456054024296756,
+        5.261777688896792
+       ],
+       [
+        2.9291732686151852,
+        2.9012055728883737,
+        7.06882044664628
+       ],
+       [
+        2.965317107067565,
+        5.2891051623940255,
+        1.1249317793037201
+       ],
+       [
+        2.989997093324188,
+        7.115656659905173,
+        2.8939144421784704
+       ],
+       [
+        3.1959974651617427,
+        5.000297940730012,
+        5.009273112373957
+       ],
+       [
+        3.2206780538630375,
+        3.231315728140159,
+        3.1827210476593857
+       ],
+       [
+        3.2093792916622856,
+        0.9494479841785702,
+        0.852546306333034
+       ],
+       [
+        3.147560740166485,
+        7.310436880005638,
+        7.264978252010354
+       ],
+       [
+        5.0077005148847595,
+        3.196320744242904,
+        4.993023815695598
+       ],
+       [
+        5.020926501833829,
+        5.041759207480083,
+        3.2429414977590008
+       ],
+       [
+        5.029862851812171,
+        7.354764280366317,
+        0.8407416906715264
+       ],
+       [
+        4.9419673008944125,
+        0.8403166197200567,
+        7.2745741945801745
+       ],
+       [
+        5.2944988658890235,
+        3.0106220933138674,
+        1.1118273006497756
+       ],
+       [
+        5.318874492767219,
+        1.1890633465442038,
+        2.8987645341669497
+       ],
+       [
+        5.11075520715753,
+        6.965763021807264,
+        5.227089234910336
+       ],
+       [
+        5.158442341291934,
+        5.1866582257147265,
+        7.036316576463767
+       ],
+       [
+        7.102990464338343,
+        3.0268915174899926,
+        2.8712301452307623
+       ],
+       [
+        7.08628710413027,
+        1.2395899059450148,
+        1.0430617665212056
+       ],
+       [
+        6.985315483063722,
+        6.9771573999410155,
+        7.076059835974965
+       ],
+       [
+        6.965947488358079,
+        5.055163560964139,
+        5.262033824040618
+       ],
+       [
+        7.43641275251568,
+        7.415768518398484,
+        2.9014283545841435
+       ],
+       [
+        7.369603009205076,
+        1.004038461405025,
+        4.881146794352921
+       ],
+       [
+        7.268631409172896,
+        3.139073008488279,
+        7.311611403607953
+       ],
+       [
+        7.299369827713539,
+        5.0249652597195675,
+        0.8731569274130978
+       ]
+      ]
+     },
+     "energy_spread_meV": 0.0,
+     "volume_change_pct": 3.89,
+     "skipped_references": [],
+     "delithiated_formula": "ZrMn11(NiO8)4",
+     "energy_density_Wh_kg": 676.0,
+     "parent_capacity_mAh_g": 146.7,
+     "e_hull_per_substitution": 0.8692,
+     "parent_volume_change_pct": 3.86,
+     "parent_energy_density_Wh_kg": 692.0
+    },
+    {
+     "id": "it3-c3",
+     "e_hull": 0.028158,
+     "energy": -200.20615835220633,
+     "parent": "mp-18997",
+     "reason": null,
+     "status": "passed",
+     "formula": "Li4Mn4SiP3O16",
+     "n_atoms": 28,
+     "seconds": 257.5,
+     "analysis": {
+      "risks": [
+       "e_hull_per_substitution 0.7884 eV indicates a large energy cost for the Si-for-P substitution.",
+       "Decomposition predicted to 4 phases including LiMnPO4 fraction 0.625 and SiO2 suggests phase-separation tendency.",
+       "Mn3+-containing phosphates are known for Jahn-Teller distortion, Mn dissolution and low electronic conductivity."
+      ],
+      "summary": "Cobalt-free Li4Mn4SiP3O16 meets all filter thresholds with 674.0 Wh/kg and 3.925 V but high substitution energy and predicted 4-phase decomposition warrant DFT validation before experiment.",
+      "strengths": [
+       "E_hull 0.028158 eV/atom satisfies the <=0.08 eV/atom stability filter.",
+       "Average voltage 3.925 V, capacity 171.7 mAh/g, energy density 674.0 Wh/kg and volume change 7.15% meet the 3.0-4.8 V, >=120 mAh/g and <=10% filters with a cobalt-free Mn-Si-P composition.",
+       "Cobalt-free formulation based on abundant Mn, Si and P aligns with low-cost and low-toxicity goal."
+      ],
+      "md_priority": "medium"
+     },
+     "li_total": 4,
+     "converged": 1,
+     "rationale": "SiO4 mixing into Mn-olivine phosphate retains full Li and Mn2+/Mn4+ double redox for high capacity while creating a novel polyanion composition outside known olivines.",
+     "voltage_V": 3.925,
+     "li_removed": 4,
+     "n_modified": 1,
+     "known_in_mp": [],
+     "rejected_at": null,
+     "arrangements": 1,
+     "substitution": {
+      "add": "Si",
+      "count": 1,
+      "remove": "P",
+      "li_vacancies": 0
+     },
+     "decomposition": [
+      {
+       "id": "mp-18997",
+       "formula": "LiMnPO4",
+       "fraction": 0.625
+      },
+      {
+       "id": "mp-13725",
+       "formula": "Li3PO4",
+       "fraction": 0.142857
+      },
+      {
+       "id": "mp-3224",
+       "formula": "Mn7SiO12",
+       "fraction": 0.119048
+      },
+      {
+       "id": "mp-7000",
+       "formula": "SiO2",
+       "fraction": 0.071429
+      }
+     ],
+     "relaxed_atoms": {
+      "pbc": [
+       true,
+       true,
+       true
+      ],
+      "cell": [
+       [
+        0.004280283540554478,
+        -0.00035610572756573266,
+        4.7947342623660845
+       ],
+       [
+        10.541900132247955,
+        -0.000570546682226327,
+        0.009476591039910005
+       ],
+       [
+        -0.00033269013022795815,
+        6.113877398546902,
+        -0.00045849715487656105
+       ]
+      ],
+      "numbers": [
+       3,
+       3,
+       3,
+       3,
+       25,
+       25,
+       25,
+       25,
+       14,
+       15,
+       15,
+       15,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8
+      ],
+      "positions": [
+       [
+        0.0039125239604562625,
+        6.011097276762496,
+        0.011303843241366402
+       ],
+       [
+        5.270069385802678,
+        3.0726148106008906,
+        2.40638365645866
+       ],
+       [
+        0.007054014112477449,
+        3.158524044954592,
+        0.015887223251574007
+       ],
+       [
+        5.268852067423719,
+        -0.014886860255877737,
+        2.401879876908879
+       ],
+       [
+        2.950860548253307,
+        1.5292555888600485,
+        4.697116941967785
+       ],
+       [
+        8.230749014323914,
+        1.5257599017244734,
+        2.537522363741883
+       ],
+       [
+        7.691375993244477,
+        4.5844018931283586,
+        0.009443798707281978
+       ],
+       [
+        2.272611409233946,
+        4.584745888849715,
+        2.3415684331446154
+       ],
+       [
+        9.559908562722544,
+        4.58144895598545,
+        2.748409112222187
+       ],
+       [
+        4.323653025209399,
+        4.588011603235119,
+        4.4008293773160325
+       ],
+       [
+        0.9677024371056582,
+        1.5252642632960367,
+        2.0001134481658496
+       ],
+       [
+        6.2639173572184745,
+        1.5315238748455153,
+        0.4205648200209551
+       ],
+       [
+        9.519838865216032,
+        4.582103085230278,
+        1.1364305094325584
+       ],
+       [
+        4.265740155181064,
+        4.588542223468748,
+        1.1428859941584781
+       ],
+       [
+        1.031815671118534,
+        1.5245296857021609,
+        3.5327339753254816
+       ],
+       [
+        6.283436667621216,
+        1.5319793397770771,
+        3.679041195351883
+       ],
+       [
+        5.767158076429319,
+        4.587290249119239,
+        3.816242476406089
+       ],
+       [
+        0.4970998890293644,
+        4.581588832913419,
+        3.427233272078302
+       ],
+       [
+        4.834020065658516,
+        1.5319494343613445,
+        1.0287424009045227
+       ],
+       [
+        10.05231955221467,
+        1.5250825242871175,
+        1.4593631466855954
+       ],
+       [
+        8.707635841920652,
+        5.845079405308527,
+        3.46708986774746
+       ],
+       [
+        3.597122012384453,
+        3.3513266660443906,
+        3.7575815917961424
+       ],
+       [
+        1.6967054230939898,
+        2.7564930023644503,
+        1.3462241575484961
+       ],
+       [
+        7.013984294692766,
+        0.290727327845557,
+        1.0480551959597666
+       ],
+       [
+        1.695900716453869,
+        0.29487209525338004,
+        1.3445531820558516
+       ],
+       [
+        7.01598962632809,
+        2.7705093434488997,
+        1.0485038127396156
+       ],
+       [
+        8.707320981875272,
+        3.318117002854921,
+        3.4662933218843928
+       ],
+       [
+        3.598923470521673,
+        5.824285534687736,
+        3.7563299554806586
+       ]
+      ]
+     },
+     "capacity_mAh_g": 171.7,
+     "parent_formula": "LiMnPO4",
+     "new_relaxations": 37,
+     "parent_voltage_V": 3.794,
+     "delithiated_atoms": {
+      "pbc": [
+       true,
+       true,
+       true
+      ],
+      "cell": [
+       [
+        0.02069124447382689,
+        0.00021926506655716604,
+        4.846954181531296
+       ],
+       [
+        9.941216492497459,
+        0.0006797698298210992,
+        0.04669735975455206
+       ],
+       [
+        0.0004331360898676312,
+        5.954812290181329,
+        0.0002763314606720854
+       ]
+      ],
+      "numbers": [
+       25,
+       25,
+       25,
+       25,
+       14,
+       15,
+       15,
+       15,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8,
+       8
+      ],
+      "positions": [
+       [
+        2.8737826471240058,
+        1.4869233898617529,
+        4.529043733976841
+       ],
+       [
+        7.755649995584285,
+        1.4917175800104105,
+        2.832835867423303
+       ],
+       [
+        7.207695934506462,
+        4.465485347960631,
+        0.21626194416850833
+       ],
+       [
+        2.1565492174937964,
+        4.469894719663383,
+        2.096352830416925
+       ],
+       [
+        8.983122747377266,
+        4.4688547623503885,
+        2.8705117766493036
+       ],
+       [
+        4.046650410797508,
+        4.463238667115064,
+        4.408122659060971
+       ],
+       [
+        0.992605370838691,
+        1.4924011346397195,
+        2.0161847912024395
+       ],
+       [
+        5.931044869549117,
+        1.4856774182209178,
+        0.4850854584446522
+       ],
+       [
+        8.720618320468972,
+        4.468425945267262,
+        1.2707841228253038
+       ],
+       [
+        3.787884936019251,
+        4.468050640043589,
+        1.078094633587781
+       ],
+       [
+        1.253145296966976,
+        1.488403038320187,
+        3.534159514182762
+       ],
+       [
+        6.122797895393366,
+        1.4896999019039427,
+        3.798008110861469
+       ],
+       [
+        5.5583175192282575,
+        4.459929211199154,
+        4.111602159944343
+       ],
+       [
+        0.6242631204068472,
+        4.472676569957716,
+        3.1390521206804944
+       ],
+       [
+        4.422495865662811,
+        1.4868367613757099,
+        0.786953695586509
+       ],
+       [
+        9.404975433666312,
+        1.4949009490746683,
+        1.8444706469904129
+       ],
+       [
+        8.17331321465044,
+        5.6891113597663185,
+        3.6863227049270817
+       ],
+       [
+        3.344848310464317,
+        3.2540057520778287,
+        3.697933891457722
+       ],
+       [
+        1.6796591830648118,
+        2.691639028213624,
+        1.2832196949968948
+       ],
+       [
+        6.648066716760281,
+        0.26388902881937454,
+        1.1714806444003505
+       ],
+       [
+        1.6809789347804847,
+        0.2985482475560165,
+        1.2759215265477732
+       ],
+       [
+        6.657076302017424,
+        2.698040659542719,
+        1.1780209724626547
+       ],
+       [
+        8.175636732376857,
+        3.252704797656822,
+        3.692584417384755
+       ],
+       [
+        3.3426676644729785,
+        5.666969099683464,
+        3.691604757475548
+       ]
+      ]
+     },
+     "energy_spread_meV": 0.0,
+     "volume_change_pct": 7.15,
+     "skipped_references": [],
+     "delithiated_formula": "Mn4SiP3O16",
+     "energy_density_Wh_kg": 674.0,
+     "parent_capacity_mAh_g": 170.9,
+     "e_hull_per_substitution": 0.7884,
+     "parent_volume_change_pct": 5.51,
+     "parent_energy_density_Wh_kg": 648.0
+    }
+   ],
+   "comparisons": [
+    {
+     "kind": "same substitution, different parents",
+     "about": "Mn->Ti x1 on mp-771112 vs mp-22584",
+     "statements": [
+      "energy density: Li8TiMn11(NiO8)4 (it1-c3) 701.000 > Li6TiMn11O24 (it3-c1) 574.000 Wh/kg (better: it1-c3)",
+      "average voltage: Li8TiMn11(NiO8)4 (it1-c3) 4.754 > Li6TiMn11O24 (it3-c1) 3.847 V (better: it1-c3)",
+      "theoretical capacity: Li6TiMn11O24 (it3-c1) 149.200 > Li8TiMn11(NiO8)4 (it1-c3) 147.400 mAh/g (better: it3-c1)",
+      "E_hull per atom: Li8TiMn11(NiO8)4 (it1-c3) 0.003 < Li6TiMn11O24 (it3-c1) 0.010 eV/atom (better: it1-c3)",
+      "E_hull per substitution: Li8TiMn11(NiO8)4 (it1-c3) 0.146 < Li6TiMn11O24 (it3-c1) 0.433 eV per modified site (better: it1-c3)",
+      "volume change on charge: Li8TiMn11(NiO8)4 (it1-c3) 3.440 < Li6TiMn11O24 (it3-c1) 6.000 % (better: it1-c3)"
+     ]
+    },
+    {
+     "kind": "same parent, different added element",
+     "about": "on mp-771112: Mn->Ti vs Mn->V (x1, 0 Li vacancies)",
+     "statements": [
+      "energy density: Li8TiMn11(NiO8)4 (it1-c3) 701.000 > Li8Mn11V(NiO8)4 (it2-c3) 690.000 Wh/kg (better: it1-c3)",
+      "average voltage: Li8TiMn11(NiO8)4 (it1-c3) 4.754 > Li8Mn11V(NiO8)4 (it2-c3) 4.693 V (better: it1-c3)",
+      "theoretical capacity: Li8TiMn11(NiO8)4 (it1-c3) 147.400 > Li8Mn11V(NiO8)4 (it2-c3) 147.100 mAh/g (better: it1-c3)",
+      "E_hull per atom: Li8TiMn11(NiO8)4 (it1-c3) 0.003 < Li8Mn11V(NiO8)4 (it2-c3) 0.008 eV/atom (better: it1-c3)",
+      "E_hull per substitution: Li8TiMn11(NiO8)4 (it1-c3) 0.146 < Li8Mn11V(NiO8)4 (it2-c3) 0.462 eV per modified site (better: it1-c3)",
+      "volume change on charge: Li8Mn11V(NiO8)4 (it2-c3) 3.370 < Li8TiMn11(NiO8)4 (it1-c3) 3.440 % (better: it2-c3)"
+     ]
+    },
+    {
+     "kind": "same parent, different added element",
+     "about": "on mp-771112: Mn->Ti vs Mn->Zr (x1, 0 Li vacancies)",
+     "statements": [
+      "energy density: Li8TiMn11(NiO8)4 (it1-c3) 701.000 > Li8ZrMn11(NiO8)4 (it3-c2) 676.000 Wh/kg (better: it1-c3)",
+      "average voltage: Li8TiMn11(NiO8)4 (it1-c3) 4.754 > Li8ZrMn11(NiO8)4 (it3-c2) 4.720 V (better: it1-c3)",
+      "theoretical capacity: Li8TiMn11(NiO8)4 (it1-c3) 147.400 > Li8ZrMn11(NiO8)4 (it3-c2) 143.100 mAh/g (better: it1-c3)",
+      "E_hull per atom: Li8TiMn11(NiO8)4 (it1-c3) 0.003 < Li8ZrMn11(NiO8)4 (it3-c2) 0.016 eV/atom (better: it1-c3)",
+      "E_hull per substitution: Li8TiMn11(NiO8)4 (it1-c3) 0.146 < Li8ZrMn11(NiO8)4 (it3-c2) 0.869 eV per modified site (better: it1-c3)",
+      "volume change on charge: Li8TiMn11(NiO8)4 (it1-c3) 3.440 < Li8ZrMn11(NiO8)4 (it3-c2) 3.890 % (better: it1-c3)"
+     ]
+    },
+    {
+     "kind": "same parent, different added element",
+     "about": "on mp-771112: Mn->V vs Mn->Zr (x1, 0 Li vacancies)",
+     "statements": [
+      "energy density: Li8Mn11V(NiO8)4 (it2-c3) 690.000 > Li8ZrMn11(NiO8)4 (it3-c2) 676.000 Wh/kg (better: it2-c3)",
+      "average voltage: Li8ZrMn11(NiO8)4 (it3-c2) 4.720 > Li8Mn11V(NiO8)4 (it2-c3) 4.693 V (better: it3-c2)",
+      "theoretical capacity: Li8Mn11V(NiO8)4 (it2-c3) 147.100 > Li8ZrMn11(NiO8)4 (it3-c2) 143.100 mAh/g (better: it2-c3)",
+      "E_hull per atom: Li8Mn11V(NiO8)4 (it2-c3) 0.008 < Li8ZrMn11(NiO8)4 (it3-c2) 0.016 eV/atom (better: it2-c3)",
+      "E_hull per substitution: Li8Mn11V(NiO8)4 (it2-c3) 0.462 < Li8ZrMn11(NiO8)4 (it3-c2) 0.869 eV per modified site (better: it2-c3)",
+      "volume change on charge: Li8Mn11V(NiO8)4 (it2-c3) 3.370 < Li8ZrMn11(NiO8)4 (it3-c2) 3.890 % (better: it2-c3)"
+     ]
+    },
+    {
+     "kind": "same parent, different added element",
+     "about": "on mp-22584: Mn->Al vs Mn->Ti (x1, 0 Li vacancies)",
+     "statements": [
+      "energy density: Li6TiMn11O24 (it3-c1) 574.000 > Li6Mn11AlO24 (it2-c2) 488.000 Wh/kg (better: it3-c1)",
+      "average voltage: Li6Mn11AlO24 (it2-c2) 3.851 > Li6TiMn11O24 (it3-c1) 3.847 V (better: it2-c2)",
+      "theoretical capacity: Li6TiMn11O24 (it3-c1) 149.200 > Li6Mn11AlO24 (it2-c2) 126.800 mAh/g (better: it3-c1)",
+      "E_hull per atom: Li6Mn11AlO24 (it2-c2) 0.003 < Li6TiMn11O24 (it3-c1) 0.010 eV/atom (better: it2-c2)",
+      "E_hull per substitution: Li6Mn11AlO24 (it2-c2) 0.113 < Li6TiMn11O24 (it3-c1) 0.433 eV per modified site (better: it2-c2)",
+      "volume change on charge: Li6Mn11AlO24 (it2-c2) 4.680 < Li6TiMn11O24 (it3-c1) 6.000 % (better: it2-c2)"
+     ]
+    },
+    {
+     "kind": "ranking on one parent",
+     "about": "mp-22584",
+     "statements": [
+      "energy density (highest first): it1-c2 646.000, it3-c1 574.000, it2-c2 488.000",
+      "average voltage (highest first): it1-c2 4.391, it2-c2 3.851, it3-c1 3.847",
+      "theoretical capacity (highest first): it3-c1 149.200, it1-c2 147.200, it2-c2 126.800",
+      "E_hull per atom (lowest first): it2-c2 0.003, it1-c2 0.005, it3-c1 0.010",
+      "E_hull per substitution (lowest first): it2-c2 0.113, it1-c2 0.114, it3-c1 0.433",
+      "volume change on charge (lowest first): it1-c2 4.610, it2-c2 4.680, it3-c1 6.000"
+     ]
+    },
+    {
+     "kind": "ranking on one parent",
+     "about": "mp-771112",
+     "statements": [
+      "energy density (highest first): it1-c3 701.000, it2-c3 690.000, it3-c2 676.000",
+      "average voltage (highest first): it1-c3 4.754, it3-c2 4.720, it2-c3 4.693",
+      "theoretical capacity (highest first): it1-c3 147.400, it2-c3 147.100, it3-c2 143.100",
+      "E_hull per atom (lowest first): it1-c3 0.003, it2-c3 0.008, it3-c2 0.016",
+      "E_hull per substitution (lowest first): it1-c3 0.146, it2-c3 0.462, it3-c2 0.869",
+      "volume change on charge (lowest first): it2-c3 3.370, it1-c3 3.440, it3-c2 3.890"
+     ]
+    }
+   ]
+  }
+ ],
+ "stop_reason": "iterations done",
+ "final_ranking": [
+  "it1-c3",
+  "it2-c3",
+  "it3-c2",
+  "it3-c3",
+  "it1-c2",
+  "it3-c1",
+  "it2-c2"
+ ],
+ "model_ranking": [
+  "it3-c2",
+  "it3-c3",
+  "it3-c1"
+ ],
+ "funnel_ranking": [
+  "it1-c3",
+  "it2-c3",
+  "it3-c2",
+  "it3-c3",
+  "it1-c2",
+  "it3-c1",
+  "it2-c2"
+ ]
+}

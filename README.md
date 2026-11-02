@@ -105,6 +105,8 @@ Truth test, fixed before the runs (each within 0.4 V of experiment, LiFePO4 lowe
 | LiMn2O4 (spinel) | 4.05 V | 3.82 V | 148 mAh/g |
 | LiNi0.5Mn1.5O4 | 4.70 V | 4.72 V | 147 mAh/g |
 
+First live research (Nov 2, 2026, `results/2026-11-02_cathode_run/`): *"Find new cobalt-free cathodes for lithium-ion batteries with a higher energy density than LiFePO4."* 3 rounds, 9 proposals: 2 already in Materials Project (not computed), 7 passed every filter. Finalists, all on the LiNi0.5Mn1.5O4 spinel: Ti-doped (4.75 V, 147 mAh/g, 701 Wh/kg), V-doped (4.69 V, 690 Wh/kg), Zr-doped (4.72 V, 676 Wh/kg). Honest outcome: each is **comparable to its parent** (4.72 V, 692 Wh/kg) within the model's voltage error, and the literature check (a known cathode first as a control) finds each family **already studied**. 142 relaxations, about 1 $ in all.
+
 Limits: average voltage over the whole charge only (no voltage profile), no oxygen redox, lithium diffusion in the cathode and cycling not computed; UMA underestimates the Mn voltages by about 0.2-0.3 V and the volume change of LiFePO4 (3.6 % against 6.8 % measured).
 
 ## Limits that were addressed, and what remains
@@ -155,7 +157,7 @@ About 36 $ of Modal GPU time (calibrations, benchmark, runs), 1.2 $ of Muse Spar
 ```bash
 pip install -e ".[bandgap,dev]"
 cp .env.example .env          # then fill in your own keys
-pytest                        # 182 CPU tests; GPU and paid-API tests are skipped
+pytest                        # 184 CPU tests; GPU and paid-API tests are skipped
 pytest web/tests              # 17 tests of the interface
 pytest --gpu                  # UMA truth tests (NVIDIA GPU only)
 ```

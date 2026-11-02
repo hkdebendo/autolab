@@ -371,6 +371,15 @@ CATHODE_FINALISTS_MAX = 3
 # 1983), LiNi0.5Mn1.5O4 4.7 V (Zhong 1997).
 CATHODE_VOLTAGE_REFERENCE_V = {"mp-19017": 3.45, "mp-18997": 4.10, "mp-22584": 4.05, "mp-771112": 4.70}
 CATHODE_VOLTAGE_TRUTH_TOL_V = 0.4
+# A candidate's voltage is called different from its parent's only beyond this margin (the largest error of the truth
+# test, 0.31 V, rounded up); the capacity comes from the stoichiometry and is exact.
+CATHODE_VOLTAGE_SIGNIFICANT_V = 0.35
+CATHODE_NOT_COMPUTED = ("DFT calculations (UMA energies; the voltage of four known cathodes within 0.31 V of experiment), "
+                        "the voltage profile (only the average voltage over the whole charge), oxygen redox, lithium "
+                        "diffusion and electronic conductivity in the cathode, cycling and capacity fade, synthesis, cost "
+                        "of the elements, experimental data")
+CATHODE_NOVELTY_CONTROL = {"id": "control-LNMO", "formula": "LiNi0.5Mn1.5O4", "parent": None, "substitution": None,
+                           "kind": "cathode"}
 
 # --- Budget limits (CLAUDE.md) -----------------------------------------------
 

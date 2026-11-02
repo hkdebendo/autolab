@@ -27,12 +27,14 @@ SEARCH_RESULTS_SHOWN = 5  # search results listed as sources when the API return
 # A search result can stand for a source only if its title or address names the compound, its parent, or the field
 # (many results of a web search are unrelated: songs, paintings, stock news were seen on 2026-10-29).
 RELEVANT_TERMS = ("electrolyte", "superionic", "ionic conduct", "ion conduct", "thiophosphate", "argyrodite")
+CATHODE_TERMS = ("cathode", "positive electrode", "spinel", "olivine", "lithium-ion", "li-ion", "battery", "batteries")
 
 
 def _relevant(result: dict, c: dict) -> bool:
     text = f"{result.get('title') or ''} {result.get('url') or ''}".lower()
     names = [n.lower() for n in (c.get("formula"), c.get("parent_formula")) if n]
-    return any(n in text for n in names) or any(t in text for t in RELEVANT_TERMS)
+    terms = CATHODE_TERMS if c.get("kind") == "cathode" else RELEVANT_TERMS
+    return any(n in text for n in names) or any(t in text for t in terms)
 _URL = re.compile(r"\(?\s*(?:https?://|www\.)\S+\s*\)?")
 _OVERCLAIM = re.compile(r"never (?:been )?(?:reported|discovered|published|synthesi[sz]ed|studied)|"
                         r"first (?:ever|time)|(?:entirely |completely )?new to (?:the|all) literature|"
@@ -64,8 +66,13 @@ def _describe(c: dict) -> str:
             f"{c.get('parent_formula') or c['parent']}.")
 
 
+SYSTEM_CATHODE = SYSTEM.replace("a computationally predicted solid electrolyte", "a computationally predicted "
+                                  "cobalt-free cathode material for lithium-ion batteries")
+
+
 def messages_for(c: dict) -> list[dict]:
-    return [{"role": "system", "content": SYSTEM}, {"role": "user", "content": _describe(c)}]
+    system = SYSTEM_CATHODE if c.get("kind") == "cathode" else SYSTEM
+    return [{"role": "system", "content": system}, {"role": "user", "content": _describe(c)}]
 
 
 def _clean(text: str) -> tuple[str, list[str]]:
@@ -137,7 +144,7 @@ def _cache_key(c: dict) -> str:
 
 def novelty_check(candidates: list[dict], client, control: dict | None = config.NOVELTY_CONTROL, cache=None,
                   stop_if_control_fails: bool = config.NOVELTY_STOP_IF_CONTROL_FAILS) -> dict:
-    """Control first (a known electrolyte, expected 'published'), then each final candidate.
+    """Control first (a known material of the domain, expected 'published'), then each final candidate.
 
     Stops cleanly when the client's budget is reached; what was checked is kept. With a cache (store.JsonCache),
     an answer already obtained for the same question is reused (marked "cached") and costs nothing. When the

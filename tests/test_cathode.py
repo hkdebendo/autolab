@@ -125,3 +125,25 @@ def test_the_cathode_domain_is_supported_and_has_its_own_steps():
     keys = [s["key"] for s in steps_from_events([{"type": "loop", "step": "start", "data": {"domain": "cathode"}}],
                                                 "running")]
     assert "voltage" in keys and "md" not in keys
+
+
+def test_the_parent_comparison_is_decided_by_the_code():
+    close = dom.vs_parent({"voltage_V": 4.754, "parent_voltage_V": 4.718, "capacity_mAh_g": 147.4,
+                           "parent_capacity_mAh_g": 146.7, "energy_density_Wh_kg": 701, "parent_energy_density_Wh_kg": 692})
+    assert not close["voltage_difference_beyond_model_error"] and close["verdict"].startswith("comparable")
+    far = dom.vs_parent({"voltage_V": 4.3, "parent_voltage_V": 3.8, "capacity_mAh_g": 150, "parent_capacity_mAh_g": 148,
+                         "energy_density_Wh_kg": 645, "parent_energy_density_Wh_kg": 562})
+    assert far["voltage_difference_beyond_model_error"] and far["verdict"] == "higher voltage than its parent"
+    assert dom.vs_parent({"voltage_V": None}) is None
+
+
+def test_the_literature_check_asks_about_a_cathode_with_a_known_cathode_as_control():
+    from autolab.agent.novelty import SYSTEM, messages_for
+
+    c = {"id": "x", "formula": "Li8TiMn11(NiO8)4", "parent": "mp-771112", "parent_formula": "Li2Mn3NiO8",
+         "substitution": {"remove": "Mn", "add": "Ti", "count": 1}, "kind": "cathode"}
+    system = messages_for(c)[0]["content"]
+    assert "cathode" in system and "solid electrolyte" not in system
+    assert messages_for({**c, "kind": None})[0]["content"] == SYSTEM  # electrolyte questions unchanged (cache kept)
+    assert config.CATHODE_NOVELTY_CONTROL["kind"] == "cathode"
+    assert [s.name for s in dom.make_domain().stages] == ["candidate_analyses", "ranking", "novelty", "report"]

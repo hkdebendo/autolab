@@ -218,8 +218,10 @@ class Agent:
                             "lessons": analysis["lessons"], "next_direction": analysis["next_direction"]})
             self._summarize("iteration", f"iteration {it}", {
                 "iteration": it, "hypothesis": proposal["hypothesis"],
+                "domain": d.name,
                 "candidates": [{k: c.get(k) for k in ("formula", "status", "rejected_at", "reason", "e_hull",
-                                                      "gap_optb88") if c.get(k) is not None} for c in record["candidates"]],
+                                                      "gap_optb88", "voltage_V", "capacity_mAh_g", "energy_density_Wh_kg")
+                                if c.get(k) is not None} for c in record["candidates"]],
                 "slow_tests": [{k: f.get(k) for k in ("formula", "test", "outcome", "reason")} for f in record["feedback"]],
                 "failure_analysis": analysis.get("failure_analysis") or [],
                 "lessons": analysis["lessons"], "next_direction": analysis["next_direction"]})
@@ -246,8 +248,10 @@ class Agent:
             rk = result["stages"].get("ranking", {})
             self._summarize("whole run", "run", {
                 "goal": goal, "stop_reason": result["stop_reason"],
-                "finalists": [{k: pool[i].get(k) for k in ("formula", "e_hull", "gap_optb88", "md_verdict",
-                                                           "D_ratio_to_parent", "novelty")} for i in rk.get("finalists", [])],
+                "domain": d.name,
+                "finalists": [{k: pool[i].get(k) for k in ("formula", "e_hull", "gap_optb88", "md_verdict", "D_ratio_to_parent",
+                                                           "voltage_V", "capacity_mAh_g", "energy_density_Wh_kg", "novelty")
+                               if pool[i].get(k) is not None} for i in rk.get("finalists", [])],
                 "excluded": rk.get("excluded", {}),
                 "new_candidates": len(candidates), "passed_funnel": len(result["funnel_ranking"])})
             result["summaries"] = self.summarizer.close(timeout=config.GLIMMER_WARMUP_MAX_S + 120)

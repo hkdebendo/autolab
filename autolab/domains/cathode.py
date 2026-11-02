@@ -45,7 +45,7 @@ FOR_MODEL = ("id", "parent", "substitution", "formula", "status", "rejected_at",
              "known_in_mp", "e_hull", "e_hull_per_substitution", "decomposition", "n_atoms", "n_modified",
              "li_removed", "li_total", "voltage_V", "capacity_mAh_g", "energy_density_Wh_kg", "volume_change_pct",
              "parent_voltage_V", "parent_capacity_mAh_g", "parent_energy_density_Wh_kg", "parent_volume_change_pct")
-THRESHOLDS = ("CATHODE_EHULL_MAX", "CATHODE_HULL_REF_EHULL_MAX", "CATHODE_VOLTAGE_MIN", "CATHODE_VOLTAGE_MAX",
+THRESHOLDS = ("CATHODE_VOLTAGE_SIGNIFICANT_V", "CATHODE_EHULL_MAX", "CATHODE_HULL_REF_EHULL_MAX", "CATHODE_VOLTAGE_MIN", "CATHODE_VOLTAGE_MAX",
               "CATHODE_CAPACITY_MIN", "CATHODE_VOLUME_CHANGE_MAX", "CATHODE_N_ARRANGEMENTS", "CATHODE_FORBIDDEN",
               "CATHODE_REVIEW_MAX", "CATHODE_FINALISTS_MAX", "CANDIDATE_ANALYSIS_PROVIDER")
 STEP_NAMES = {"generate": "charge neutrality", "known": "novelty (already in Materials Project)",
@@ -462,6 +462,49 @@ def ranking(camp: Campaign) -> dict:
     return out
 
 
+def novelty(camp: Campaign) -> dict:
+    """Literature check of the finalists (web search, Muse Spark), a known cathode first as a control."""
+    from autolab.agent.novelty import novelty_check
+    from autolab.store.cache import JsonCache
+
+    finalists = camp.outputs.get("ranking", {}).get("finalists") or []
+    client = getattr(camp.agent, "novelty_client", None)
+    if not finalists or client is None:
+        reason = "no finalist" if not finalists else "no web-search client (novelty check disabled)"
+        return {"control": None, "candidates": [], "stopped": None, "skipped": reason, "summary": {"skipped": reason}}
+    by_id = camp.by_id
+    res = novelty_check([{**by_id[i], "kind": "cathode"} for i in finalists], client,
+                        control=config.CATHODE_NOVELTY_CONTROL, cache=JsonCache(config.CACHE_DIR / "novelty"))
+    for r in res["candidates"]:
+        by_id[r["id"]]["novelty"] = r["level"]
+    res["summary"] = {"control_ok": (res.get("control") or {}).get("control_ok"),
+                      "levels": {r["id"]: r["level"] for r in res["candidates"]}, "stopped": res.get("stopped")}
+    return res
+
+
+def render_novelty(out: dict, result: dict) -> list[str]:
+    if out.get("skipped"):
+        return ["## Novelty check", "", f"Not run: {out['skipped']}.", ""]
+    from autolab.agent.novelty import render
+
+    return [render(out), ""]
+
+
+def vs_parent(c: dict) -> dict | None:
+    """The candidate against its parent computed the same way: differences, and whether the voltage difference is
+    beyond the model's error (config.CATHODE_VOLTAGE_SIGNIFICANT_V); decided by the code, not by the model."""
+    if c.get("voltage_V") is None or c.get("parent_voltage_V") is None:
+        return None
+    dv = round(c["voltage_V"] - c["parent_voltage_V"], 3)
+    beyond = abs(dv) > config.CATHODE_VOLTAGE_SIGNIFICANT_V
+    return {"voltage_difference_V": dv, "voltage_difference_beyond_model_error": beyond,
+            "model_voltage_error_V": config.CATHODE_VOLTAGE_SIGNIFICANT_V,
+            "capacity_difference_mAh_g": round(c["capacity_mAh_g"] - c["parent_capacity_mAh_g"], 1),
+            "energy_density_difference_Wh_kg": round(c["energy_density_Wh_kg"] - c["parent_energy_density_Wh_kg"], 0),
+            "verdict": ("higher voltage than its parent" if beyond and dv > 0 else "lower voltage than its parent"
+                        if beyond else "comparable to its parent within the model's voltage error")}
+
+
 def render_ranking(out: dict, result: dict) -> list[str]:
     pool = _pool(result)
     lines = ["## Final ranking", "", "Order: energy density (voltage x theoretical capacity), then E_hull per "
@@ -487,6 +530,7 @@ METHODS = [
                                           "capacity from the Li removed (calibrated on four known cathodes)"),
     ("Volume change", "lithiated and delithiated cells, both relaxed with UMA"),
     ("Independent reviews", "Meta Muse Spark Open, one review per passed candidate, in parallel"),
+    ("Literature check", "Meta Muse Spark with web search; a known cathode (LiNi0.5Mn1.5O4) checked first as a control"),
     ("Error-driven loop", "each iteration's failures, with their numbers, go back to the proposing model, which explains "
                           "them as hypotheses and corrects its next proposals"),
     ("Plain-language summaries", "Meta Muse Glimmer"),
@@ -496,6 +540,8 @@ REPORT_SYSTEM = """You write the final report of a computational search for coba
 Rules:
 - Use only the numbers of the table, quoted exactly with their units; never invent or estimate a value. A missing value was not computed: say so.
 - champion_reasons: why the champion is preferred, each reason tied to numbers of the table, including the comparison with its parent computed the same way.
+- Compare a finalist with its parent only through vs_parent: when voltage_difference_beyond_model_error is false, write that its voltage and energy density are comparable to the parent within the model's error (quote model_voltage_error_V), never that it improves on it; the capacity difference comes from the composition and may be stated as it is.
+- novelty (when given): "published" (already reported), "related" (close family already studied) or "none_found" (this search found nothing; never "new to science").
 - tradeoffs: its compromises and weaknesses. uncertainties: what limits the confidence (UMA energies instead of DFT, average voltage only, ordering of the substituted sites, magnetism not explicit).
 - validation: experiments or calculations to confirm it (e.g. DFT+U voltages, synthesis and XRD, galvanostatic cycling), each with "basis": "documented" (standard practice) or "hypothesis".
 - synthesis: possible routes, each with "basis": "documented" only for well-established routes of this family (e.g. solid-state reaction, sol-gel for spinels, carbon coating of phosphates), else "hypothesis".
@@ -523,14 +569,15 @@ def report(camp: Campaign) -> dict:
                 "energy_density_Wh_kg": c.get("energy_density_Wh_kg"), "volume_change_pct": c.get("volume_change_pct"),
                 "parent_voltage_V": c.get("parent_voltage_V"), "parent_capacity_mAh_g": c.get("parent_capacity_mAh_g"),
                 "parent_energy_density_Wh_kg": c.get("parent_energy_density_Wh_kg"),
-                "parent_volume_change_pct": c.get("parent_volume_change_pct"), "review": c.get("analysis")}
+                "parent_volume_change_pct": c.get("parent_volume_change_pct"), "vs_parent": vs_parent(c),
+                "novelty": c.get("novelty"), "review": c.get("analysis")}
 
     rows = [_rounded(row(by_id[i])) for i in finalists]
     rejected = {c["id"]: f"{c.get('formula')}: {c.get('rejected_at')}: {c.get('reason')}" for c in camp.candidates
                 if c.get("status") == "rejected"}
     out = {"completeness": "complete", "missing_steps": [], "champion": rows[0]["id"], "finalists": rows,
            "excluded": rejected, "methods": [{"step": a, "method": b} for a, b in METHODS],
-           "not_computed": config.CAPABILITIES["not_computed"], "narrative": None}
+           "not_computed": config.CATHODE_NOT_COMPUTED, "narrative": None}
     facts = {"goal": camp.goal, "finalists": rows, "rejected": rejected, "not_computed": out["not_computed"]}
     try:
         info = camp.ask([{"role": "system", "content": REPORT_SYSTEM.replace("{template}", template("report"))},
@@ -566,7 +613,9 @@ def render_report(out: dict, result: dict) -> list[str]:
               ("Average voltage (V)", lambda r: f"{_n(r.get('voltage_V'), '.2f')} (parent {_n(r.get('parent_voltage_V'), '.2f')})"),
               ("Theoretical capacity (mAh/g)", lambda r: f"{_n(r.get('capacity_mAh_g'), '.0f')} (parent {_n(r.get('parent_capacity_mAh_g'), '.0f')})"),
               ("Energy density (Wh/kg)", lambda r: f"{_n(r.get('energy_density_Wh_kg'), '.0f')} (parent {_n(r.get('parent_energy_density_Wh_kg'), '.0f')})"),
-              ("Volume change on charge (%)", lambda r: f"{_n(r.get('volume_change_pct'), '.1f')} (parent {_n(r.get('parent_volume_change_pct'), '.1f')})")]
+              ("Volume change on charge (%)", lambda r: f"{_n(r.get('volume_change_pct'), '.1f')} (parent {_n(r.get('parent_volume_change_pct'), '.1f')})"),
+              ("Against its parent", lambda r: (r.get("vs_parent") or {}).get("verdict") or "—"),
+              ("Literature", lambda r: r.get("novelty") or "not checked")]
     for label, f in fields:
         lines.append(f"| {label} | " + " | ".join(str(f(r)) for r in rows) + " |")
     lines += ["", f"### Champion: {champ['formula']}", ""]
@@ -598,6 +647,7 @@ def make_domain() -> Domain:
         feedback=feedback, render_feedback=render_feedback,
         stages=(Stage("candidate_analyses", candidate_analyses, render_candidate_analyses),
                 Stage("ranking", ranking, render_ranking),
+                Stage("novelty", novelty, render_novelty),
                 Stage("report", report, render_report)),
         thresholds=THRESHOLDS, render_candidates=render_candidates)
 
