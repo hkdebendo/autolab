@@ -8,7 +8,7 @@ from pymatgen.core import Structure
 from autolab import config
 
 
-def compact_supercell(structure: Structure) -> Structure:
+def compact_supercell(structure: Structure, min_length: float = config.NEB_MIN_LENGTH) -> Structure:
     """The smallest supercell (sim.neb.supercell_for) among the given, primitive and conventional cells: the same
     crystal, fewer atoms to move (a cheaper NEB)."""
     from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
@@ -21,7 +21,7 @@ def compact_supercell(structure: Structure) -> Structure:
         cells += [sga.get_primitive_standard_structure(), sga.get_conventional_standard_structure()]
     except Exception:  # no symmetry found: the given cell
         pass
-    return min((supercell_for(c) for c in cells), key=len)
+    return min((supercell_for(c, min_length) for c in cells), key=len)
 
 
 def hop_items(structure: Structure, near: str | None = None, species: str = config.MEMRISTOR_MOBILE_ION,
@@ -49,20 +49,29 @@ def lowest_barrier(results: list[dict | None], hops: list[dict]) -> dict:
         rows.append({"distance_A": h["distance_A"], "barrier_eV": None if r is None else round(r["barrier_eV"], 3),
                      "converged": bool(r and r["converged"] and r["endpoints_converged"]),
                      "profile_eV": None if r is None else [round(e, 3) for e in r["energies_eV"]],
-                     "cached": None if r is None else r.get("cached")})
+                     "cached": None if r is None else r.get("cached"),
+                     "images": None if r is None else r.get("n_images")})
     ok = [x for x in rows if x["converged"]]
     best = min(ok, key=lambda x: x["barrier_eV"]) if ok else None
+    loose = [x["barrier_eV"] for x in rows if not x["converged"] and x["barrier_eV"] is not None]
     return {"barrier_eV": best["barrier_eV"] if best else None, "best_hop": best, "hops": rows,
-            "converged_hops": len(ok)}
+            "converged_hops": len(ok), "unconverged_min_eV": min(loose) if loose else None}
 
 
-def vs_parent(ea: float | None, ea_parent: float | None, tol: float = config.MEMRISTOR_EA_SIGNIFICANT_EV) -> dict:
-    """Barrier against the parent's, decided by the code: a difference within `tol` is "comparable"."""
+def vs_parent(ea: float | None, ea_parent: float | None, tol: float = config.MEMRISTOR_EA_SIGNIFICANT_EV,
+              parent_unconverged_min: float | None = None) -> dict:
+    """Barrier against the parent's lowest converged hop, decided by the code: a difference within `tol` is
+    "comparable". A parent hop whose band did not converge may hide a lower saddle: "lower" is then not claimed
+    (undetermined) unless the candidate is also below that unconverged estimate by more than `tol`."""
     if ea is None or ea_parent is None:
         return {"verdict": "undetermined", "difference_eV": None}
     d = round(ea - ea_parent, 3)
     verdict = "comparable" if abs(d) <= tol else ("lower" if d < 0 else "higher")
-    return {"verdict": verdict, "difference_eV": d, "tolerance_eV": tol}
+    out = {"verdict": verdict, "difference_eV": d, "tolerance_eV": tol}
+    if verdict == "lower" and parent_unconverged_min is not None and ea > parent_unconverged_min - tol:
+        out.update(verdict="undetermined", reason=f"a parent hop did not converge at about {parent_unconverged_min:.2f} eV: "
+                                                  "a lower parent saddle cannot be ruled out")
+    return out
 
 
 def arrhenius_hop_rate(ea: float, temperature_K: float, attempt_hz: float = 1e13) -> float:

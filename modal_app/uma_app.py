@@ -94,12 +94,12 @@ def md_run(atoms: dict, precision: str, temperature_K: float, n_steps: int, seed
 
 
 @app.function(timeout=config.MODAL_NEB_TIMEOUT, **gpu_options)
-def neb_hop(atoms: dict, i: int, j: int, precision: str) -> dict:
+def neb_hop(atoms: dict, i: int, j: int, precision: str, n_images: int = config.NEB_IMAGES) -> dict:
     """Migration barrier of one vacancy hop (nudged elastic band) in a perfect supercell."""
     from autolab.sim.neb import vacancy_barrier
 
     calc, load_s = _calculator(precision)
-    return {**vacancy_barrier(atoms, i, j, calc), "model_load_s": load_s, "gpu": _gpu_name()}
+    return {**vacancy_barrier(atoms, i, j, calc, n_images=n_images), "model_load_s": load_s, "gpu": _gpu_name()}
 
 
 @app.function(timeout=config.MODAL_SPEED_TIMEOUT, **gpu_options)

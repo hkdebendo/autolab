@@ -18,6 +18,16 @@ from autolab.analysis.migration import hop_items, lowest_barrier
 from autolab.sim.backend import neb_missing, neb_plan, relax_structures, run_nebs
 
 
+def _bar(h: dict) -> str:
+    """One hop of the table: barrier, convergence, and the number of images when it was retried with more."""
+    if h["barrier_eV"] is None:
+        return "—"
+    note = "" if h["converged"] else " (not converged)"
+    if h.get("images") and h["images"] != config.NEB_IMAGES:
+        note += f" ({h['images']} images)"
+    return f"{h['barrier_eV']:.2f}{note}"
+
+
 def relaxed(material_id: str):
     from pymatgen.io.ase import AseAtomsAdaptor
 
@@ -70,8 +80,7 @@ def main() -> None:
     for m, r in rows.items():
         role = "fast reference" if m == t["fast"] else "slow reference" if m == t["slow"] else "parent of the domain"
         hops = ", ".join(f"{h['distance_A']}" for h in r["hops"])
-        bars = ", ".join("—" if h["barrier_eV"] is None else f"{h['barrier_eV']:.2f}{'' if h['converged'] else ' (not converged)'}"
-                         for h in r["hops"])
+        bars = ", ".join(_bar(h) for h in r["hops"])
         lines.append(f"| {r['formula']} ({m}) | {role} | {r['n_atoms']} | {hops} | {bars} | "
                      f"{'—' if r['barrier_eV'] is None else format(r['barrier_eV'], '.2f')} |")
     lines += ["", f"Tests: {tests}.", f"**Verdict: {'passed' if result['passed'] else 'FAILED'}.**", ""]

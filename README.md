@@ -135,7 +135,7 @@ Truth test, fixed before the runs (`results/2026-11-02_memristor_truth/`): neutr
 | TiO2 (rutile) | 0.63 | measured, no criterion |
 | SrTiO3 | 0.34 | measured, no criterion |
 
-The two physical criteria pass; the third, every band converged, **fails**: one HfO2 hop (2.54 Å) did not converge even with 600 steps. Such a band is never used (only converged bands give a barrier). Limits: neutral vacancies only, single hops, no electric field, crystalline cells instead of amorphous films, no filament, retention or endurance.
+The two physical criteria pass; the third, every band converged, **fails**: one HfO2 hop (2.54 Å, between the two kinds of oxygen site of monoclinic HfO2) did not converge with 300 steps, 600 steps, nor 9 images instead of 5 (its estimate moved 2.02 → 2.18 → 1.65 eV: a very narrow saddle). Unconverged bands are retried once with more images, then never used; and since that HfO2 hop might hide a lower saddle, a candidate is not called "lower" than such a parent unless it is also below the unconverged estimate. The verdict tolerance (0.15 eV) was checked: equivalent hops of TiO2 agree within 0.008 eV, a 270-atom cell changes the barrier by 0.019 eV (`results/2026-11-02_memristor_tolerance/`). Limits: neutral vacancies only, single hops, no electric field, crystalline cells instead of amorphous films, no filament, retention or endurance.
 
 ## Limits that were addressed, and what remains
 

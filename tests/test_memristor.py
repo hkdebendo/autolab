@@ -85,6 +85,10 @@ def test_lowest_barrier_and_verdict_against_the_parent():
     assert vs_parent(0.60, 0.90)["verdict"] == "lower"
     assert vs_parent(0.85, 0.90)["verdict"] == "comparable"  # within MEMRISTOR_EA_SIGNIFICANT_EV
     assert vs_parent(None, 0.9)["verdict"] == "undetermined"
+    # HfO2 in the truth test: converged 2.42 eV, another hop unconverged at about 1.65 eV
+    assert vs_parent(2.0, 2.42, parent_unconverged_min=1.65)["verdict"] == "undetermined"
+    assert vs_parent(1.2, 2.42, parent_unconverged_min=1.65)["verdict"] == "lower"  # below both
+    assert vs_parent(2.8, 2.42, parent_unconverged_min=1.65)["verdict"] == "higher"
 
 
 def _campaign(t, neb_usd=0.0):

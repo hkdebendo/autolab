@@ -168,6 +168,8 @@ NEB_HOP_CUTOFF_A = 3.2  # Angstrom, O-O distance of a nearest-neighbour hop in t
 NEB_NEAR_CUTOFF_A = 2.6  # Angstrom, an O bonded to the dopant (for the hops the dopant changes)
 NEB_IMAGES = 5  # images between the two end points
 NEB_FMAX = 0.1  # eV/A on the images (climbing image included)
+NEB_IMAGES_RETRY = 9  # a band not converged with NEB_IMAGES is computed once more with this many images (a narrow
+# saddle point: the HfO2 2.54 A hop of the truth test rose from 0.38 to 2.18 eV over one image), never more
 NEB_STEPS = 600  # FIRE steps on the band (300 left one HfO2 hop unconverged in the first truth-test run)
 MODAL_NEB_TIMEOUT = 3000  # s per hop on a T4 (end points + band, up to NEB_STEPS)
 MODAL_NEB_S_PER_ATOM = 2.0  # s per atom of the supercell and hop on a T4: CeO2 80 atoms, 21 band steps, 119 s (2026-11-02; 2 relaxations + 5 images x
@@ -478,8 +480,9 @@ MEMRISTOR_HULL_REF_EHULL_MAX = 0.0  # stable MP phases only, relaxed with UMA
 MEMRISTOR_EHULL_MAX = 0.05  # eV/atom
 MEMRISTOR_BANDGAP_MIN = 1.5  # eV (optB88 scale, below PBE-like experiment): rutile TiO2 and SrTiO3 sit near 1.8 in
 # PBE (3.0-3.2 eV measured): a memristor oxide must stay insulating in its high-resistance state
-MEMRISTOR_EA_SIGNIFICANT_EV = 0.15  # a barrier differs from the parent's beyond this (UMA error on similar hops, assumed:
-# to be checked against the truth test)
+MEMRISTOR_EA_SIGNIFICANT_EV = 0.15  # a barrier differs from the parent's beyond this; checked (2026-11-02,
+# results/2026-11-02_memristor_tolerance): equivalent hops of TiO2 agree within 0.008 eV and a 270-atom cell moves the
+# barrier by 0.019 eV, so 0.15 is kept (it also leaves room for the UMA-vs-DFT error, not measured)
 MEMRISTOR_RANK_ORDER = ("lower", "comparable", "higher", "undetermined", "not_computed")  # barrier against the parent,
 # best first (a lower barrier: easier switching); then the barrier, then E_hull per substitution
 MEMRISTOR_NEB_MAX_USD = 2.5  # estimated Modal cost of all the barriers of one research
@@ -494,6 +497,13 @@ MEMRISTOR_NOT_COMPUTED = ("DFT calculations, charged vacancies (only neutral one
 # least MEMRISTOR_TRUTH["gap_eV"] above it; every band converged. The parents are measured too (no criterion; HfO2:
 # about 2.4 eV for long-range neutral-vacancy diffusion in DFT, a different quantity from the lowest single hop).
 MEMRISTOR_TRUTH = {"fast": "mp-20194", "slow": "mp-1265", "fast_max_eV": 1.1, "gap_eV": 0.5}
+# Check of MEMRISTOR_EA_SIGNIFICANT_EV, fixed before its runs (2026-11-02): on rutile TiO2, (1) each hop of the truth
+# test recomputed between another, symmetry-equivalent pair of sites of the same supercell (numerical noise of the
+# relaxations and of the band), (2) the lowest hop recomputed in a supercell of at least "larger_min_length" A
+# (finite-size effect). Spread = the largest difference; if it exceeds the tolerance, the tolerance becomes the spread
+# rounded up to 0.05 eV. The UMA-vs-DFT error itself is not measured (it partly cancels between a candidate and its
+# parent computed the same way).
+MEMRISTOR_TOLERANCE_CHECK = {"material": "mp-2657", "larger_min_length": 12.0}
 
 # Blind benchmark of the cathode funnel (fixed before the runs, 2026-11-02): known compounds go through steps 3-5 of the
 # funnel with their own composition removed from the hull; expected outcome of each, from experiment.

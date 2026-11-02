@@ -241,9 +241,9 @@ def migration(camp: Campaign) -> dict:
         out["parents"][pid] = _PARENT_BARRIERS.get(pid, {}).get("barrier_eV")
     for c in todo:
         low, parent = lows[c["id"]], _PARENT_BARRIERS.get(c["parent"], {})
-        v = vs_parent(low["barrier_eV"], parent.get("barrier_eV"))
+        v = vs_parent(low["barrier_eV"], parent.get("barrier_eV"), parent_unconverged_min=parent.get("unconverged_min_eV"))
         c.update(barrier_eV=low["barrier_eV"], parent_barrier_eV=parent.get("barrier_eV"), barrier_vs_parent=v["verdict"],
-                 barrier_difference_eV=v["difference_eV"], barrier_hops=low["hops"], barrier_profile_eV=(low["best_hop"] or {}).get("profile_eV"),
+                 barrier_difference_eV=v["difference_eV"], barrier_verdict_reason=v.get("reason"), barrier_hops=low["hops"], barrier_profile_eV=(low["best_hop"] or {}).get("profile_eV"),
                  parent_barrier_profile_eV=(parent.get("best_hop") or {}).get("profile_eV"), migration_done=True)
         out["computed"].append(c["id"])
         out["verdicts"][c["id"]] = v["verdict"]

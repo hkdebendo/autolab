@@ -18,7 +18,8 @@
      0.122,
      0.0
     ],
-    "cached": false
+    "cached": true,
+    "images": 5
    },
    "hops": [
     {
@@ -34,7 +35,8 @@
       0.122,
       0.0
      ],
-     "cached": false
+     "cached": true,
+     "images": 5
     }
    ],
    "converged_hops": 1
@@ -56,7 +58,8 @@
      0.742,
      0.0
     ],
-    "cached": false
+    "cached": true,
+    "images": 5
    },
    "hops": [
     {
@@ -72,7 +75,8 @@
       0.742,
       0.0
      ],
-     "cached": false
+     "cached": true,
+     "images": 5
     }
    ],
    "converged_hops": 1
@@ -94,23 +98,29 @@
      0.423,
      -0.003
     ],
-    "cached": false
+    "cached": true,
+    "images": 5
    },
    "hops": [
     {
      "distance_A": 2.54,
-     "barrier_eV": 2.179,
+     "barrier_eV": 1.647,
      "converged": false,
      "profile_eV": [
       0.0,
-      -0.003,
-      0.376,
-      2.179,
-      0.675,
-      0.164,
+      -0.006,
+      -0.006,
+      0.003,
+      0.499,
+      1.647,
+      0.715,
+      0.179,
+      0.136,
+      0.135,
       0.14
      ],
-     "cached": false
+     "cached": false,
+     "images": 9
     },
     {
      "distance_A": 2.58,
@@ -125,7 +135,8 @@
       0.423,
       -0.003
      ],
-     "cached": false
+     "cached": true,
+     "images": 5
     }
    ],
    "converged_hops": 1
@@ -147,7 +158,8 @@
      0.167,
      -0.0
     ],
-    "cached": false
+    "cached": true,
+    "images": 5
    },
    "hops": [
     {
@@ -163,7 +175,8 @@
       0.167,
       -0.0
      ],
-     "cached": false
+     "cached": true,
+     "images": 5
     },
     {
      "distance_A": 2.8,
@@ -178,7 +191,8 @@
       0.285,
       0.0
      ],
-     "cached": false
+     "cached": true,
+     "images": 5
     }
    ],
    "converged_hops": 2
@@ -200,7 +214,8 @@
      0.078,
      -0.0
     ],
-    "cached": false
+    "cached": true,
+    "images": 5
    },
    "hops": [
     {
@@ -216,7 +231,8 @@
       0.078,
       -0.0
      ],
-     "cached": false
+     "cached": true,
+     "images": 5
     }
    ],
    "converged_hops": 1
@@ -228,5 +244,5 @@
   "converged": false
  },
  "passed": false,
- "estimated_usd": 0.4451222222222222
+ "estimated_usd": 0.0
 }
