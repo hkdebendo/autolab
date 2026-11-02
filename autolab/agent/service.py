@@ -252,6 +252,13 @@ class Service:
         try:
             with live_limits():
                 agent = make_agent(events, should_stop)
+                domain = conv.get("domain") or config.AGENT_DOMAIN
+                if domain != agent.domain.name:  # the research runs in the domain its request belongs to
+                    from autolab.domains import get_domain
+
+                    agent.domain = get_domain(domain)
+                    agent.tools = agent.domain.make_tools()
+                    prior = []  # the earlier candidates belong to the other domain
                 result = agent.run(conv["goal"], None, config.LIVE_ITERATIONS, config.LIVE_CANDIDATES, prior=prior)
         except Exception as e:  # reported in the conversation, never retried
             self.store.update(cid, status="error", error=f"{type(e).__name__}: {e}"[:500])

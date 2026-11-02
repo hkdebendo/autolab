@@ -190,13 +190,14 @@ class Agent:
             if user_stop:
                 result["stop_reason"] = INTERRUPTED
                 break
-            if config.FEEDBACK_LOOP and d.iteration_stages:  # slow tests of this iteration, then their feedback
-                camp = Campaign(self, goal, record["candidates"], iteration=it,
-                                settings={"md_select_max": config.ITERATION_MD_SELECT_MAX})
-                record["stages"] = {}
-                if self._run_stages(d.iteration_stages, camp, record["stages"], it):
-                    result["stop_reason"] = INTERRUPTED
-                    break
+            if config.FEEDBACK_LOOP and (d.iteration_stages or d.feedback):  # slow tests, then their feedback
+                if d.iteration_stages:
+                    camp = Campaign(self, goal, record["candidates"], iteration=it,
+                                    settings={"md_select_max": config.ITERATION_MD_SELECT_MAX})
+                    record["stages"] = {}
+                    if self._run_stages(d.iteration_stages, camp, record["stages"], it):
+                        result["stop_reason"] = INTERRUPTED
+                        break
                 record["feedback"] = d.feedback(record["candidates"]) if d.feedback else []
                 self.events.emit("loop", "feedback", {"iteration": it, "results": record["feedback"]})
             for_model = [{k: c.get(k) for k in d.for_model if k in c} for c in record["candidates"]]

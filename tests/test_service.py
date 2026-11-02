@@ -48,12 +48,13 @@ def test_a_supported_request_starts_a_research_with_a_title():
     assert svc.history()[0]["id"] == c["id"]
 
 
-def test_unsupported_planned_busy_and_capped_requests_do_not_start():
+def test_unsupported_planned_busy_and_capped_requests_do_not_start(monkeypatch):
+    monkeypatch.setitem(config.CAPABILITIES, "planned", {"solar": "Solar absorbers: planned."})
     spawned = []
-    svc, store = service(Model([scope(status="unsupported", domain=""), scope(domain="cathode"), scope(), scope()]),
+    svc, store = service(Model([scope(status="unsupported", domain=""), scope(domain="solar"), scope(), scope()]),
                          spawned)
     assert svc.start("design a catalyst")["conversation"]["status"] == "answered"
-    assert svc.start("cobalt-free cathodes")["conversation"]["scope"]["status"] == "planned"
+    assert svc.start("solar absorbers")["conversation"]["scope"]["status"] == "planned"
     first = svc.start("electrolytes")["conversation"]["id"]
     busy = svc.start("electrolytes again")
     assert busy["conversation"]["status"] == "answered" and busy["messages"][-1]["content"] == BUSY
@@ -159,3 +160,25 @@ def test_an_identical_request_reuses_the_finished_research_without_computing():
     assert store.artifacts(c["id"])[0]["path"] == f"runs/{src}/index.json"
     assert v["messages"][-1]["content"] == "## Report"  # the latest report only
     assert store.live_runs_used() == 1  # the copy is not a live run
+
+
+def test_a_cathode_request_runs_in_the_cathode_domain_without_the_electrolyte_candidates():
+    from types import SimpleNamespace
+
+    from autolab.domains import get_domain
+
+    svc, store = service(Model([]))
+    store.create({"id": "k1", "title": "Cobalt-free cathodes", "goal": "cobalt-free cathodes", "domain": "cathode",
+                  "status": "queued"})
+    seen = {}
+
+    def make_agent(events, should_stop):
+        def run(goal, parents, n, m, prior=None):
+            seen.update(domain=agent.domain.name, prior=prior, tools=type(agent.tools).__name__)
+            return {"stages": {}, "iterations": [], "prior": [], "stop_reason": "iterations done", "goal": goal}
+        agent = SimpleNamespace(domain=get_domain("electrolyte"), tools=None, run=run)
+        return agent
+
+    svc.run("k1", make_agent, prior=[{"id": "ref:x"}])
+    assert seen == {"domain": "cathode", "prior": [], "tools": "CathodeTools"}
+    assert store.get("k1")["status"] == "done"

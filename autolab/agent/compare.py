@@ -28,10 +28,10 @@ def _sub_text(s: dict) -> str:
     return f"{s['remove']}->{s['add']} x{s['count']}{vac}"
 
 
-def _pair(a: dict, b: dict) -> list[str]:
+def _pair(a: dict, b: dict, metrics=METRICS) -> list[str]:
     """One statement per metric known for both candidates, best first."""
     out = []
-    for field, label, unit, better in METRICS:
+    for field, label, unit, better in metrics:
         va, vb = a.get(field), b.get(field)
         if va is None or vb is None:
             continue
@@ -51,9 +51,9 @@ def _ranking(items: list[dict], field: str, better: str) -> str:
     return ", ".join(f"{c['id']} {c[field]:.3f}" for c in known)
 
 
-def comparisons(candidates: list[dict]) -> list[dict]:
+def comparisons(candidates: list[dict], metrics=METRICS) -> list[dict]:
     """Statements for: same substitution on different parents, same parent with a different added element,
-    and per-parent rankings."""
+    and per-parent rankings (`metrics`: (field, label, unit, better) of the domain)."""
     rows = [c for c in candidates if c.get("e_hull") is not None]
     out: list[dict] = []
 
@@ -67,7 +67,7 @@ def comparisons(candidates: list[dict]) -> list[dict]:
             if a["parent"] != b["parent"]:
                 out.append({"kind": "same substitution, different parents",
                             "about": f"{_sub_text(a['substitution'])} on {a['parent']} vs {b['parent']}",
-                            "statements": _pair(a, b)})
+                            "statements": _pair(a, b, metrics)})
 
     by_family = defaultdict(list)
     for c in rows:
@@ -79,7 +79,7 @@ def comparisons(candidates: list[dict]) -> list[dict]:
                 out.append({"kind": "same parent, different added element",
                             "about": f"on {parent}: {remove}->{a['substitution']['add']} vs "
                                      f"{remove}->{b['substitution']['add']} (x{count}, {vac} Li vacancies)",
-                            "statements": _pair(a, b)})
+                            "statements": _pair(a, b, metrics)})
 
     by_parent = defaultdict(list)
     for c in rows:
@@ -89,5 +89,5 @@ def comparisons(candidates: list[dict]) -> list[dict]:
             continue
         out.append({"kind": "ranking on one parent", "about": parent, "statements": [
             f"{label} ({'lowest' if better == 'low' else 'highest'} first): {_ranking(items, field, better)}"
-            for field, label, unit, better in METRICS if sum(c.get(field) is not None for c in items) >= 2]})
+            for field, label, unit, better in metrics if sum(c.get(field) is not None for c in items) >= 2]})
     return out

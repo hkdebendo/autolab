@@ -368,8 +368,9 @@ def test_the_loop_runs_another_domain_unchanged(li3ps4):
     assert result["stages"]["count"] == {"status": "done", "summary": {"n": 2}, "n": 2}
     assert "counted 2" in render(result, toy)
     assert get_domain("electrolyte").name == "electrolyte"
+    assert get_domain("cathode").name == "cathode"
     with pytest.raises(ValueError, match="unknown domain"):
-        get_domain("cathode")
+        get_domain("solar")
 
 
 def test_reviews_of_earlier_runs_are_kept_not_paid_twice(li3ps4):

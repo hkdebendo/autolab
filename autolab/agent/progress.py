@@ -70,8 +70,50 @@ ELECTROLYTE_STEPS = (
 )
 
 
-def steps_from_events(events: list[dict], run_state: str, steps=ELECTROLYTE_STEPS) -> list[dict]:
-    """State of each step. run_state: running, done, interrupted or error (the conversation's research state)."""
+CATHODE_STEPS = (
+    Step("goal", "Understanding the research goal",
+         "AutoLab reads the request, checks that it is within the supported research areas and sets the constraints.",
+         ("loop/scope",)),
+    Step("propose", "Proposing candidate cathodes",
+         "New cobalt-free compositions are proposed by chemical substitution in known cathodes (LiFePO4, LiMnPO4, "
+         "spinel LiMn2O4, LiNi0.5Mn1.5O4).", ("llm/proposal",)),
+    Step("build", "Building and relaxing crystal structures",
+         "Each composition is built in several atomic arrangements, checked for charge neutrality (mixed valence "
+         "allowed, no cobalt) and relaxed with a machine-learned interatomic potential (UMA); known compositions are "
+         "not recomputed.", ("candidate/generate", "candidate/known_check", "candidate/relax")),
+    Step("stability", "Thermodynamic stability",
+         "The energy above the convex hull of the stable known phases says whether the cathode would decompose.",
+         ("candidate/hull",)),
+    Step("voltage", "Charging: voltage, capacity, volume change",
+         "The lithium that charge neutrality allows is removed and the charged cell relaxed: average voltage vs "
+         "lithium, theoretical capacity, energy density and volume change, compared with the parent cathode.",
+         ("candidate/voltage", "candidate/done")),
+    Step("learn", "Interpreting the results",
+         "The numbers of this round, failures included, go back to the agent, which explains them as hypotheses and "
+         "corrects the next proposals.", ("loop/feedback", "llm/analysis", "llm/summary")),
+    Step("review", "Independent review of the candidates",
+         "Each candidate that passed is reviewed separately: strengths, risks, priority for a follow-up.",
+         stage="candidate_analyses"),
+    Step("ranking", "Ranking the candidates", "Candidates are ordered by energy density (voltage x capacity), then "
+         "by their stability cost per substitution.", stage="ranking"),
+    Step("report", "Final scientific report", "The finalists are compared with their parents and the best one "
+         "analysed in detail, with its limits and the validations still needed.", stage="report"),
+)
+DOMAIN_STEPS = {"electrolyte": ELECTROLYTE_STEPS, "cathode": CATHODE_STEPS}
+
+
+def domain_of(events: list[dict]) -> str:
+    """The domain a research runs in, from its start event (electrolyte when not said)."""
+    for e in events:
+        if e.get("type") == "loop" and e.get("step") == "start":
+            return (e.get("data") or {}).get("domain") or "electrolyte"
+    return "electrolyte"
+
+
+def steps_from_events(events: list[dict], run_state: str, steps=None) -> list[dict]:
+    """State of each step. run_state: running, done, interrupted or error (the conversation's research state);
+    the steps are the domain's (read from the start event) unless given."""
+    steps = steps or DOMAIN_STEPS.get(domain_of(events), ELECTROLYTE_STEPS)
     seen: dict[str, list[dict]] = {s.key: [] for s in steps}
     stage_status: dict[str, str] = {}
     stage_summary: dict[str, dict] = {}
@@ -159,4 +201,8 @@ def _funnel_detail(key: str, evs: list[dict]) -> str | None:
     if key == "build":
         relax = [e for e in evs if e["step"] == "relax"]
         return f"{len(relax)} compositions relaxed" if relax else None
+    if key == "voltage":
+        volts = [e["data"] for e in evs if e["step"] == "voltage" and e["data"].get("voltage_V") is not None]
+        return (f"{len(volts)} charged: {min(v['voltage_V'] for v in volts):.2f}-{max(v['voltage_V'] for v in volts):.2f} V"
+                if volts else None)
     return None

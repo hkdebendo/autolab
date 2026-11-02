@@ -295,6 +295,7 @@ const EXAMPLES = [  // the first one is the recorded research of Nov 1, word for
   "Find new sulfide solid electrolytes for lithium-metal batteries that stay stable against lithium metal.",
   "Explore halide substitutions in Li7P3S11 to improve lithium-ion diffusion.",
   "Which substitutions in beta-Li3PS4 keep it stable and electronically insulating?",
+  "Find new cobalt-free cathodes for lithium-ion batteries with a higher energy density than LiFePO4.",
 ];
 
 function showHome() {
@@ -655,6 +656,9 @@ function aggregate() {
       c.ratio = d.ratio; c.verdict = d.verdict; c.D = d.D_cm2_per_s;
       if (d.conduction === "excluded") c.excluded = "diffusion";
     } else if (k === "candidate/candidate_analyses:done") c.review = d;
+    else if (k === "candidate/voltage") {
+      c.voltage = d.voltage_V; c.capacity = d.capacity_mAh_g; c.energy = d.energy_density_Wh_kg; c.volume = d.volume_change_pct;
+    }
     else if (k === "llm/proposal" && d.reply) notes.push({ kind: "proposal", data: d.reply });
     else if (k === "llm/analysis" && d.reply) notes.push({ kind: "analysis", data: d.reply });
     else if (k === "llm/md_selection" && d.reply) notes.push({ kind: "md", data: d.reply });
@@ -729,6 +733,16 @@ function statusChip(c) {
 
 function candidatesHTML(cands) {
   if (!cands.length) return `<p class="empty">Candidates appear here as soon as they are built.</p>`;
+  if (domainOf() === "cathode") {
+    return `<div class="table-scroll"><table class="data"><thead><tr><th>Material</th><th>E<sub>hull</sub> (eV/atom)</th>
+      <th>Voltage (V)</th><th>Capacity (mAh/g)</th><th>Energy density (Wh/kg)</th><th>Volume change (%)</th><th>Status</th></tr></thead><tbody>
+      ${cands.map((c) => `<tr class="${hasStructure(c.id) ? "clickable" : ""}" data-id="${esc(c.id)}">
+        <td class="formula">${tx(c.formula || c.id)}</td><td class="num">${fmt(c.e_hull)}</td><td class="num">${fmt(c.voltage, 2)}</td>
+        <td class="num">${fmt(c.capacity, 0)}</td><td class="num">${fmt(c.energy, 0)}</td><td class="num">${fmt(c.volume, 1)}</td>
+        <td>${statusChip(c)}</td></tr>`).join("")}</tbody></table></div>
+      <p class="viewer-cap">${S.index ? "Click a material to see its crystal structure in 3D." : "3D structures become available when the research is finished."}
+      Voltage: average over the whole charge, vs Li/Li⁺. Energy density = voltage × theoretical capacity, of the cathode material alone.</p>`;
+  }
   return `<div class="table-scroll"><table class="data"><thead><tr><th>Material</th><th>E<sub>hull</sub> (eV/atom)</th><th>Band gap (eV)</th>
     <th>Window (V)</th><th>Li metal</th><th>D / D(parent)</th><th>Status</th></tr></thead><tbody>
     ${cands.map((c) => `<tr class="${hasStructure(c.id) ? "clickable" : ""}" data-id="${esc(c.id)}">
@@ -807,6 +821,22 @@ function renderViz(panel, cands) {
   const eh = cands.filter((c) => c.e_hull !== undefined && c.e_hull !== null).map((c) => ({ label: named(c), v: c.e_hull }));
   const gp = cands.filter((c) => c.gap !== undefined && c.gap !== null).map((c) => ({ label: named(c), v: c.gap }));
   let html = `<div class="viz-grid">`;
+  if (domainOf() === "cathode") {
+    const vt = cands.filter((c) => c.voltage != null).map((c) => ({ label: named(c), v: c.voltage }));
+    const en = cands.filter((c) => c.energy != null).map((c) => ({ label: named(c), v: c.energy }));
+    html += barChart({ title: "Thermodynamic stability", rows: eh, unit: "energy above the hull (eV/atom)", threshold: 0.08, better: "low",
+      caption: "Energy a crystal would release by decomposing into the stable known phases. At or below 0.08 eV/atom (dashed line) it is kept." }) || "";
+    html += barChart({ title: "Average voltage", rows: vt, unit: "V vs Li/Li⁺", threshold: 3, better: "high", digits: 2,
+      caption: "Average voltage over the whole charge. Kept between 3.0 V (dashed line) and 4.8 V." }) || "";
+    html += barChart({ title: "Energy density", rows: en, unit: "Wh/kg (voltage × capacity)", digits: 0,
+      caption: "Energy stored per kilogram of cathode material: the ranking criterion." }) || "";
+    if (!eh.length) html += `<div class="unavailable">Charts appear as soon as the first structures are evaluated.</div>`;
+    html += `<div id="viz-3d"></div><div id="viz-md"></div></div>`;
+    panel.innerHTML = html;
+    render3DSection($("viz-3d"));
+    $("viz-md").innerHTML = "";
+    return;
+  }
   html += barChart({ title: "Thermodynamic stability", rows: eh, unit: "energy above the hull (eV/atom)", threshold: 0.05, better: "low",
     caption: "Energy a crystal would release by decomposing into known phases. At or below 0.05 eV/atom (dashed line) it is kept as possibly synthesizable." }) || "";
   html += barChart({ title: "Electronic band gap", rows: gp, unit: "band gap (eV)", threshold: 2, better: "high", digits: 2,
@@ -1092,6 +1122,7 @@ const lerp = (a, b, k) => a + (b - a) * k;
 const lerpRows = (A, B, k) => A.map((r, i) => r.map((x, j) => lerp(x, (B[i] || r)[j], k)));
 const modelOf = (p) => PROVIDER_MODEL[p] || "Muse Spark";
 const fname = (id) => L.formulas[id] || id;
+const domainOf = () => (S.view && S.view.conversation && S.view.conversation.domain) || "electrolyte";
 const subText = (s) => (s ? `${s.remove} → ${s.add} ×${s.count}${s.li_vacancies ? `, −${s.li_vacancies} Li` : ""}` : "");
 function hexMix(a, b, k) {
   const p = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
@@ -1108,6 +1139,7 @@ async function labStart(mode) {
     round: 0, rounds: 0, formulas: {}, parents: {}, stageGroup: {}, t0: Date.now(), stepsAsked: 0,
     full: mode === "watch", hidden: false, convId: S.id });  // live: in the chat, a button opens it full screen
   L.reused = !!(S.view && S.view.conversation.scope && S.view.conversation.scope.reused_from);
+  L.domain = domainOf();
   L.steps = (S.view.steps || []).map((s) => ({ ...s, state: "pending", detail: null }));
   if (!S.index && S.view.files && S.view.files.includes("index.json")) {
     try { S.index = await api(`/conversations/${S.id}/files/index.json`); } catch { S.index = null; }
@@ -1430,7 +1462,7 @@ function typeInto(el, text, ms) {
 
 function gauge({ value, min = 0, max, threshold, better, unit, digits = 3, label }) {
   const pct = (x) => Math.max(0, Math.min(100, ((x - min) / (max - min)) * 100));
-  const ok = better === "low" ? value <= threshold : value >= threshold;
+  const ok = threshold === undefined ? true : better === "low" ? value <= threshold : value >= threshold;
   return `<div class="gauge ${ok ? "ok" : "bad"}"><div class="g-lbl">${tx(label)}</div>
     <div class="g-track"><div class="g-fill" data-w="${pct(value)}"></div>
       <div class="g-thr" style="left:${pct(threshold)}%"><span>limit ${threshold} ${tx(unit)}</span></div></div>
@@ -1438,7 +1470,9 @@ function gauge({ value, min = 0, max, threshold, better, unit, digits = 3, label
 }
 
 function strip(card, active) {
-  const names = [["build", "Build"], ["known", "Novelty"], ["relax", "Relax"], ["hull", "Stability"], ["gap", "Band gap"], ["verdict", "Verdict"]];
+  const names = L.domain === "cathode"
+    ? [["build", "Build"], ["known", "Novelty"], ["relax", "Relax"], ["hull", "Stability"], ["charge", "Charge"], ["verdict", "Verdict"]]
+    : [["build", "Build"], ["known", "Novelty"], ["relax", "Relax"], ["hull", "Stability"], ["gap", "Band gap"], ["verdict", "Verdict"]];
   let s = card.el.querySelector(".lc-strip");
   if (!s) {
     s = document.createElement("div");
@@ -1566,6 +1600,44 @@ async function mdScene(card, box, entry) {
   const timer = setInterval(frame, 80);
   card.cleanup.push(() => clearInterval(timer));
   frame();
+}
+
+function chargeScene(card, st, ms) {
+  const box = card.el.querySelector(".lab-3d");
+  const v = card.viewer || labViewer(card, box);
+  if (!v) return;
+  cancelAnimationFrame(card.raf);
+  const gone = new Set(st.removed), keep = st.symbols.map((_, i) => i).filter((i) => !gone.has(i));
+  const A = st.lithiated, B = st.delithiated, t0 = performance.now(), dur = ms / L.speed;
+  const symK = keep.map((i) => st.symbols[i]), posAK = keep.map((i) => A.positions[i]);
+  let last = 0;
+  const step = () => {
+    if (!card.el.isConnected) return;
+    const t = performance.now(), u = Math.max(0, Math.min(1, (t - t0) / dur));
+    if (t - last > 33 || u >= 1) {
+      v.removeAllModels(); v.removeAllShapes();
+      if (u < 0.45) {  // the Li that leave drift out of the cell and fade
+        const f = u / 0.45, out = A.cell[2].map((x) => (x / Math.hypot(...A.cell[2])) * 5 * f);
+        const pos = A.positions.map((p, i) => (gone.has(i) ? p.map((x, j) => x + out[j]) : p));
+        v.addModel(xyz(st.symbols, pos), "xyz");
+        v.setStyle({}, { sphere: { scale: 0.3, colorscheme: "Jmol" }, stick: { radius: 0.08, colorscheme: "Jmol" } });
+        v.setStyle({ elem: "Li" }, { sphere: { scale: 0.32, colorfunc: (a) => (gone.has(a.index) ? hexMix(CPK.Li, LAB_BG, f) : CPK.Li) } });
+        drawCell(v, A.cell);
+      } else {  // the charged cell relaxes
+        const k = ease((u - 0.45) / 0.55);
+        v.addModel(xyz(symK, lerpRows(posAK, B.positions, k)), "xyz");
+        v.setStyle({}, { sphere: { scale: 0.3, colorscheme: "Jmol" }, stick: { radius: 0.08, colorscheme: "Jmol" } });
+        drawCell(v, lerpRows(A.cell, B.cell, k));
+        setLattice(card, A.lattice, B.lattice, k);
+      }
+      if (!v._zoomed) { v.zoomTo(); v.zoom(1.15); v._zoomed = true; }
+      v.rotate(0.35, "y");
+      v.render();
+      last = t;
+    }
+    if (u < 1) card.raf = requestAnimationFrame(step); else spin(card, v);
+  };
+  card.raf = requestAnimationFrame(step);
 }
 
 function voltBar(w) {
@@ -1746,7 +1818,7 @@ function playCandidate(e) {
   if (e.step === "candidate_analyses:done") {
     const card = stageCard("candidate_analyses", d, e);
     labActor(modelOf(d.provider), `reviewing ${d.formula || fname(id)}`, "think");
-    cardAdd(card, `<div class="review"><b>${tx(d.formula || fname(id))}</b> <span class="chip">${tx(`MD priority: ${d.md_priority || "—"}`)}</span>
+    cardAdd(card, `<div class="review"><b>${tx(d.formula || fname(id))}</b> <span class="chip">${tx(`${L.domain === "cathode" ? "follow-up" : "MD"} priority: ${d.md_priority || "—"}`)}</span>
       <p>${tx(String(d.summary || "").slice(0, 220))}</p>
       ${(d.strengths || [])[0] ? `<p class="pos">+ ${tx(String(d.strengths[0]).slice(0, 160))}</p>` : ""}
       ${(d.risks || [])[0] ? `<p class="neg">− ${tx(String(d.risks[0]).slice(0, 160))}</p>` : ""}</div>`, "row");
@@ -1819,6 +1891,35 @@ function playCandidate(e) {
       + `<p class="muted">mBJ estimate <b>${fmt(d.gap_mbj, 2)}</b> eV${d.low_confidence ? " · low confidence" : ""}</p>`);
     return 2300;
   }
+  if (e.step === "voltage") {
+    strip(card, "charge");
+    const k = d.li_removed, n = d.li_total;
+    labActor("UMA", k ? `charging: ${k} of ${n} Li removed, the charged cell relaxed` : "charging: no Li can be removed", "compute");
+    if (!k) { cardAdd(card, `<span class="no">no lithium can leave</span> — no element can be oxidised further`); return 1800; }
+    if (d.error) { cardAdd(card, `<span class="no">${tx(d.error)}</span>`); return 1800; }
+    const p = d.parent || {}, lim = d.limits || {};
+    if (d.structure) {
+      const cap = card.el.querySelector(".cap3d p");
+      if (cap) cap.textContent = `${k} Li leave the crystal (fading), then the charged cell relaxes (in-between frames interpolated)`;
+      chargeScene(card, d.structure, 3600);
+      cardAdd(card, `<div class="relax">${latticeHTML(d.structure.lithiated.lattice)}<p class="muted">charged cell ${tx(d.delithiated_formula || "")}: V ${fmt(d.delithiated_volume_A3, 1)} Å³</p></div>`);
+    }
+    const band = (v) => Math.max(0, Math.min(100, ((v - 2) / 3.5) * 100));
+    later(card, 1200, () => cardAdd(card, `<div class="gauge ${d.voltage_V >= lim.voltage[0] && d.voltage_V <= lim.voltage[1] ? "ok" : "bad"}">
+        <div class="g-lbl">average voltage vs Li/Li⁺ (whole charge)</div>
+        <div class="g-track vband"><i class="win" style="left:${band(lim.voltage[0])}%;width:${band(lim.voltage[1]) - band(lim.voltage[0])}%"></i>
+          ${p.voltage_V != null ? `<em class="pmark" style="left:${band(p.voltage_V)}%" title="parent"></em>` : ""}
+          <b class="vmark" style="left:${band(d.voltage_V)}%"></b></div>
+        <div class="g-val"><b data-count="${d.voltage_V}" data-digits="2">0</b> V <span class="verdict">window ${lim.voltage[0]}–${lim.voltage[1]} V</span>
+          ${p.voltage_V != null ? `<span class="muted"> · parent ${tx(d.parent_formula || "")} ${fmt(p.voltage_V, 2)} V</span>` : ""}</div></div>`));
+    later(card, 2300, () => cardAdd(card, `<div class="stats-row">
+        <span>capacity <b data-count="${d.capacity_mAh_g}" data-digits="0">0</b> mAh/g ${p.capacity_mAh_g != null ? `<em>parent ${fmt(p.capacity_mAh_g, 0)}</em>` : ""}</span>
+        <span>energy density <b data-count="${d.energy_density_Wh_kg}" data-digits="0">0</b> Wh/kg ${p.energy_density_Wh_kg != null ? `<em>parent ${fmt(p.energy_density_Wh_kg, 0)}</em>` : ""}</span></div>`));
+    later(card, 3200, () => cardAdd(card, gauge({ label: "volume change on charge", value: Math.abs(d.volume_change_pct), max: Math.max(15, Math.abs(d.volume_change_pct) * 1.3),
+      threshold: lim.volume_change_max, better: "low", unit: "%", digits: 1 }) + (p.volume_change_pct != null ? `<p class="muted">parent ${fmt(p.volume_change_pct, 1)} %</p>` : "")));
+    labLog(`${fname(id)}: ${fmt(d.voltage_V, 2)} V, ${fmt(d.capacity_mAh_g, 0)} mAh/g, ${fmt(d.energy_density_Wh_kg, 0)} Wh/kg${p.voltage_V != null ? ` (parent ${fmt(p.voltage_V, 2)} V, ${fmt(p.energy_density_Wh_kg, 0)} Wh/kg)` : ""}`, "accent");
+    return 5600;
+  }
   if (e.step === "ss_check") {
     cardAdd(card, d.ss_bonds ? `<span class="no">S–S bonds present</span> (a warning: the potential is less reliable there)` : `<span class="ok">no S–S bond</span>`);
     return 600;
@@ -1850,12 +1951,20 @@ function playLoop(e) {
     cardHead(card, "Research plan", `${d.n_iterations} rounds, up to ${d.max_candidates} candidates each`, e);
     labActor("AutoLab", "planning the campaign", "plan");
     const th = d.thresholds || {};
-    const team = [["Muse Spark", "proposes, decides, interprets failures, writes the report", "think"],
+    L.domain = d.domain || L.domain;
+    const cathode = L.domain === "cathode";
+    const team = cathode ? [["Muse Spark", "proposes, decides, interprets failures, writes the report", "think"],
+      ["Muse Spark Open", "reviews each candidate independently", "think"], ["Muse Glimmer", "summarizes in plain language", "think"],
+      ["UMA", "relaxes the lithiated and the charged crystals", "compute"], ["pymatgen", "builds the substitutions, checks charge neutrality", "compute"],
+      ["Materials Project", "known phases for the convex hull", "data"]]
+      : [["Muse Spark", "proposes, decides, interprets failures, writes the report", "think"],
       ["Muse Spark Open", "reviews each candidate independently", "think"], ["Muse Glimmer", "summarizes in plain language", "think"],
       ["UMA", "relaxes crystals and runs molecular dynamics", "compute"], ["GapModel", "predicts band gaps", "compute"],
       ["Materials Project", "known phases and DFT references", "data"]];
     cardAdd(card, `<div class="plan-box"><div><span class="tag">parent crystals</span>${(d.parents || []).map((p) => `<span class="chip">${tx(p.formula)} · ${esc(p.id)}</span>`).join(" ")}</div>
-      <div><span class="tag">filters</span>E<sub>hull</sub> ≤ ${th.EHULL_SYNTHESIZABLE ?? 0.05} eV/atom · band gap ≥ ${th.BANDGAP_MIN ?? 2} eV · Li diffusion at ${th.MD_SCREEN_TEMPERATURE_K ?? 600} K</div>
+      <div><span class="tag">filters</span>${cathode
+        ? `no cobalt · E<sub>hull</sub> ≤ ${th.CATHODE_EHULL_MAX} eV/atom · voltage ${th.CATHODE_VOLTAGE_MIN}–${th.CATHODE_VOLTAGE_MAX} V · capacity ≥ ${th.CATHODE_CAPACITY_MIN} mAh/g · volume change ≤ ${th.CATHODE_VOLUME_CHANGE_MAX} %`
+        : `E<sub>hull</sub> ≤ ${th.EHULL_SYNTHESIZABLE ?? 0.05} eV/atom · band gap ≥ ${th.BANDGAP_MIN ?? 2} eV · Li diffusion at ${th.MD_SCREEN_TEMPERATURE_K ?? 600} K`}</div>
       ${(d.prior || []).length ? `<div><span class="tag">memory</span>${d.prior.length} candidates from earlier researches, reused, never recomputed</div>` : ""}</div>`);
     team.forEach(([m, role, k], i) => later(card, 500 + i * 320, () => cardAdd(card, `<span class="model ${k}">${tx(m)}</span> ${tx(role)}`, "team pop")));
     return 4600;
@@ -1898,7 +2007,8 @@ function labPlay(e) {
   return 250;
 }
 
-const STEP_ACTOR = { goal: ["Muse Spark", "reading the request", "think"], propose: ["Muse Spark", "reasoning about new substitutions", "think"],
+const STEP_ACTOR = { voltage: ["UMA", "charging: removing lithium and relaxing the charged cell", "compute"],
+  goal: ["Muse Spark", "reading the request", "think"], propose: ["Muse Spark", "reasoning about new substitutions", "think"],
   build: ["UMA", "relaxing crystal structures", "compute"], stability: ["UMA + Materials Project", "computing the convex hull", "compute"],
   bandgap: ["GapModel", "predicting band gaps", "compute"], learn: ["Muse Spark", "interpreting the results", "think"],
   electrodes: ["pymatgen", "phase diagrams against the electrodes", "compute"], review: ["Muse Spark Open", "reviewing each candidate", "think"],

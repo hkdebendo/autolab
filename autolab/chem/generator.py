@@ -62,6 +62,7 @@ def generate_candidates(
     parent_id: str | None = None,
     n_arrangements: int = config.GENERATOR_N_ARRANGEMENTS,
     seed: int = config.GENERATOR_SEED,
+    charge_check=check_charge,
 ) -> dict:
     """Apply a substitution and return distinct, charge-checked arrangements.
 
@@ -89,7 +90,7 @@ def generate_candidates(
     structures = [_arrangement(parent, substitution, rng) for _ in range(n_arrangements if randomised else 1)]
 
     # All arrangements share one composition: neutrality is checked once, before any UMA call.
-    verdict = check_charge(structures[0])
+    verdict = charge_check(structures[0])
     result["formula"] = structures[0].composition.reduced_formula
     result["charge"] = verdict["charge"]
     if not verdict["ok"]:

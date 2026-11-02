@@ -10,8 +10,8 @@ A domain gives:
   proposes the next one (error-driven design);
 - the config thresholds it decides with (listed in the report).
 
-Only "electrolyte" exists (solid electrolytes for Li-metal batteries). A new domain (e.g. cobalt-free cathodes)
-is a new module in this package that builds its Domain and calls register(); the loop does not change.
+Two domains: "electrolyte" (solid electrolytes for Li-metal batteries) and "cathode" (cobalt-free cathodes for Li-ion
+batteries). A domain is a module of this package that builds its Domain and calls register(); the loop does not change.
 """
 
 from __future__ import annotations
@@ -96,6 +96,8 @@ def register(name: str, factory: Callable[[], Domain]) -> None:
 def get_domain(name: str) -> Domain:
     if name == "electrolyte" and name not in _DOMAINS:
         from autolab.domains import electrolyte  # noqa: F401  (registers itself)
+    if name == "cathode" and name not in _DOMAINS:
+        from autolab.domains import cathode  # noqa: F401  (registers itself)
     if name not in _DOMAINS:
-        raise ValueError(f"unknown domain {name!r} (known: {', '.join(sorted(_DOMAINS)) or 'electrolyte'})")
+        raise ValueError(f"unknown domain {name!r} (known: electrolyte, cathode)")
     return _DOMAINS[name]()

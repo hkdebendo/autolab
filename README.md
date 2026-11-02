@@ -92,6 +92,21 @@ Every module has a truth test against known results (`tests/`, `SPEC.md` section
 | 8 bad compounds (metals, semiconductors, unstable Li2PS3) | 8/8 | 8/8 |
 | 5 hard negatives: stable insulators, poor Li conductors (Li2S, LiCl, LiI, Li3PO4, Li4GeS4) | **0/5** | **5/5** (LiI only by the framework rule, weakly: near its melting point at 600 K) |
 
+## Second domain: cobalt-free cathodes
+
+The same agent, loop and interface search **cobalt-free cathodes for lithium-ion batteries** (`autolab/domains/cathode.py`): Muse Spark proposes substitutions in LiFePO4, LiMnPO4, spinel LiMn2O4 and LiNi0.5Mn1.5O4; the code refuses cobalt, checks charge neutrality with mixed valence, relaxes the crystal with UMA, measures its stability against the stable known phases (relaxed with UMA), then removes the lithium that neutrality allows and relaxes the charged crystal: average voltage, theoretical capacity, energy density and volume change, each compared with the parent computed the same way. Failures go back to the model as in the electrolyte loop; finalists are reviewed by Muse Spark Open, ranked by energy density and reported.
+
+Truth test, fixed before the runs (each within 0.4 V of experiment, LiFePO4 lowest, LiNi0.5Mn1.5O4 highest; `results/2026-11-02_cathode_truth/`):
+
+| Cathode | Experiment | UMA | Capacity |
+|---|---|---|---|
+| LiFePO4 | 3.45 V | 3.45 V | 170 mAh/g |
+| LiMnPO4 | 4.10 V | 3.79 V | 171 mAh/g |
+| LiMn2O4 (spinel) | 4.05 V | 3.82 V | 148 mAh/g |
+| LiNi0.5Mn1.5O4 | 4.70 V | 4.72 V | 147 mAh/g |
+
+Limits: average voltage over the whole charge only (no voltage profile), no oxygen redox, lithium diffusion in the cathode and cycling not computed; UMA underestimates the Mn voltages by about 0.2-0.3 V and the volume change of LiFePO4 (3.6 % against 6.8 % measured).
+
 ## Limits that were addressed, and what remains
 
 | Limit | What was done | What remains |
@@ -140,7 +155,7 @@ About 36 $ of Modal GPU time (calibrations, benchmark, runs), 1.2 $ of Muse Spar
 ```bash
 pip install -e ".[bandgap,dev]"
 cp .env.example .env          # then fill in your own keys
-pytest                        # 171 CPU tests; GPU and paid-API tests are skipped
+pytest                        # 182 CPU tests; GPU and paid-API tests are skipped
 pytest web/tests              # 17 tests of the interface
 pytest --gpu                  # UMA truth tests (NVIDIA GPU only)
 ```
@@ -170,3 +185,4 @@ See `SPEC.md` for the architecture and every validated parameter, `docs/DECISION
 ## Author
 
 **Vincent Ricardo Amoussou** · Benin
+-

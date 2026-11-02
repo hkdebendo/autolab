@@ -42,11 +42,15 @@ def test_steps_come_only_from_real_events():
     assert all("Muse" not in x["label"] + x["why"] for x in steps_from_events(running, "running"))
 
 
-def test_scope_is_held_to_the_capabilities():
+def test_scope_is_held_to_the_capabilities(monkeypatch):
     r = enforce({"intent": "new_discovery", "status": "supported", "domain": "electrolyte", "title": "Halide sulfides",
                  "constraints": ["no cobalt"], "reply": "ok"}, in_conversation=False)
     assert r["action"] == "start" and r["domain"] == "electrolyte"
     r = enforce({"intent": "new_discovery", "status": "supported", "domain": "cathode", "title": "x", "constraints": [],
+                 "reply": "ok"}, in_conversation=False)
+    assert r["status"] == "supported" and r["action"] == "start"  # cobalt-free cathodes: implemented since 2026-11-02
+    monkeypatch.setitem(config.CAPABILITIES, "planned", {"solar": "Solar absorbers: planned."})
+    r = enforce({"intent": "new_discovery", "status": "supported", "domain": "solar", "title": "x", "constraints": [],
                  "reply": "ok"}, in_conversation=False)
     assert r["status"] == "planned" and r["action"] == "explain"  # not implemented: never "supported"
     r = enforce({"intent": "new_discovery", "status": "supported", "domain": "catalysts", "title": "x",

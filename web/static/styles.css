@@ -638,3 +638,14 @@ body.lab-open::before { content: ""; position: fixed; inset: 0; z-index: 44; bac
 .loading-block i.short { width: min(340px, 60%); }
 @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
 .loading-inline { display: grid; place-items: center; height: 100%; min-height: 120px; color: var(--muted); font-size: 13px; }
+
+/* ---------- cathodes: the voltage window and the numbers of the charge ---------- */
+.g-track.vband { overflow: visible; }
+.g-track.vband .win { position: absolute; top: 0; bottom: 0; border-radius: 6px; background: rgba(94, 234, 212, .22);
+  border: 1px solid rgba(94, 234, 212, .45); }
+.g-track.vband .vmark { position: absolute; top: -5px; width: 4px; height: 20px; margin-left: -2px; border-radius: 2px;
+  background: #fff; box-shadow: 0 0 12px #5eead4; animation: popin .5s ease both; }
+.g-track.vband .pmark { position: absolute; top: -3px; height: 16px; border-left: 2px dashed #fbbf24; }
+.stats-row { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--lm); }
+.stats-row b { font: 600 18px "JetBrains Mono", monospace; color: #fff; }
+.stats-row em { font-style: normal; font-size: 11.5px; color: #fcd34d; margin-left: 4px; }

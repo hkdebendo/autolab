@@ -270,13 +270,16 @@ CAPABILITIES = {
                        "Li-P-S crystals (beta-Li3PS4, Li7P3S11), evaluated for thermodynamic stability, electronic band "
                        "gap, electrochemical window, reaction with lithium metal and with a LiFePO4 cathode, lithium "
                        "diffusion by molecular dynamics at 600 K, and prior publication.",
+        "cathode": "Cobalt-free cathode materials for lithium-ion batteries: new compositions by substitution in known "
+                   "cobalt-free cathodes (LiFePO4, LiMnPO4, spinel LiMn2O4, LiNi0.5Mn1.5O4), evaluated for thermodynamic "
+                   "stability, average voltage, theoretical capacity, energy density and volume change on charge.",
     },
-    "planned": {
-        "cathode": "Cobalt-free cathode materials (voltage, capacity, stability): planned, not implemented yet.",
-    },
+    "planned": {},
     "not_computed": "measured ionic conductivity (room-temperature values are extrapolated estimates from molecular "
                     "dynamics at 500-700 K, with their range), DFT calculations (UMA energies carry an error bar measured "
-                    "against DFT on known compounds), synthesis routes, cost of the elements, experimental data",
+                    "against DFT on known compounds), synthesis routes, cost of the elements, experimental data, "
+                    "for cathodes: voltage profiles and rate capability (only the average voltage over full "
+                    "delithiation), lithium diffusion in the cathode, cycling",
 }
 FOLLOWUP_MAX_OUTPUT_TOKENS = 3000
 REPORT_MAX_OUTPUT_TOKENS = 6000
@@ -329,6 +332,45 @@ CONDUCTIVITY_PARENT_SAME_PROTOCOL = True
 # electrochemical window (zero width or not computed: 0 V). The MD verdict at 600 K is a pre-filter (a "lower" verdict
 # excludes); it orders only the "not_fitted" group, before these keys.
 RANK_TIE_BREAK = ("e_hull_per_substitution", "activation_energy", "window_width")
+
+# --- Second domain: cobalt-free cathodes (owner, 2026-11-02; autolab/domains/cathode.py) ---------------------
+# Substitutions in known cobalt-free cathodes; each candidate is relaxed lithiated, its stability is measured against
+# the stable Materials Project phases of its system (relaxed with UMA: never MP energies), then the Li that charge
+# neutrality allows is removed and the delithiated cell relaxed: average voltage, capacity, energy density and volume
+# change come from the two UMA energies and the UMA energy of Li metal (the MP2020 corrections cancel: same O and
+# transition-metal atoms on both sides).
+CATHODE_GOAL = ("Find new cobalt-free cathode materials for lithium-ion batteries: high energy density (voltage x "
+                "capacity), thermodynamically stable, with a small volume change on charge.")
+CATHODE_PARENTS = ["mp-19017", "mp-18997", "mp-22584", "mp-771112"]  # LiFePO4 (Pnma, 28 atoms), LiMnPO4 (Pnma, 28),
+# LiMn2O4 cubic spinel (Fd-3m, 42; 0.045 eV/atom above the MP hull, the commercial phase), LiNi0.5Mn1.5O4 (P4_332, 56)
+CATHODE_LI_METAL = "mp-135"  # bcc Li, the reference of the voltage
+CATHODE_FORBIDDEN = ("Co",)  # cobalt-free: never in a parent or a substitution
+# Oxidation states allowed per element, as (lowest, highest); every range is contiguous, so a composition is neutral
+# when 0 lies between the sums of the lowest and of the highest states (mixed valence allowed). Oxygen is fixed at -2:
+# no oxygen redox. Elements outside the table are refused before any simulation.
+CATHODE_OXIDATION_RANGES = {
+    "Li": (1, 1), "Na": (1, 1), "K": (1, 1), "Mg": (2, 2), "Ca": (2, 2), "Zn": (2, 2), "Al": (3, 3), "Ga": (3, 3),
+    "B": (3, 3), "Sc": (3, 3), "Y": (3, 3), "Cr": (3, 3), "Ti": (3, 4), "Zr": (4, 4), "Si": (4, 4), "Ge": (4, 4),
+    "Sn": (4, 4), "V": (3, 5), "Nb": (5, 5), "Mo": (4, 6), "W": (6, 6), "Mn": (2, 4), "Fe": (2, 3), "Ni": (2, 4),
+    "Cu": (1, 2), "P": (5, 5), "O": (-2, -2), "F": (-1, -1),
+}
+CATHODE_N_ARRANGEMENTS = 4  # random placements of a partial substitution, the lowest in energy kept
+CATHODE_HULL_REF_EHULL_MAX = 0.0  # hull references: the stable MP phases of the system (+ the most stable terminals),
+# relaxed with UMA; transition-metal oxide systems hold many near-hull phases that would cost hundreds of relaxations
+CATHODE_EHULL_MAX = 0.08  # eV/atom: the commercial spinel LiMn2O4 sits 0.045 above the MP hull (GGA+U), so the
+# electrolyte limit (0.05) would leave no room for doped spinels; above 0.08 a cathode is unlikely to be made
+CATHODE_VOLTAGE_MIN = 3.0  # V vs Li/Li+: below, too little energy
+CATHODE_VOLTAGE_MAX = 4.8  # V: above, common electrolytes decompose on charge
+CATHODE_CAPACITY_MIN = 120.0  # mAh/g, theoretical, from the Li that can be removed
+CATHODE_VOLUME_CHANGE_MAX = 10.0  # % between lithiated and delithiated cells: above, particles crack on cycling
+CATHODE_REVIEW_MAX = 6  # passed candidates reviewed by Muse Spark Open after the iterations
+CATHODE_FINALISTS_MAX = 3
+# Truth test, fixed before the runs (2026-11-02): UMA average voltage of the four parents (x = 1 -> 0) within
+# CATHODE_VOLTAGE_TRUTH_TOL_V of experiment, and LiFePO4 the lowest, LiNi0.5Mn1.5O4 the highest. Experiment: LiFePO4
+# 3.45 V (Padhi 1997), LiMnPO4 4.1 V (Yamada 2001), LiMn2O4 4.05 V (mean of the 4.0 and 4.15 V plateaus, Thackeray
+# 1983), LiNi0.5Mn1.5O4 4.7 V (Zhong 1997).
+CATHODE_VOLTAGE_REFERENCE_V = {"mp-19017": 3.45, "mp-18997": 4.10, "mp-22584": 4.05, "mp-771112": 4.70}
+CATHODE_VOLTAGE_TRUTH_TOL_V = 0.4
 
 # --- Budget limits (CLAUDE.md) -----------------------------------------------
 
