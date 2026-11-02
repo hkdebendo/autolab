@@ -222,6 +222,7 @@ document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape") return;
   const open = [...document.querySelectorAll(".modal")].find((m) => !m.hidden);
   if (open) closeModal(open.id);
+  else if (L.on && L.full && !L.hidden) labSetFull(false);
 });
 $("settings-btn").onclick = () => { applyTheme(themeChoice()); openModal("settings"); };
 $("theme-choice").addEventListener("change", (e) => applyTheme(e.target.value));
@@ -466,11 +467,14 @@ async function showConversation(v) {
   const play = ACTIVE.has(v.conversation.status) ? "live"
     : (S.autoplay && reused) || ask.has("watch") ? (S.events.length ? "watch" : null) : null;
   S.autoplay = false;
-  if (ask.has("watch")) {
-    if (+ask.get("watch")) { L.speed = Math.max(1, Math.min(4, +ask.get("watch"))); L.speedSet = true; }
-    history.replaceState({}, "", location.pathname);
+  if (ask.has("watch") && +ask.get("watch")) { L.speed = Math.max(1, Math.min(4, +ask.get("watch"))); L.speedSet = true; }
+  if (play) {
+    await labStart(play);
+    if (ask.get("lab") === "inline" && L.full) labSetFull(false);  // ?watch&lab=inline: the replay inside the chat
+    if (ask.has("watch")) history.replaceState({}, "", location.pathname);
+    setComposer(composerMode());
+    return;
   }
-  if (play) { await labStart(play); setComposer(composerMode()); return; }
   renderThread();
   setComposer(composerMode());
   scrollBottom(true);
@@ -537,10 +541,12 @@ function renderThread() {
   const parts = [];
   let researchPlaced = false;
   const hasResearch = v.steps && v.steps.length;
-  const lab = L.on;
+  const lab = L.on && !L.hidden && L.convId === S.id;
+  const inline = lab && (L.mode === "live" || !L.full);  // the lab inside the chat
+  const hideFinal = lab && L.mode === "live";  // while a research runs, its results come at the end
   const place = () => {
     if (researchPlaced) return;
-    parts.push(lab ? aiBlock(`<div id="lab-slot"></div>`, "lab-msg") : aiBlock(`<div id="research"></div>`));
+    parts.push(inline ? aiBlock(`<div id="lab-slot"></div>`, "lab-msg") : aiBlock(`<div id="research"></div>`));
     researchPlaced = true;
   };
   for (const m of v.messages) {
@@ -550,23 +556,23 @@ function renderThread() {
       if (hasResearch && !(v.messages.some((x) => x.data && x.data.action === "reused"))) place();
     } else if (m.kind === "notice") {
       const newChat = m.data && m.data.action === "new_chat", reused = m.data && m.data.action === "reused";
-      if (lab && !reused && !newChat) continue;
+      if (hideFinal && !reused && !newChat) continue;
       parts.push(aiBlock(`<div class="notice${newChat ? " warn" : reused ? " reused" : ""}">${tx(m.content)}${newChat
         ? `<div class="actions"><button class="primary-btn" type="button" data-newchat="${m.id}">New chat</button></div>` : ""}</div>`));
       if (reused && hasResearch) place();
     } else if (m.kind === "summary") {
-      if (lab) continue;
+      if (hideFinal) continue;
       parts.push(aiBlock(`<div class="prose summary"><p>${tx(m.content)}</p></div>`));
     } else if (m.kind === "report") {
-      if (lab) continue;
+      if (hideFinal) continue;
       parts.push(aiBlock(`${who("Muse Spark", "wrote the report from the numbers computed by the code", "think")}${reportBlock(m)}`));
     } else {
       parts.push(aiBlock(`<div class="prose">${md(m.content)}</div>`));
     }
   }
-  if ((hasResearch || lab) && !researchPlaced) place();
+  if ((hasResearch || inline) && !researchPlaced) place();
   $("view").innerHTML = `<div class="thread">${parts.join("")}</div>`;
-  if (lab && L.el) $("lab-slot").appendChild(L.el);
+  labPlace();
   renderResearch();
   bindReport();
   for (const b of $("view").querySelectorAll("[data-newchat]")) {
@@ -620,12 +626,12 @@ function renderResearch() {
   box.innerHTML = `<section class="research">
     <div class="research-head"><span class="title">Research</span>
       <span class="elapsed">${esc(elapsed())}</span>
-      ${!ACTIVE.has(st) && S.events.length ? `<button class="ghost-btn watch" type="button" id="watch-agent"><svg viewBox="0 0 24 24"><path d="M8 6l10 6-10 6z"/></svg><span>Watch the agent at work</span></button>` : ""}
+      ${!ACTIVE.has(st) && S.events.length ? `<button class="ghost-btn watch" type="button" id="watch-agent"><svg viewBox="0 0 24 24"><path d="M8 6l10 6-10 6z"/></svg><span>${L.on && L.convId === S.id ? (L.hidden ? "Resume watching" : "Open the lab") : "Watch the agent at work"}</span></button>` : ""}
       <span class="badge ${ACTIVE.has(st) ? (st === "stopping" ? "stopping" : "running") : st}">${esc(badge)}</span></div>
     <div class="tabs" role="tablist">${tabs.map(([k, l, n]) => `<button type="button" role="tab" data-tab="${k}" aria-selected="${S.tab === k}">${l}${n ? `<span class="count">${n}</span>` : ""}</button>`).join("")}</div>
     <div class="tab-panel" id="tab-panel"></div></section>`;
   const watch = $("watch-agent");
-  if (watch) watch.onclick = () => labStart("watch");
+  if (watch) watch.onclick = () => (L.on && L.convId === S.id ? labResume() : labStart("watch"));
   box.querySelector(".tabs").onclick = (e) => {
     const b = e.target.closest("[data-tab]");
     if (b) { S.tab = b.dataset.tab; renderResearch(); }
@@ -1013,6 +1019,11 @@ async function exportPDF(rep) {
    is labelled as such. */
 
 const PROVIDER_MODEL = { meta: "Muse Spark", baseten: "Muse Spark Open", fireworks: "Muse Glimmer" };
+const ICON_EXPAND = `<svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>`;
+const ICON_REDUCE = `<svg viewBox="0 0 24 24"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>`;
+const ICON_PLAY = `<svg viewBox="0 0 24 24"><path d="M8 6l10 6-10 6z"/></svg>`;
+const ICON_STOP = `<svg viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="1.5"/></svg>`;
+const ICON_RESTART = `<svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.6-5.9M4 4v4.5h4.5"/></svg>`;
 const LAB_BG = "#0a1222";
 const L = { on: false, mode: null, el: null, queue: [], seen: new Set(), played: 0, speed: 1, paused: false,
   group: null, card: null, timer: null, ws: null, steps: [], round: 0, rounds: 0, reused: false, t0: 0,
@@ -1036,7 +1047,8 @@ async function labStart(mode) {
   labStop();
   if (L.speedSet !== true) L.speed = mode === "watch" ? 2 : 1;  // a finished research is shown faster by default
   Object.assign(L, { on: true, mode, queue: [], seen: new Set(), played: 0, paused: false, group: null, card: null,
-    round: 0, rounds: 0, formulas: {}, parents: {}, stageGroup: {}, t0: Date.now(), stepsAsked: 0 });
+    round: 0, rounds: 0, formulas: {}, parents: {}, stageGroup: {}, t0: Date.now(), stepsAsked: 0,
+    full: mode === "watch", hidden: false, convId: S.id });  // live: in the chat, a button opens it full screen
   L.reused = !!(S.view && S.view.conversation.scope && S.view.conversation.scope.reused_from);
   L.steps = (S.view.steps || []).map((s) => ({ ...s, state: "pending", detail: null }));
   if (!S.index && S.view.files && S.view.files.includes("index.json")) {
@@ -1049,14 +1061,69 @@ async function labStart(mode) {
   connectLive();
   L.clock = setInterval(labClock, 1000);
   L.timer = setTimeout(labTick, 700);
-  scrollBottom();
+  if (!L.full) scrollBottom();  // in the chat: the lab is the last block
 }
 
 function labStop() {
   clearTimeout(L.timer); clearInterval(L.clock);
   if (L.card) labDispose(L.card);
-  L.card = null; L.on = false;
+  L.card = null; L.on = false; L.hidden = false;
   if (L.ws) { try { L.ws.close(); } catch { /* closed */ } L.ws = null; }
+  if (L.el) L.el.remove();
+  document.body.classList.remove("lab-open");
+}
+
+/* full screen (landscape: progress | current action | lab notebook) or inside the chat; the same element moves, so
+   nothing shown is lost */
+function labPlace() {
+  const show = L.on && !L.hidden && L.convId === S.id && L.el;
+  document.body.classList.toggle("lab-open", !!(show && L.full));
+  if (!L.el) return;
+  if (!show) { L.el.remove(); return; }
+  L.el.classList.toggle("full", L.full);
+  const fb = L.el.querySelector("[data-full]");
+  if (fb) {
+    fb.innerHTML = L.full ? ICON_REDUCE : ICON_EXPAND;
+    fb.title = L.full ? "Reduce (Esc)" : "Full screen";
+    fb.setAttribute("aria-label", fb.title);
+  }
+  const host = L.full ? document.body : $("lab-slot");
+  if (host && L.el.parentElement !== host) host.appendChild(L.el);
+  requestAnimationFrame(() => {
+    const v = L.card && L.card.viewer;
+    if (v) { try { v.resize(); v.render(); } catch { /* gone */ } }
+  });
+}
+
+function labSetFull(full) {
+  L.full = full;
+  renderThread();  // a reduced replay takes the place of the research card
+  if (!full) requestAnimationFrame(() => { if (L.el && L.el.isConnected) L.el.scrollIntoView({ block: "start" }); });
+}
+
+function labPauseUI() {
+  const b = L.el && L.el.querySelector("[data-pause]");
+  if (!b) return;
+  b.classList.toggle("on", L.paused);
+  b.innerHTML = L.paused ? ICON_PLAY : PAUSE;
+  b.title = L.paused ? "Resume" : "Pause";
+}
+
+/* leave the lab of a replay: kept where it stopped if it was paused (Watch resumes it), else ended */
+function labQuit() {
+  if (L.mode === "watch" && L.paused) {
+    L.hidden = true;
+    renderThread();
+  } else labFinish();
+}
+
+function labResume() {
+  if (!L.on) return labStart("watch");
+  const wasHidden = L.hidden;
+  L.hidden = false; L.full = true; L.paused = false;
+  labPauseUI();
+  renderThread();
+  if (wasHidden && L.card && L.card.viewer) spin(L.card, L.card.viewer);  // animations stop while the lab is hidden
 }
 
 function labEnqueue(events) {
@@ -1155,15 +1222,19 @@ function labShell() {
       ${L.reused ? `<span class="reuse big" title="This exact request was already researched: its saved computations are shown again, nothing is recomputed">reused results · accelerated</span>` : ""}
       <div class="lab-ctl" role="group" aria-label="Playback">
         ${[1, 2, 4].map((k) => `<button type="button" data-speed="${k}"${L.speed === k ? ' class="on"' : ""}>${k}×</button>`).join("")}
-        <button type="button" data-pause aria-label="Pause">${PAUSE}</button>
-        <button type="button" data-skip>Results</button></div></header>
+        <button type="button" data-pause title="Pause" aria-label="Pause">${PAUSE}</button>
+        ${L.mode === "watch" ? `<button type="button" data-stop title="Stop: end the playback and show the results">${ICON_STOP}<span>Stop</span></button>
+        <button type="button" data-restart title="Play again from the start">${ICON_RESTART}</button>`
+          : `<button type="button" data-skip title="Skip to the latest step">Latest</button>`}
+        <button type="button" data-full title="Full screen" aria-label="Full screen">${ICON_EXPAND}</button>
+        ${L.mode === "watch" ? `<button type="button" data-quit title="Leave the lab (a paused playback is kept: Resume watching continues it)" aria-label="Leave">${CROSS}</button>` : ""}</div></header>
     <div class="lab-body">
       <aside class="lab-steps"><h5>Progress</h5><ol></ol><div class="lab-bar"><i></i></div></aside>
       <div class="lab-stage">
         <div class="lab-actor"></div>
         <div class="lab-slot"></div>
-        <div class="lab-log"><h5>Lab notebook</h5><ul></ul></div>
-      </div></div>`;
+      </div>
+      <aside class="lab-log"><h5>Lab notebook</h5><ul></ul></aside></div>`;
   el.querySelector(".lab-ctl").onclick = (ev) => {
     const b = ev.target.closest("button");
     if (!b) return;
@@ -1173,12 +1244,14 @@ function labShell() {
       for (const x of el.querySelectorAll("[data-speed]")) x.classList.toggle("on", x === b);
     } else if (b.hasAttribute("data-pause")) {
       L.paused = !L.paused;
-      b.classList.toggle("on", L.paused);
-      b.innerHTML = L.paused ? `<svg viewBox="0 0 24 24"><path d="M8 6l10 6-10 6z"/></svg>` : PAUSE;
-    } else if (b.hasAttribute("data-skip")) {
+      labPauseUI();
+    } else if (b.hasAttribute("data-skip")) {  // live: catch up with the research
       L.queue = [];
       if (!ACTIVE.has(S.view.conversation.status)) labFinish();
-    }
+    } else if (b.hasAttribute("data-stop")) labFinish();
+    else if (b.hasAttribute("data-restart")) labStart("watch");
+    else if (b.hasAttribute("data-full")) labSetFull(!L.full);
+    else if (b.hasAttribute("data-quit")) labQuit();
   };
   return el;
 }
@@ -1216,7 +1289,7 @@ function labLog(text, tone = "") {
   li.className = tone;
   li.innerHTML = `<span class="r">${L.round ? `R${L.round}` : "—"}</span>${tx(text)}`;
   ul.prepend(li);
-  while (ul.children.length > 6) ul.lastChild.remove();
+  while (ul.children.length > 14) ul.lastChild.remove();  // 6 shown in the chat, all in full screen
 }
 
 /* cards */

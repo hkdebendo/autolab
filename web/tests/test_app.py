@@ -86,6 +86,14 @@ def test_the_live_view_uses_the_websocket_and_formulas_get_subscripts():
     assert "reused" in js  # results taken from the saved computations are marked
 
 
+def test_the_lab_opens_full_screen_and_a_paused_replay_can_be_resumed():
+    js = (webapp.HERE / "static" / "app.js").read_text(encoding="utf-8")
+    css = (webapp.HERE / "static" / "styles.css").read_text(encoding="utf-8")
+    assert "function labSetFull(" in js and "data-full" in js and ".lab.full" in css
+    assert "Resume watching" in js and "function labQuit(" in js and "data-restart" in js and "data-stop" in js
+    assert 'full: mode === "watch"' in js  # a live research stays in the chat until the button opens it
+
+
 def test_light_theme_by_default_and_a_tutorial_of_five_cards():
     html = (webapp.HERE / "static" / "index.html").read_text(encoding="utf-8")
     js = (webapp.HERE / "static" / "app.js").read_text(encoding="utf-8")
