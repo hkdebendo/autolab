@@ -182,6 +182,15 @@ LIVE_GOAL_MAX_CHARS = 500
 # report and 3D files are copied into the new conversation, nothing is recomputed or paid, and the interface shows the
 # steps at its own pace with a "reused" mark. The copy is not a live run (source "reuse").
 REUSE_IDENTICAL_GOAL = True
+# The three suggestions of the home page (owner, 2026-11-02): each replays one finished research of its domain (no
+# computation); the interface shows the same sentences (web test checks it).
+REPLAY_EXAMPLES = (
+    ("Find new solid electrolytes for lithium batteries that conduct lithium as fast as their parent and stay stable "
+     "against lithium metal.", "0245f94a24cf"),
+    ("Find new cobalt-free cathodes for lithium-ion batteries that store more energy than LiFePO4.", "590fa5770002"),
+    ("Find new sodium solid electrolytes that stay stable against sodium metal and let sodium ions move fast.",
+     "7af9efdcdd9a"),
+)
 STOP_POLL_S = 5  # s between two reads of a stop request by a running research
 LIVE_PRIOR = "results/2026-10-29_reference_run/result.json"  # candidates already evaluated, shown to the model
 

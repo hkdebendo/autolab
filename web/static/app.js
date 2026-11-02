@@ -299,13 +299,10 @@ $("tut-next").onclick = () => { if (tutIndex < TUT.length - 1) { tutIndex++; ren
 
 /* ---------- home ---------- */
 
-const EXAMPLES = [  // the first one is the recorded research of Nov 1, word for word: sending it reuses that research
-  "Find new sulfide solid electrolytes for lithium-metal batteries, derived from Li7P3S11 or beta-Li3PS4, that conduct lithium at least as fast as their parent and stay stable against lithium metal. Learn from the candidates that fail.",
-  "Find new sulfide solid electrolytes for lithium-metal batteries that stay stable against lithium metal.",
-  "Explore halide substitutions in Li7P3S11 to improve lithium-ion diffusion.",
-  "Which substitutions in beta-Li3PS4 keep it stable and electronically insulating?",
-  "Find new cobalt-free cathodes for lithium-ion batteries with a higher energy density than LiFePO4.",
-  "Find new sodium solid electrolytes derived from Na3PS4 or Na3SbS4 that stay stable against sodium metal and let Na+ move fast.",
+const EXAMPLES = [  // config.REPLAY_EXAMPLES, word for word: each replays one finished research of its domain
+  "Find new solid electrolytes for lithium batteries that conduct lithium as fast as their parent and stay stable against lithium metal.",
+  "Find new cobalt-free cathodes for lithium-ion batteries that store more energy than LiFePO4.",
+  "Find new sodium solid electrolytes that stay stable against sodium metal and let sodium ions move fast.",
 ];
 
 function showHome() {
@@ -324,7 +321,8 @@ function showHome() {
   hero.appendChild($("composer-wrap"));
   const ex = document.createElement("div");
   ex.className = "examples";
-  ex.innerHTML = EXAMPLES.map((t, i) => `<button type="button" data-i="${i}">${tx(t)}</button>`).join("");
+  ex.innerHTML = `<h2 class="try-title">Try with these sentences</h2>` +
+    EXAMPLES.map((t, i) => `<button type="button" data-i="${i}">${tx(t)}</button>`).join("");
   ex.onclick = (e) => { const b = e.target.closest("button"); if (b) { $("prompt").value = EXAMPLES[+b.dataset.i]; autosize(); $("prompt").focus(); } };
   hero.appendChild(ex);
   setComposer("new");

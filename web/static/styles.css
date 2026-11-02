@@ -743,3 +743,9 @@ table.data.mini th, table.data.mini td { padding: 4px 12px; }
   background: var(--accent, #3b82f6); color: #fff; font: inherit; font-weight: 600; }
 .settings-tools .edit-rules-btn:hover { filter: brightness(1.08); }
 .settings-tools .edit-rules-btn:focus-visible { outline: 2px solid var(--accent, #3b82f6); outline-offset: 2px; }
+
+/* home: the three replay suggestions */
+.examples { flex-direction: column; align-items: stretch; }
+.examples .try-title { margin: 6px 0 4px; font-size: 17px; font-weight: 700; color: var(--accent, #3b82f6); text-align: center;
+  letter-spacing: .01em; }
+.examples button { border-radius: 12px; text-align: left; padding: 10px 14px; }

@@ -135,3 +135,14 @@ def test_the_benchmark_page_lists_the_tests_of_every_domain_with_a_verdict(monke
     assert any(t["verdict"] == "failed" for t in tests)  # failures are shown
     root = Path(__file__).resolve().parents[2]
     assert all((root / t["source"]).is_dir() for t in tests if t["source"])  # every cited result folder exists
+
+
+def test_the_home_suggestions_are_the_replay_examples_of_the_service():
+    from pathlib import Path
+
+    from autolab import config
+
+    js = (Path(__file__).resolve().parents[1] / "static" / "app.js").read_text(encoding="utf-8")
+    block = js[js.index("const EXAMPLES = ["):js.index("];", js.index("const EXAMPLES = ["))]
+    shown = re.findall(r'"([^"]+)"', block)
+    assert shown == [text for text, _ in config.REPLAY_EXAMPLES]

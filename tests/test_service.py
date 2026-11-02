@@ -206,3 +206,17 @@ def test_the_results_page_lists_one_champion_per_material_without_tests_or_copie
     el = next(c for c in out["champions"] if c["domain"] == "electrolyte")
     assert len(el["also_found_by"]) == 1 and el["structure_file"] == "structures/c1.json" and el["reasons"] == ["r1"]
     assert [(d["key"], d["count"]) for d in out["domains"]] == [("electrolyte", 1), ("cathode", 1), ("sodium", 0)]
+
+
+def test_a_home_suggestion_replays_its_research(monkeypatch):
+    from autolab import config
+    from autolab.agent.service import Service
+    from autolab.store.conversations import MemoryStore
+
+    store = MemoryStore()
+    store.create({"id": "src", "title": "t", "goal": "a long recorded request", "status": "done"})
+    store.save_result("src", {"goal": "a long recorded request", "iterations": [], "prior": [], "stages": {}})
+    monkeypatch.setattr(config, "REPLAY_EXAMPLES", (("Try this short sentence.", "src"),))
+    svc = Service(store, lambda: [], lambda cid: None)
+    assert svc.reusable("try this  short sentence.")["id"] == "src"
+    assert svc.reusable("Something else.") is None

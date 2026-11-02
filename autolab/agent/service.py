@@ -148,6 +148,11 @@ class Service:
         """The latest finished research whose request is the same text (case, spaces and subscript digits aside: the
         interface shows Li₇P₃S₁₁ for Li7P3S11, and a request copied from it must still match), with a result."""
         key = goal_key(text)
+        for example, cid in config.REPLAY_EXAMPLES:  # a suggestion of the home page replays its research
+            if goal_key(example) == key:
+                conv = self.store.get(cid)
+                if conv and conv.get("status") == "done" and self.store.result(cid):
+                    return conv
         for row in self.store.list():
             if row["status"] != "done":
                 continue
