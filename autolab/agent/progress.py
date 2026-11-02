@@ -18,7 +18,7 @@ class Step:
     stage: str | None = None  # name of the stage after the iterations, when it is one
 
 
-# Solid electrolytes (the only domain implemented): the funnel steps repeat in each iteration; with the error-driven
+# Lithium solid electrolytes: the funnel steps repeat in each iteration; with the error-driven
 # loop the slow tests (electrodes to molecular dynamics) also run in each iteration, then once more on the whole pool.
 ELECTROLYTE_STEPS = (
     Step("goal", "Understanding the research goal",

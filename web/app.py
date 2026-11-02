@@ -49,6 +49,8 @@ app.mount("/static", StaticFiles(directory=HERE / "static"), name="static")
 @app.get("/results")
 @app.get("/results/{domain}")
 @app.get("/settings")
+@app.get("/benchmarks")
+@app.get("/benchmarks/{domain}")
 @app.get("/settings/{domain}")
 @app.get("/settings/{domain}/edit")
 def page(cid: str | None = None, domain: str | None = None) -> FileResponse:
@@ -74,6 +76,14 @@ def rules() -> dict:
     from autolab.agent.settings_view import settings
 
     return settings()
+
+
+@app.get("/api/benchmarks")
+def tests() -> dict:
+    """The truth tests and benchmarks of every domain (recorded results, no call to the service)."""
+    from autolab.agent.benchmarks_view import benchmarks
+
+    return benchmarks()
 
 
 @app.api_route("/api/{path:path}", methods=METHODS)

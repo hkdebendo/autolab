@@ -14,7 +14,7 @@ client = TestClient(webapp.app)
 
 
 def test_the_page_opens_at_home_and_at_a_conversation_address():
-    for path in ("/", "/c/3f2a9c1b77aa", "/results", "/results/cathode", "/settings", "/settings/sodium", "/settings/cathode/edit"):
+    for path in ("/", "/c/3f2a9c1b77aa", "/results", "/results/cathode", "/settings", "/settings/sodium", "/settings/cathode/edit", "/benchmarks", "/benchmarks/sodium"):
         r = client.get(path)
         assert r.status_code == 200 and "What material shall we discover today?" not in r.text  # rendered by JS
         assert '<script type="module" src="/static/app.js">' in r.text
@@ -122,3 +122,16 @@ def test_the_settings_page_shows_every_domain_rule_from_config_without_the_servi
     assert rules["MD_SCREEN_TEMPERATURE_K"]["status"] == "validated"
     assert {x["status"] for x in rules.values()} <= {"validated", "justified", "budget"}
     assert all(hasattr(config, name) for name in rules)
+
+
+def test_the_benchmark_page_lists_the_tests_of_every_domain_with_a_verdict(monkeypatch):
+    from pathlib import Path
+
+    monkeypatch.setattr(webapp, "_service_url", lambda: None)  # recorded results, never relayed
+    data = client.get("/api/benchmarks").json()
+    assert [d["key"] for d in data["domains"]] == ["electrolyte", "cathode", "sodium"]
+    tests = [t for d in data["domains"] for t in d["tests"]]
+    assert {t["verdict"] for t in tests} <= {"passed", "failed", "measured"}
+    assert any(t["verdict"] == "failed" for t in tests)  # failures are shown
+    root = Path(__file__).resolve().parents[2]
+    assert all((root / t["source"]).is_dir() for t in tests if t["source"])  # every cited result folder exists

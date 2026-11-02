@@ -724,3 +724,17 @@ table.rules th:nth-child(1) { width: 60%; } table.rules th:nth-child(2) { width:
 .rule-input:focus { outline: 2px solid var(--accent, #3b82f6); outline-offset: 1px; }
 table.rules td { overflow-wrap: anywhere; }
 @media (max-width: 760px) { table.rules { table-layout: auto; } table.rules th { width: auto !important; } }
+
+/* benchmark & tests */
+table.bench { table-layout: fixed; width: 100%; }
+table.bench th:nth-child(1) { width: 30%; } table.bench th:nth-child(2) { width: 27%; }
+table.bench th:nth-child(3) { width: 31%; } table.bench th:nth-child(4) { width: 12%; }
+table.bench td { overflow-wrap: anywhere; vertical-align: top; }
+table.bench tr.subrow > td { padding: 0 8px 14px 24px; border-top: 0; }
+table.data.mini { width: auto; min-width: 50%; font-size: 13px; }
+table.data.mini th, table.data.mini td { padding: 4px 12px; }
+.verdict { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .03em; }
+.verdict.passed { background: rgba(22, 163, 74, .15); color: #16a34a; }
+.verdict.failed { background: rgba(220, 38, 38, .14); color: #dc2626; }
+.verdict.measured { background: rgba(100, 116, 139, .16); color: #64748b; }
+@media (max-width: 760px) { table.bench { table-layout: auto; } table.bench th { width: auto !important; } }

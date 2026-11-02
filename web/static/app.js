@@ -105,9 +105,11 @@ function route() {
   const m = location.pathname.match(/^\/c\/([\w-]+)/);
   const r = location.pathname.match(/^\/results(?:\/([\w-]+))?/);
   const st = location.pathname.match(/^\/settings(?:\/([\w-]+))?(\/edit)?/);
+  const bm = location.pathname.match(/^\/benchmarks(?:\/([\w-]+))?/);
   if (m) openConversation(m[1]);
   else if (r) showResults(r[1]);
   else if (st) showSettings(st[1], !!st[2]);
+  else if (bm) showBenchmarks(bm[1]);
   else showHome();
 }
 
@@ -230,6 +232,7 @@ $("open-sidebar").onclick = () => {
 $("scrim").onclick = closeDrawer;
 $("new-chat").onclick = () => navigate("/");
 $("results-btn").onclick = () => navigate("/results");
+$("bench-btn").onclick = () => navigate("/benchmarks");
 document.querySelector(".brand").addEventListener("click", (e) => { e.preventDefault(); navigate("/"); });
 
 /* ---------- modals ---------- */
@@ -1188,6 +1191,50 @@ async function showSettings(domain, edit = false) {
     $("rules-edit").onclick = () => navigate(`/settings/${current.key}/edit`);
     $("theme-open").onclick = () => { applyTheme(themeChoice()); openModal("settings"); };
   }
+  $("view").scrollTo({ top: 0 });
+}
+
+/* ---------- benchmark & tests: the truth tests and benchmarks of each domain ---------- */
+
+const benchCache = { data: null };
+
+async function showBenchmarks(domain) {
+  stopTimers();
+  S.id = null; S.view = null; S.events = []; S.index = null;
+  disposeViewers();
+  const main = document.querySelector(".main");
+  main.classList.remove("home");
+  main.classList.add("results-page");
+  main.appendChild($("composer-wrap"));
+  $("crumb").textContent = "Benchmark & Tests";
+  document.title = "Benchmark & Tests · AutoLab";
+  renderHistory();
+  if (!benchCache.data) {
+    $("view").innerHTML = loadingHTML("Reading the tests of every domain…");
+    try { benchCache.data = await api("/benchmarks"); }
+    catch (e) {
+      $("view").innerHTML = `<div class="thread"><div class="notice warn">The tests could not be loaded: ${esc(e.message)}.</div></div>`;
+      return;
+    }
+  }
+  if (!location.pathname.startsWith("/benchmarks")) return;  // the reader went elsewhere meanwhile
+  const { domains } = benchCache.data;
+  const current = domains.find((d) => d.key === domain) || domains[0];
+  const verdict = (v) => `<span class="verdict ${esc(v)}">${esc(v)}</span>`;
+  const sub = (t) => (t.table ? `<tr class="subrow"><td colspan="4"><table class="data mini"><thead><tr>${t.table.head.map((h) => `<th>${tx(h)}</th>`).join("")}</tr></thead>
+      <tbody>${t.table.rows.map((r) => `<tr>${r.map((c, i) => `<td${i ? ' class="num"' : ""}>${tx(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></td></tr>` : "");
+  $("view").innerHTML = `<div class="results bench-page">
+      <header class="results-head"><h1>Benchmark &amp; Tests</h1></header>
+      <nav class="domain-tabs" role="tablist">${domains.map((d) => `<button type="button" role="tab" data-domain="${esc(d.key)}"
+        aria-selected="${d.key === current.key}"><b>${esc(d.label)}</b><span>${d.counts.passed} passed · ${d.counts.failed} failed · ${d.counts.measured} measured</span></button>`).join("")}</nav>
+      <div class="table-scroll"><table class="data bench"><thead><tr><th>Test</th><th>Criterion</th><th>Result</th><th>Verdict</th></tr></thead><tbody>
+        ${current.tests.map((t) => `<tr><td>${tx(t.test)}</td><td class="muted">${tx(t.criterion)}</td><td>${tx(t.result)}</td><td>${verdict(t.verdict)}</td></tr>${sub(t)}`).join("")}
+      </tbody></table></div>
+    </div>`;
+  $("view").querySelector(".domain-tabs").onclick = (e) => {
+    const b = e.target.closest("[data-domain]");
+    if (b) navigate(`/benchmarks/${b.dataset.domain}`);
+  };
   $("view").scrollTo({ top: 0 });
 }
 

@@ -266,7 +266,7 @@ AGENT_DOMAIN = "electrolyte"
 # How the interface names each domain (the results page groups the champions by domain, in this order; a new domain
 # adds its entry here).
 DOMAIN_LABELS = {
-    "electrolyte": {"label": "Solid electrolytes", "kind": "Solid electrolyte · lithium-metal batteries",
+    "electrolyte": {"label": "Lithium solid electrolytes", "kind": "Lithium solid electrolyte · lithium-metal batteries",
                     "about": "Ion conductors placed between the lithium-metal anode and the cathode: they must be "
                              "stable, block electrons, survive contact with lithium metal and let Li+ move fast."},
     "cathode": {"label": "Cobalt-free cathodes", "kind": "Cobalt-free cathode · lithium-ion batteries",
