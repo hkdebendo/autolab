@@ -101,6 +101,8 @@ def get_domain(name: str) -> Domain:
         from autolab.domains import cathode  # noqa: F401  (registers itself)
     if name == "sodium" and name not in _DOMAINS:
         from autolab.domains import sodium  # noqa: F401  (registers itself)
+    if name == "memristor" and name not in _DOMAINS:
+        from autolab.domains import memristor  # noqa: F401  (registers itself)
     if name not in _DOMAINS:
-        raise ValueError(f"unknown domain {name!r} (known: electrolyte, cathode, sodium)")
+        raise ValueError(f"unknown domain {name!r} (known: electrolyte, cathode, sodium, memristor)")
     return _DOMAINS[name]()

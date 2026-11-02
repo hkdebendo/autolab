@@ -140,7 +140,41 @@ SODIUM_STEPS = (
     Step("report", "Final scientific report", "The finalists are compared and the best compromise analysed in detail, "
          "with its limits and the validations still needed.", stage="report"),
 )
-DOMAIN_STEPS = {"electrolyte": ELECTROLYTE_STEPS, "cathode": CATHODE_STEPS, "sodium": SODIUM_STEPS}
+MEMRISTOR_STEPS = (
+    Step("goal", "Understanding the research goal",
+         "AutoLab reads the request, checks that it is within the supported research areas and sets the constraints.",
+         ("loop/scope",)),
+    Step("propose", "Proposing doped oxides",
+         "New compositions are proposed by isovalent substitution in known switching oxides (HfO2, TiO2, SrTiO3).",
+         ("llm/proposal",)),
+    Step("build", "Building and relaxing crystal structures",
+         "Each composition is built in several atomic arrangements, checked for charge neutrality and relaxed with a "
+         "machine-learned interatomic potential (UMA); compositions already known are not recomputed.",
+         ("candidate/generate", "candidate/known_check", "candidate/relax")),
+    Step("stability", "Thermodynamic stability",
+         "The energy above the convex hull of the stable known phases says whether a crystal would decompose.",
+         ("candidate/hull",)),
+    Step("bandgap", "Electronic band gap",
+         "A memristor oxide must insulate in its high-resistance state: the band gap is predicted with GapModel.",
+         ("candidate/bandgap", "candidate/ss_check", "candidate/done")),
+    Step("migration", "Oxygen-vacancy migration barrier",
+         "An oxygen vacancy is made to hop next to the dopant (nudged elastic band with UMA) and its barrier is "
+         "compared with that of the parent oxide: a lower barrier suggests easier switching.", stage="migration"),
+    Step("learn", "Interpreting the results",
+         "The numbers of this round, failures included, go back to the agent, which explains them as hypotheses and "
+         "corrects the next proposals.", ("loop/feedback", "llm/analysis", "llm/summary")),
+    Step("review", "Independent review of the candidates",
+         "Each candidate is reviewed separately: strengths, risks and interest for a follow-up.",
+         stage="candidate_analyses"),
+    Step("ranking", "Ranking the candidates", "Candidates are ordered by their barrier against the parent, then by the "
+         "barrier itself and their stability cost per substitution.", stage="ranking"),
+    Step("literature", "Literature check", "A web search tells whether each finalist, or its close family, is already "
+         "published; a known memristor oxide is checked first as a control.", stage="novelty"),
+    Step("report", "Final scientific report", "The finalists are compared and the best compromise analysed in detail, "
+         "with its limits and the validations still needed.", stage="report"),
+)
+DOMAIN_STEPS = {"electrolyte": ELECTROLYTE_STEPS, "cathode": CATHODE_STEPS, "sodium": SODIUM_STEPS,
+                "memristor": MEMRISTOR_STEPS}
 
 
 def domain_of(events: list[dict]) -> str:
