@@ -531,18 +531,18 @@ $("prompt").addEventListener("keydown", (e) => {
   if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); $("composer").requestSubmit(); }
 });
 
-function setComposer(mode) {  // new | followup | running | stopping | replaying
+function setComposer(mode) {  // new | followup | running | stopping | playing
   const f = $("composer"), t = $("prompt");
-  const stop = mode === "running" || mode === "stopping" || mode === "replaying";
+  const stop = mode === "running" || mode === "stopping" || mode === "playing";
   f.dataset.mode = mode;
   f.classList.toggle("stop", stop);
   t.disabled = stop;
   $("send").disabled = mode === "stopping" || S.sending;
-  $("send").setAttribute("aria-label", mode === "running" ? "Stop the research" : mode === "replaying" ? "Stop the playback" : "Send");
+  $("send").setAttribute("aria-label", mode === "running" ? "Stop the research" : mode === "playing" ? "Stop the playback" : "Send");
   t.placeholder = mode === "new" ? "Describe the material you are looking for…"
     : mode === "followup" ? "Ask a follow-up question about this research…"
       : mode === "stopping" ? "Stopping: the current step finishes, then nothing new starts…"
-        : mode === "replaying" ? "Playing the research… press stop to see the results now."
+        : mode === "playing" ? "Playing the research… press stop to see the results now."
           : "AutoLab is researching… you can stop it at any time.";
 }
 
@@ -550,7 +550,7 @@ $("composer").addEventListener("submit", async (e) => {
   e.preventDefault();
   const mode = $("composer").dataset.mode;
   if (mode === "running") return stopResearch();
-  if (mode === "replaying") { hush(); return labFinish(); }  // the playback ends at once, the results are shown
+  if (mode === "playing") { hush(); return labFinish(); }  // the playback ends at once, the results are shown
   if (mode === "stopping" || S.sending) return;
   const text = $("prompt").value.trim();
   if (!text) return;
@@ -597,7 +597,7 @@ async function stopResearch() {
 
 function composerMode() {
   if (!S.view) return "new";
-  if (L.on && !L.hidden && L.convId === S.id && L.mode === "watch") return "replaying";
+  if (L.on && !L.hidden && L.convId === S.id && L.mode === "watch") return "playing";
   const st = S.view.conversation.status;
   return st === "stopping" ? "stopping" : ACTIVE.has(st) ? "running" : "followup";
 }
