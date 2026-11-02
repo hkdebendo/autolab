@@ -717,7 +717,6 @@ table.rules code { font-size: 12px; color: var(--muted); }
 .st-chip.budget, i.st.budget { background: rgba(245, 158, 11, .15); color: #d97706; border-color: rgba(245, 158, 11, .35); }
 i.st.validated { background: #16a34a; } i.st.justified { background: #3b82f6; } i.st.budget { background: #d97706; }
 table.rules { table-layout: fixed; width: 100%; }
-table.rules th:nth-child(1) { width: 24%; } table.rules th:nth-child(2) { width: 15%; }
-table.rules th:nth-child(3) { width: 33%; } table.rules th:nth-child(4) { width: 10%; } table.rules th:nth-child(5) { width: 18%; }
+table.rules th:nth-child(1) { width: 52%; } table.rules th:nth-child(2) { width: 30%; } table.rules th:nth-child(3) { width: 18%; }
 table.rules td { overflow-wrap: anywhere; }
 @media (max-width: 760px) { table.rules { table-layout: auto; } table.rules th { width: auto !important; } }

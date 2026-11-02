@@ -1155,21 +1155,18 @@ async function showSettings(domain) {
     }
   }
   if (!location.pathname.startsWith("/settings")) return;  // the reader went elsewhere meanwhile
-  const { domains, note, source } = rulesCache.data;
+  const { domains } = rulesCache.data;
   const current = domains.find((d) => d.key === domain) || domains[0];
   const val = (r) => `${tx(String(r.value))}${r.unit ? ` <span class="muted">${tx(r.unit)}</span>` : ""}`;
   $("view").innerHTML = `<div class="results settings-page">
       <header class="results-head"><h1>Settings</h1>
-        <p>The rules AutoLab decides with, for each research area. Every filter, verdict and limit comes from these values, never from the language models. ${esc(note)}</p>
-        <div class="settings-tools"><span class="chip">source: ${esc(source)}</span>
-          <button class="ghost-btn" type="button" id="theme-open">Appearance</button></div></header>
+        <div class="settings-tools"><button class="ghost-btn" type="button" id="theme-open">Appearance</button></div></header>
       <nav class="domain-tabs" role="tablist">${domains.map((d) => `<button type="button" role="tab" data-domain="${esc(d.key)}"
         aria-selected="${d.key === current.key}"><b>${esc(d.label)}</b><span>${d.groups.reduce((n, g) => n + g.rules.length, 0)} rules</span></button>`).join("")}</nav>
-      <div class="legend rules-legend">${Object.entries(STATUS).map(([k, [l, t]]) => `<span><i class="st ${k}"></i><b>${l}</b>: ${t}</span>`).join("")}</div>
       ${current.groups.map((g) => `<section class="rules-group"><h2>${esc(g.title)}</h2>
-        <div class="table-scroll"><table class="data rules"><thead><tr><th>Rule</th><th>Value</th><th>Why</th><th>Status</th><th>Name in config.py</th></tr></thead><tbody>
-        ${g.rules.map((r) => `<tr><td>${tx(r.label)}</td><td class="num">${val(r)}</td><td class="muted">${tx(r.why || "—")}</td>
-          <td><span class="st-chip ${esc(r.status)}">${esc(STATUS[r.status] ? STATUS[r.status][0] : r.status)}</span></td><td><code>${esc(r.name)}</code></td></tr>`).join("")}
+        <div class="table-scroll"><table class="data rules"><thead><tr><th>Rule</th><th>Value</th><th>Status</th></tr></thead><tbody>
+        ${g.rules.map((r) => `<tr><td>${tx(r.label)}</td><td class="num">${val(r)}</td>
+          <td><span class="st-chip ${esc(r.status)}" title="${esc(STATUS[r.status] ? STATUS[r.status][1] : "")}">${esc(STATUS[r.status] ? STATUS[r.status][0] : r.status)}</span></td></tr>`).join("")}
         </tbody></table></div></section>`).join("")}
     </div>`;
   $("view").querySelector(".domain-tabs").onclick = (e) => {
