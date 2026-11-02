@@ -44,17 +44,32 @@ const S = { id: null, view: null, events: [], next: 0, timer: null, tab: "progre
 
 /* ---------- service calls ---------- */
 
-async function api(path, opts = {}) {
-  const res = await fetch(`/api${path}`, {
-    method: opts.method || "GET",
-    headers: opts.body ? { "Content-Type": "application/json" } : undefined,
-    body: opts.body ? JSON.stringify(opts.body) : undefined,
-  });
-  let data = null;
-  try { data = await res.json(); } catch { /* empty body */ }
-  if (!res.ok) throw new Error((data && data.detail) || `Request failed (${res.status})`);
-  return data;
+const busy = { n: 0, timer: 0 };
+function busyStart() { if (busy.n++ === 0) busy.timer = setTimeout(() => $("loadbar").classList.add("on"), 120); }
+function busyEnd() {
+  busy.n = Math.max(0, busy.n - 1);
+  if (!busy.n) { clearTimeout(busy.timer); $("loadbar").classList.remove("on"); }
 }
+
+async function api(path, opts = {}) {  // opts.quiet: a background refresh, no loading bar
+  if (!opts.quiet) busyStart();
+  try {
+    const res = await fetch(`/api${path}`, {
+      method: opts.method || "GET",
+      headers: opts.body ? { "Content-Type": "application/json" } : undefined,
+      body: opts.body ? JSON.stringify(opts.body) : undefined,
+    });
+    let data = null;
+    try { data = await res.json(); } catch { /* empty body */ }
+    if (!res.ok) throw new Error((data && data.detail) || `Request failed (${res.status})`);
+    return data;
+  } finally {
+    if (!opts.quiet) busyEnd();
+  }
+}
+
+const loadingHTML = (text) => `<div class="thread"><div class="loading-block" role="status"><div class="spinner"></div>
+  <p>${esc(text)}</p><i></i><i></i><i class="short"></i></div></div>`;
 
 function toast(text) {
   const t = $("toast");
@@ -101,7 +116,8 @@ function stopTimers() {
 /* ---------- history (left) ---------- */
 
 async function loadHistory() {
-  try { S.history = await api("/conversations"); } catch (e) { S.history = S.history || []; }
+  try { S.history = await api("/conversations", { quiet: true }); } catch (e) { S.history = S.history || []; }
+  S.historyLoaded = true;
   renderHistory();
 }
 
@@ -119,7 +135,11 @@ function shortTime(iso) {
 
 function renderHistory() {
   const nav = $("history");
-  if (!S.history.length) { nav.innerHTML = `<p class="h-empty">Your researches will appear here.</p>`; return; }
+  if (!S.history.length) {
+    nav.innerHTML = S.historyLoaded ? `<p class="h-empty">Your researches will appear here.</p>`
+      : `<p class="h-empty"><span class="spinner small"></span> Loading your researches…</p>`;
+    return;
+  }
   let html = "", group = null;
   for (const c of S.history) {
     const g = dayGroup(c.updated_at);
@@ -282,6 +302,7 @@ function showHome() {
   S.id = null; S.view = null; S.events = []; S.next = 0; S.index = null;
   disposeViewers();
   document.querySelector(".main").classList.add("home");
+  document.querySelector(".main").appendChild($("composer-wrap"));  // keep it: the page below is rebuilt
   $("crumb").textContent = "";
   $("view").innerHTML = `<section class="hero">
       <canvas id="sphere" width="336" height="336" aria-hidden="true"></canvas>
@@ -441,24 +462,31 @@ function appendPending(text) {
 async function openConversation(id) {
   stopTimers();
   leaveHome();
-  if (S.id !== id) { S.events = []; S.next = 0; S.index = null; S.tab = "progress"; disposeViewers(); }
+  const other = S.id !== id;
+  if (other) { S.events = []; S.next = 0; S.index = null; S.tab = "progress"; disposeViewers(); }
   S.id = id;
   renderHistory();
+  if (other || !$("view").querySelector(".thread")) {
+    $("view").innerHTML = loadingHTML("Opening the research…");
+    setComposer("followup");
+  }
   try {
-    const v = await api(`/conversations/${id}`);
-    showConversation(v);
+    const [v, p] = await Promise.all([api(`/conversations/${id}`), api(`/conversations/${id}/progress?after=0`).catch(() => null)]);
+    if (S.id !== id) return;  // another research was opened meanwhile
+    showConversation(v, p);
   } catch (e) {
     $("view").innerHTML = `<div class="thread"><div class="notice warn">This research could not be opened: ${esc(e.message)}.</div></div>`;
     setComposer("new");
   }
 }
 
-async function showConversation(v) {
+async function showConversation(v, pre = null) {
   S.view = v;
   S.id = v.conversation.id;
   refreshCrumb();
   renderHistory();
-  if (v.events_count) await fetchProgress(true);
+  if (pre) { S.events = pre.events; S.next = pre.next; S.view.steps = pre.steps; }
+  else if (v.events_count) await fetchProgress(true);
   if (!ACTIVE.has(v.conversation.status) && v.files.includes("index.json") && !S.index) {
     try { S.index = await api(`/conversations/${S.id}/files/index.json`); } catch { S.index = null; }
   }
@@ -486,8 +514,8 @@ function refreshCrumb() {
   document.title = `${$("crumb").textContent || "AutoLab"} · AutoLab`;
 }
 
-async function fetchProgress(all = false) {
-  const p = await api(`/conversations/${S.id}/progress?after=${all ? 0 : S.next}`);
+async function fetchProgress(all = false, quiet = false) {
+  const p = await api(`/conversations/${S.id}/progress?after=${all ? 0 : S.next}`, { quiet });
   if (all) S.events = p.events; else S.events.push(...p.events);
   S.next = p.next;
   S.view.steps = p.steps;
@@ -501,7 +529,7 @@ function startPolling() {  // fallback when the WebSocket is not available
     if (S.id !== id) return clearInterval(S.timer);
     try {
       const before = S.next;
-      const p = await fetchProgress();
+      const p = await fetchProgress(false, true);
       if (L.on) labEnqueue(p.events);
       if (p.status !== S.view.conversation.status) {
         S.view.conversation.status = p.status;
@@ -850,7 +878,9 @@ function render3DSection(box) {
     <figcaption>Drag to rotate, scroll to zoom, right-drag to move. Colours follow the CPK convention; the substituted element is drawn larger; grey lines: unit cell.</figcaption></figure>`;
   const show = async () => {
     const id = $("st-pick").value, entry = S.index.structures.find((s) => s.id === id);
+    $("st-view").innerHTML = `<div class="loading-inline"><span class="spinner small"></span> Loading the structure…</div>`;
     const st = await api(`/conversations/${S.id}/files/${entry.file}`);
+    $("st-view").innerHTML = "";
     const v = newViewer($("st-view"));
     if (v) { v.clear(); drawCrystal(v, st); }
     $("st-legend").innerHTML = legendHTML(new Set(st.symbols), st.highlight ? `<span class="muted">substituted: ${esc(st.highlight)}</span>` : "");
@@ -865,10 +895,11 @@ async function openStructure(id) {
   const entry = S.index.structures.find((s) => s.id === id);
   if (!entry) return;
   $("viewer-title").textContent = chem(entry.formula);
-  $("viewer-body").innerHTML = `<div class="viewer3d tall" id="big-view"></div><div id="big-legend"></div><div id="big-info" class="stats"></div>`;
+  $("viewer-body").innerHTML = `<div class="viewer3d tall" id="big-view"><div class="loading-inline"><span class="spinner small"></span> Loading the structure…</div></div><div id="big-legend"></div><div id="big-info" class="stats"></div>`;
   openModal("viewer-modal");
   try {
     const st = await api(`/conversations/${S.id}/files/${entry.file}`);
+    $("big-view").innerHTML = "";
     const v = newViewer($("big-view"));
     if (v) drawCrystal(v, st, true);
     $("big-legend").innerHTML = legendHTML(new Set(st.symbols), st.highlight ? `<span class="muted">substituted: ${esc(st.highlight)}</span>` : "");
@@ -909,6 +940,7 @@ function renderMDSection(box) {
     clearInterval(S.mdTimer);
     const id = $("md-pick").value, seed = +$("md-seed").value;
     const entry = S.index.md.find((e) => e.id === id && e.seed === seed);
+    for (const k of ["md-a", "md-b"]) $(k).innerHTML = `<div class="loading-inline"><span class="spinner small"></span> Loading the simulation…</div>`;
     md.a = await api(`/conversations/${S.id}/files/${entry.file}`);
     const pe = S.index.md.find((e) => e.id === md.a.parent && e.seed === seed) || S.index.md.find((e) => e.id === md.a.parent);
     md.b = pe ? await api(`/conversations/${S.id}/files/${pe.file}`) : null;
@@ -916,6 +948,7 @@ function renderMDSection(box) {
     $("md-frame").max = md.a.frames.length - 1;
     for (const v of S.viewers) { try { v.clear(); } catch { /* */ } }
     S.viewers = [];
+    $("md-a").innerHTML = ""; $("md-b").innerHTML = "";
     md.va = newViewer($("md-a")); md.vb = md.b ? newViewer($("md-b")) : null;
     if (!md.b) $("md-b").innerHTML = `<div class="unavailable">The parent crystal was not simulated in this research.</div>`;
     $("md-a-cap").textContent = chem(`${md.a.formula} (candidate)`);

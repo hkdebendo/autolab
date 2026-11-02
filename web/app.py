@@ -51,6 +51,18 @@ def page(cid: str | None = None) -> FileResponse:
     return FileResponse(HERE / "static" / "index.html")
 
 
+_CLIENTS: dict[tuple, httpx.AsyncClient] = {}
+
+
+def _client(base: str) -> httpx.AsyncClient:
+    """One client per service address (and event loop): its connections are kept, so each call does not open a new
+    secure connection to the service (that cost about half a second per call)."""
+    key = (base, id(asyncio.get_running_loop()))
+    if key not in _CLIENTS:
+        _CLIENTS[key] = httpx.AsyncClient(base_url=base.rstrip("/"), timeout=TIMEOUT_S)
+    return _CLIENTS[key]
+
+
 @app.api_route("/api/{path:path}", methods=METHODS)
 async def relay(path: str, request: Request) -> Response:
     """Forward one call to the AutoLab service, passing the status code and the body through."""
@@ -60,9 +72,8 @@ async def relay(path: str, request: Request) -> Response:
     body = await request.body()
     headers = {"Content-Type": "application/json"} if body else None
     try:
-        async with httpx.AsyncClient(base_url=base.rstrip("/"), timeout=TIMEOUT_S) as client:
-            upstream = await client.request(request.method, f"/api/{path}", content=body or None,
-                                            params=dict(request.query_params), headers=headers)
+        upstream = await _client(base).request(request.method, f"/api/{path}", content=body or None,
+                                               params=dict(request.query_params), headers=headers)
     except httpx.HTTPError:
         return JSONResponse({"detail": "the AutoLab service cannot be reached"}, status_code=503)
     return Response(content=upstream.content, status_code=upstream.status_code,
