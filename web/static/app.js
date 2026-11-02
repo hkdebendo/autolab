@@ -264,9 +264,11 @@ const VOICE = { on: (() => { try { return localStorage.getItem("autolab-voice") 
 const plainText = (s) => String(s || "").replace(/<[^>]+>/g, " ").replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
   .replace(/[*_`#>|]/g, " ").replace(/\s+/g, " ").trim();
 function pickVoice() {
-  const vs = "speechSynthesis" in window ? speechSynthesis.getVoices() : [];
-  return vs.find((v) => /^en/i.test(v.lang) && /natural/i.test(v.name)) || vs.find((v) => /^en-US/i.test(v.lang))
-    || vs.find((v) => /^en/i.test(v.lang)) || null;
+  // local voices only (installed on this computer): an online neural voice (Edge "Online (Natural)") is a remote AI
+  // service, not a browser function, and is never used
+  const vs = ("speechSynthesis" in window ? speechSynthesis.getVoices() : [])
+    .filter((v) => v.localService && !/online|natural|neural|cloud/i.test(v.name));
+  return vs.find((v) => /^en-US/i.test(v.lang)) || vs.find((v) => /^en/i.test(v.lang)) || null;
 }
 function say(text, important = false) {
   if (!VOICE.on || !("speechSynthesis" in window)) return;
@@ -274,8 +276,15 @@ function say(text, important = false) {
   if (!t || (!important && VOICE.queue > 2)) return;  // keep pace with the lab: skip a line rather than lag behind
   const u = new SpeechSynthesisUtterance(t.length > 280 ? `${t.slice(0, 277)}…` : t);
   const v = pickVoice();
-  if (v) u.voice = v;
-  u.lang = (v && v.lang) || "en-US";
+  if (!v) {  // never let the browser fall back on its default voice, which may be an online one
+    if (!say.warned && speechSynthesis.getVoices().length) {  // the list loads asynchronously: warn once it is there
+      say.warned = true;
+      toast("No local voice is installed on this computer: the agent stays silent.");
+    }
+    return;
+  }
+  u.voice = v;
+  u.lang = v.lang;
   u.rate = 1.04;
   VOICE.queue++;
   u.onend = u.onerror = () => { VOICE.queue = Math.max(0, VOICE.queue - 1); };

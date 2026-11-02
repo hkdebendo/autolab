@@ -139,8 +139,22 @@ Outputs are **computational predictions**, not proven materials: DFT checks, syn
 - **Muse Spark Open** (Baseten): one independent review per candidate, in parallel; fallback of Muse Spark.
 - **Muse Glimmer** (Fireworks, dedicated deployment): plain-language summaries of each round and of the research.
 - **UMA** `uma-s-1p2` (Meta FAIR, open weights): relaxations, energies and molecular dynamics, on Modal GPUs (T4 for relaxations, H100 for MD).
-- **Muse Voice Transcribe** (Meta Model API, realtime): the researcher can dictate a request; the local web server relays the microphone to Meta, so the key never reaches the browser. The agent's spoken replies use the browser's speech synthesis (no Meta text-to-speech model is available on this account).
+- **Muse Voice Transcribe** (Meta Model API, realtime): the researcher can dictate a request; the local web server relays the microphone to Meta, so the key never reaches the browser.
 - **Muse Code**: coding agent used for parts of the web interface; commits written with it say so.
+
+### What is a Meta model call, and what is not
+
+| Part | What it is |
+|---|---|
+| Reasoning, proposals, decisions, reviews, summaries, report, literature check | **Meta model calls**: Muse Spark, Muse Spark Open, Muse Glimmer |
+| Atomistic simulation (structures, energies, molecular dynamics) | **Meta model**: UMA (Meta FAIR), run on Modal GPUs |
+| Dictation of a request | **Meta model call**: Muse Voice Transcribe |
+| The agent's spoken lines | **Browser function**: the browser's built-in speech synthesis with a voice installed on the computer (`localService`); online voices (for example Edge "Online (Natural)" voices) are filtered out and never used; with no local voice, the agent stays silent |
+| Microphone capture and resampling to 16 kHz | **Browser function** (Web Audio), no model |
+| 3D structures, charts, PDF export of a report | **Browser functions** (3Dmol.js, SVG, print), no model |
+| Charge neutrality, convex hull, electrochemical window, diffusion analysis, ranking | **Code** (pymatgen, NumPy, ASE), no model |
+| Known phases and reference energies | **Data**: Materials Project database |
+| Band gap of a candidate | a band-gap model, run locally on CPU |
 
 ## Architecture
 
