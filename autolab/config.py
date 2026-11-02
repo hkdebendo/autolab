@@ -290,8 +290,8 @@ MD_MAX_USD_PER_RUN = 7.0  # estimated Modal cost of all the MD launched in one r
 FEEDBACK_LOOP = True
 ITERATION_MD_SELECT_MAX = 1  # candidates of one iteration sent to MD (the model chooses)
 FINAL_MD_SELECT_MAX = 0  # new MD after the iterations with the feedback loop (cached verdicts still apply to all)
-FINAL_RANK_MD_ORDER = ("higher", "tied", "not_run")  # MD verdicts, best first, after the conductivity verdict
-# (CONDUCTIVITY_RANK_ORDER); then lowest E_hull per substitution;
+FINAL_RANK_MD_ORDER = ("higher", "tied", "not_run")  # MD verdicts, best first, inside the "not_fitted" group of
+# CONDUCTIVITY_RANK_ORDER; then RANK_TIE_BREAK;
 # excluded candidates (passivation, MD "lower", framework moved) come last and stay listed with their reason
 FINALISTS_MAX = 3  # best kept candidates sent to the novelty check
 
@@ -309,11 +309,21 @@ CONDUCTIVITY_EXTRA_RUNS = ((500, 40, 0), (700, 40, 0))  # (K, ps, seed) added fo
 # nanoporous beta-Li3PS4 0.16 (Liu 2013).
 CONDUCTIVITY_REFERENCE_MS_CM = {"Li7P3S11": (3.2, 17.0), "Li3PS4": (0.16, 0.16)}
 CONDUCTIVITY_TRUTH_FACTOR = 10.0
-# Ranking with the conductivity at 300 K (2026-11-01, owner): a candidate with its own Arrhenius fit is compared with
-# its parent's fit by their ranges (one standard error of the extrapolation): "lower" when its whole range is below
-# the parent's, "higher" when above, else "tied". The verdict comes first in the final ranking (best first); a
-# candidate without its own fit counts as "not_fitted", between "tied" and "lower".
-CONDUCTIVITY_RANK_ORDER = ("higher", "tied", "not_fitted", "lower")
+# Ranking with the conductivity at 300 K (owner, 2026-11-01 and 11-02): a candidate with its own Arrhenius fit is
+# compared with its parent's fit by their ranges (one standard error of the extrapolation): "lower" when its whole
+# range is below the parent's, "higher" when above, else "tied". This level comes first in the final ranking (best
+# first); candidates without their own fit (one temperature) form a separate group, "not_fitted" ("not evaluated
+# at 300 K"), after every evaluated candidate.
+CONDUCTIVITY_RANK_ORDER = ("higher", "tied", "lower", "not_fitted")
+# The parent's fit used in the comparison is made with the same runs as the candidate's (same temperatures, same
+# number of runs at each, same lengths and seeds when cached); the parent's full fit (all its runs) stays the one of
+# the truth test and of the parents' table.
+CONDUCTIVITY_PARENT_SAME_PROTOCOL = True
+# Order inside a level (owner, 2026-11-02), a convention, not a significant difference (the gaps are usually smaller
+# than the error bars): lowest E_hull per substitution, then lowest activation energy (own fit only), then widest
+# electrochemical window (zero width or not computed: 0 V). The MD verdict at 600 K is a pre-filter (a "lower" verdict
+# excludes); it orders only the "not_fitted" group, before these keys.
+RANK_TIE_BREAK = ("e_hull_per_substitution", "activation_energy", "window_width")
 
 # --- Budget limits (CLAUDE.md) -----------------------------------------------
 

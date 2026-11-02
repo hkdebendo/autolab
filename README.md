@@ -66,7 +66,7 @@ Finalists over the whole campaign (all candidates evaluated since Oct 28), all "
 | Li12P4SeS15 | −0.004 ± 0.005 | tied (0.82 ± 0.25) | 5.7 (1.5–22) | beta-Li3PS4: 1.2 |
 | Li7P3SeS10 | +0.015 ± 0.005 | tied (1.07 ± 0.23) | 134 (50–360) | Li7P3S11: 100 |
 
-The champion has the lowest central conductivity at room temperature (activation energy 0.42 eV), but its range overlaps its parent's: every finalist is **tied** with its parent at 300 K as at 600 K. The ranking uses this verdict first: a candidate counts as slower or faster than its parent only when the two ranges do not overlap.
+The champion has the lowest central conductivity at room temperature (activation energy 0.42 eV), but its range overlaps its parent's: every finalist is **tied** with its parent at 300 K as at 600 K. The ranking uses this verdict first: a candidate counts as slower or faster than its parent only when the two ranges do not overlap, and the parent's range is fitted on the same runs as the candidate's. Inside a level the order is a stated convention (lowest E_hull per substitution, then activation energy, then window), not a significant difference: the three finalists share one level, so the champion is first by convention. These rules were written after the 600 K screen had picked, as champion, the finalist with the lowest central conductivity at room temperature.
 
 ## Validation: truth tests and benchmarks
 
@@ -140,7 +140,7 @@ About 36 $ of Modal GPU time (calibrations, benchmark, runs), 1.2 $ of Muse Spar
 ```bash
 pip install -e ".[bandgap,dev]"
 cp .env.example .env          # then fill in your own keys
-pytest                        # 161 CPU tests; GPU and paid-API tests are skipped
+pytest                        # 167 CPU tests; GPU and paid-API tests are skipped
 pytest web/tests              # 17 tests of the interface
 pytest --gpu                  # UMA truth tests (NVIDIA GPU only)
 ```

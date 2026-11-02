@@ -112,7 +112,17 @@
             "T": 600.0,
             "D_cm2_per_s": 5.53e-06,
             "D_sem_cm2_per_s": 1.23e-06,
-            "runs": 2
+            "runs": 2,
+            "protocol": [
+              [
+                40,
+                0
+              ],
+              [
+                40,
+                1
+              ]
+            ]
           }
         ]
       },
@@ -421,7 +431,8 @@
       "decomposition_polysulfides": [],
       "passivation_reaction_energy": 2.37156,
       "electrodes_reduced_confidence": true,
-      "conductivity_vs_parent": null
+      "conductivity_vs_parent": null,
+      "ranking_level": "not_fitted"
     },
     {
       "id": "s9:it1-c2",
@@ -533,7 +544,17 @@
             "T": 600.0,
             "D_cm2_per_s": 7.86e-06,
             "D_sem_cm2_per_s": 8.08e-07,
-            "runs": 2
+            "runs": 2,
+            "protocol": [
+              [
+                40,
+                0
+              ],
+              [
+                40,
+                1
+              ]
+            ]
           }
         ]
       },
@@ -844,7 +865,8 @@
       "decomposition_polysulfides": [],
       "passivation_reaction_energy": 2.197189,
       "electrodes_reduced_confidence": false,
-      "conductivity_vs_parent": null
+      "conductivity_vs_parent": null,
+      "ranking_level": "not_fitted"
     },
     {
       "id": "s9:it1-c3",
@@ -1002,21 +1024,104 @@
             "T": 500.0,
             "D_cm2_per_s": 8.81e-06,
             "D_sem_cm2_per_s": 2.22e-06,
-            "runs": 1
+            "runs": 1,
+            "protocol": [
+              [
+                40,
+                0
+              ]
+            ]
           },
           {
             "T": 600.0,
             "D_cm2_per_s": 1.39e-05,
             "D_sem_cm2_per_s": 1.79e-06,
-            "runs": 2
+            "runs": 2,
+            "protocol": [
+              [
+                40,
+                0
+              ],
+              [
+                40,
+                1
+              ]
+            ]
           },
           {
             "T": 700.0,
             "D_cm2_per_s": 1.96e-05,
             "D_sem_cm2_per_s": 4.47e-06,
-            "runs": 1
+            "runs": 1,
+            "protocol": [
+              [
+                40,
+                0
+              ]
+            ]
           }
-        ]
+        ],
+        "parent_same_protocol": {
+          "sigma_mS_cm": 111.386,
+          "sigma_low_mS_cm": 63.696,
+          "sigma_high_mS_cm": 194.783,
+          "temperature_K": 300,
+          "Ea_eV": 0.133,
+          "Ea_err_eV": 0.027,
+          "D_cm2_per_s": 1.12e-06,
+          "fit_temperatures_K": [
+            500.0,
+            600.0,
+            700.0
+          ],
+          "li_density_cm3": 1.6019223786423253e+22,
+          "method": "own Arrhenius fit (500, 600, 700 K)",
+          "points": [
+            {
+              "T": 500.0,
+              "D_cm2_per_s": 9.15e-06,
+              "D_sem_cm2_per_s": 1.52e-06,
+              "runs": 1,
+              "protocol": [
+                [
+                  40,
+                  0
+                ]
+              ]
+            },
+            {
+              "T": 600.0,
+              "D_cm2_per_s": 1.29e-05,
+              "D_sem_cm2_per_s": 2.45e-06,
+              "runs": 2,
+              "protocol": [
+                [
+                  40,
+                  0
+                ],
+                [
+                  40,
+                  1
+                ]
+              ]
+            },
+            {
+              "T": 700.0,
+              "D_cm2_per_s": 2.14e-05,
+              "D_sem_cm2_per_s": 1.53e-06,
+              "runs": 1,
+              "protocol": [
+                [
+                  30,
+                  0
+                ]
+              ]
+            }
+          ],
+          "differences": [
+            "700 K: candidate 40 ps seed 0; parent 30 ps seed 0"
+          ]
+        }
       },
       "e_hull_error": {
         "system": "Li-P-S-Se",
@@ -1391,14 +1496,21 @@
       "electrodes_reduced_confidence": true,
       "conductivity_vs_parent": {
         "verdict": "tied",
-        "ratio": 1.338,
-        "parent_sigma_mS_cm": 99.9369,
+        "ratio": 1.2,
+        "parent_sigma_mS_cm": 111.3863,
         "parent_range_mS_cm": [
-          58.1355,
-          171.795
+          63.6959,
+          194.7834
+        ],
+        "parent_Ea_eV": 0.133,
+        "parent_Ea_err_eV": 0.027,
+        "parent_fit": "same runs as the candidate",
+        "protocol_differences": [
+          "700 K: candidate 40 ps seed 0; parent 30 ps seed 0"
         ],
         "rule": "ranges of one standard error compared: overlap = tied"
       },
+      "ranking_level": "tied",
       "novelty": "related"
     },
     {
@@ -1814,7 +1926,8 @@
       "interface_reaction_energy": null,
       "decomposition_polysulfides": [],
       "passivation_reaction_energy": 2.365054,
-      "electrodes_reduced_confidence": false
+      "electrodes_reduced_confidence": false,
+      "ranking_level": null
     },
     {
       "id": "s9:it2-c1",
@@ -1875,7 +1988,17 @@
             "T": 600.0,
             "D_cm2_per_s": 1.25e-05,
             "D_sem_cm2_per_s": 1.39e-06,
-            "runs": 2
+            "runs": 2,
+            "protocol": [
+              [
+                40,
+                0
+              ],
+              [
+                40,
+                1
+              ]
+            ]
           }
         ]
       },
@@ -2213,7 +2336,8 @@
       "md_framework_intact": false,
       "e_hull_per_substitution": 0.6183,
       "decomposition_polysulfides": [],
-      "conductivity_vs_parent": null
+      "conductivity_vs_parent": null,
+      "ranking_level": null
     },
     {
       "id": "s9:it2-c2",
@@ -2577,7 +2701,8 @@
       "decomposition_polysulfides": [
         "AsS2",
         "LiS4"
-      ]
+      ],
+      "ranking_level": "not_fitted"
     },
     {
       "id": "s9:it2-c3",
@@ -2939,7 +3064,8 @@
       "e_hull_per_substitution": 1.3813,
       "decomposition_polysulfides": [
         "LiS4"
-      ]
+      ],
+      "ranking_level": "not_fitted"
     },
     {
       "id": "s9:it2-c4",
@@ -3293,7 +3419,8 @@
       "interface_reaction_energy": null,
       "decomposition_polysulfides": [],
       "passivation_reaction_energy": 2.20436,
-      "electrodes_reduced_confidence": false
+      "electrodes_reduced_confidence": false,
+      "ranking_level": null
     },
     {
       "id": "s9:it2-c5",
@@ -3405,7 +3532,17 @@
             "T": 600.0,
             "D_cm2_per_s": 5.34e-06,
             "D_sem_cm2_per_s": 1.69e-06,
-            "runs": 2
+            "runs": 2,
+            "protocol": [
+              [
+                40,
+                0
+              ],
+              [
+                40,
+                1
+              ]
+            ]
           }
         ]
       },
@@ -3714,7 +3851,8 @@
       "decomposition_polysulfides": [],
       "passivation_reaction_energy": 2.367935,
       "electrodes_reduced_confidence": true,
-      "conductivity_vs_parent": null
+      "conductivity_vs_parent": null,
+      "ranking_level": "not_fitted"
     },
     {
       "id": "s1:it1-c1",
@@ -3825,7 +3963,17 @@
             "T": 600.0,
             "D_cm2_per_s": 6.8e-06,
             "D_sem_cm2_per_s": 9.21e-07,
-            "runs": 2
+            "runs": 2,
+            "protocol": [
+              [
+                40,
+                0
+              ],
+              [
+                40,
+                1
+              ]
+            ]
           }
         ]
       },
@@ -4134,7 +4282,8 @@
       "decomposition_polysulfides": [],
       "passivation_reaction_energy": 2.368413,
       "electrodes_reduced_confidence": true,
-      "conductivity_vs_parent": null
+      "conductivity_vs_parent": null,
+      "ranking_level": "not_fitted"
     },
     {
       "id": "s1:it1-c2",
@@ -4246,21 +4395,104 @@
             "T": 500.0,
             "D_cm2_per_s": 2.08e-07,
             "D_sem_cm2_per_s": 1.59e-07,
-            "runs": 1
+            "runs": 1,
+            "protocol": [
+              [
+                40,
+                0
+              ]
+            ]
           },
           {
             "T": 600.0,
             "D_cm2_per_s": 3.9e-06,
             "D_sem_cm2_per_s": 9.6e-07,
-            "runs": 2
+            "runs": 2,
+            "protocol": [
+              [
+                40,
+                0
+              ],
+              [
+                40,
+                1
+              ]
+            ]
           },
           {
             "T": 700.0,
             "D_cm2_per_s": 7.79e-06,
             "D_sem_cm2_per_s": 2.26e-06,
-            "runs": 1
+            "runs": 1,
+            "protocol": [
+              [
+                40,
+                0
+              ]
+            ]
           }
-        ]
+        ],
+        "parent_same_protocol": {
+          "sigma_mS_cm": 1.222,
+          "sigma_low_mS_cm": 0.446,
+          "sigma_high_mS_cm": 3.348,
+          "temperature_K": 300,
+          "Ea_eV": 0.335,
+          "Ea_err_eV": 0.051,
+          "D_cm2_per_s": 1.08e-08,
+          "fit_temperatures_K": [
+            500.0,
+            600.0,
+            700.0
+          ],
+          "li_density_cm3": 1.829650715203591e+22,
+          "method": "own Arrhenius fit (500, 600, 700 K)",
+          "points": [
+            {
+              "T": 500.0,
+              "D_cm2_per_s": 2.19e-06,
+              "D_sem_cm2_per_s": 5.96e-07,
+              "runs": 1,
+              "protocol": [
+                [
+                  40,
+                  0
+                ]
+              ]
+            },
+            {
+              "T": 600.0,
+              "D_cm2_per_s": 5.5e-06,
+              "D_sem_cm2_per_s": 1.31e-06,
+              "runs": 2,
+              "protocol": [
+                [
+                  40,
+                  0
+                ],
+                [
+                  40,
+                  1
+                ]
+              ]
+            },
+            {
+              "T": 700.0,
+              "D_cm2_per_s": 1.97e-05,
+              "D_sem_cm2_per_s": 3.98e-06,
+              "runs": 1,
+              "protocol": [
+                [
+                  30,
+                  0
+                ]
+              ]
+            }
+          ],
+          "differences": [
+            "700 K: candidate 40 ps seed 0; parent 30 ps seed 0"
+          ]
+        }
       },
       "e_hull_error": {
         "system": "Li-P-S-Se",
@@ -4573,14 +4805,21 @@
       "electrodes_reduced_confidence": false,
       "conductivity_vs_parent": {
         "verdict": "tied",
-        "ratio": 0.083,
-        "parent_sigma_mS_cm": 1.1763,
+        "ratio": 0.08,
+        "parent_sigma_mS_cm": 1.2224,
         "parent_range_mS_cm": [
-          0.4325,
-          3.1991
+          0.4463,
+          3.348
+        ],
+        "parent_Ea_eV": 0.335,
+        "parent_Ea_err_eV": 0.051,
+        "parent_fit": "same runs as the candidate",
+        "protocol_differences": [
+          "700 K: candidate 40 ps seed 0; parent 30 ps seed 0"
         ],
         "rule": "ranges of one standard error compared: overlap = tied"
       },
+      "ranking_level": "tied",
       "novelty": "related"
     },
     {
@@ -4937,7 +5176,8 @@
         "mp-2414"
       ],
       "e_hull_per_substitution": 0.5099,
-      "decomposition_polysulfides": []
+      "decomposition_polysulfides": [],
+      "ranking_level": "not_fitted"
     },
     {
       "id": "ref:it1-c1",
@@ -5307,7 +5547,8 @@
       "interface_reaction_energy": -0.138003,
       "decomposition_polysulfides": [],
       "passivation_reaction_energy": 2.37764,
-      "electrodes_reduced_confidence": true
+      "electrodes_reduced_confidence": true,
+      "ranking_level": "not_fitted"
     },
     {
       "id": "ref:it1-c2",
@@ -5367,7 +5608,17 @@
             "T": 600.0,
             "D_cm2_per_s": 1.49e-05,
             "D_sem_cm2_per_s": 3.42e-06,
-            "runs": 2
+            "runs": 2,
+            "protocol": [
+              [
+                40,
+                0
+              ],
+              [
+                40,
+                1
+              ]
+            ]
           }
         ]
       },
@@ -5704,7 +5955,8 @@
       "md_framework_intact": true,
       "e_hull_per_substitution": 0.4888,
       "decomposition_polysulfides": [],
-      "conductivity_vs_parent": null
+      "conductivity_vs_parent": null,
+      "ranking_level": "not_fitted"
     },
     {
       "id": "ref:it1-c3",
@@ -6087,7 +6339,8 @@
         "LiS4"
       ],
       "passivation_reaction_energy": 2.358006,
-      "electrodes_reduced_confidence": false
+      "electrodes_reduced_confidence": false,
+      "ranking_level": "not_fitted"
     },
     {
       "id": "ref:it1-c4",
@@ -6434,7 +6687,8 @@
         "P2S7"
       ],
       "passivation_reaction_energy": 2.286513,
-      "electrodes_reduced_confidence": false
+      "electrodes_reduced_confidence": false,
+      "ranking_level": null
     },
     {
       "id": "ref:it1-c5",
@@ -6786,7 +7040,8 @@
       "interface_reaction_energy": null,
       "decomposition_polysulfides": [],
       "passivation_reaction_energy": 2.111976,
-      "electrodes_reduced_confidence": false
+      "electrodes_reduced_confidence": false,
+      "ranking_level": null
     },
     {
       "id": "ref:it2-c1",
@@ -7155,7 +7410,8 @@
       "interface_reaction_energy": -0.150597,
       "decomposition_polysulfides": [],
       "passivation_reaction_energy": 2.353482,
-      "electrodes_reduced_confidence": false
+      "electrodes_reduced_confidence": false,
+      "ranking_level": "not_fitted"
     },
     {
       "id": "ref:it2-c2",
@@ -7268,21 +7524,104 @@
             "T": 500.0,
             "D_cm2_per_s": 1.94e-06,
             "D_sem_cm2_per_s": 6.84e-07,
-            "runs": 1
+            "runs": 1,
+            "protocol": [
+              [
+                40,
+                0
+              ]
+            ]
           },
           {
             "T": 600.0,
             "D_cm2_per_s": 4.87e-06,
             "D_sem_cm2_per_s": 1.1e-06,
-            "runs": 2
+            "runs": 2,
+            "protocol": [
+              [
+                40,
+                0
+              ],
+              [
+                40,
+                1
+              ]
+            ]
           },
           {
             "T": 700.0,
             "D_cm2_per_s": 9.3e-06,
             "D_sem_cm2_per_s": 2.79e-06,
-            "runs": 1
+            "runs": 1,
+            "protocol": [
+              [
+                40,
+                0
+              ]
+            ]
           }
-        ]
+        ],
+        "parent_same_protocol": {
+          "sigma_mS_cm": 1.222,
+          "sigma_low_mS_cm": 0.446,
+          "sigma_high_mS_cm": 3.348,
+          "temperature_K": 300,
+          "Ea_eV": 0.335,
+          "Ea_err_eV": 0.051,
+          "D_cm2_per_s": 1.08e-08,
+          "fit_temperatures_K": [
+            500.0,
+            600.0,
+            700.0
+          ],
+          "li_density_cm3": 1.829650715203591e+22,
+          "method": "own Arrhenius fit (500, 600, 700 K)",
+          "points": [
+            {
+              "T": 500.0,
+              "D_cm2_per_s": 2.19e-06,
+              "D_sem_cm2_per_s": 5.96e-07,
+              "runs": 1,
+              "protocol": [
+                [
+                  40,
+                  0
+                ]
+              ]
+            },
+            {
+              "T": 600.0,
+              "D_cm2_per_s": 5.5e-06,
+              "D_sem_cm2_per_s": 1.31e-06,
+              "runs": 2,
+              "protocol": [
+                [
+                  40,
+                  0
+                ],
+                [
+                  40,
+                  1
+                ]
+              ]
+            },
+            {
+              "T": 700.0,
+              "D_cm2_per_s": 1.97e-05,
+              "D_sem_cm2_per_s": 3.98e-06,
+              "runs": 1,
+              "protocol": [
+                [
+                  30,
+                  0
+                ]
+              ]
+            }
+          ],
+          "differences": [
+            "700 K: candidate 40 ps seed 0; parent 30 ps seed 0"
+          ]
+        }
       },
       "e_hull_error": {
         "system": "Li-P-S-Se",
@@ -7595,14 +7934,21 @@
       "electrodes_reduced_confidence": false,
       "conductivity_vs_parent": {
         "verdict": "tied",
-        "ratio": 4.81,
-        "parent_sigma_mS_cm": 1.1763,
+        "ratio": 4.628,
+        "parent_sigma_mS_cm": 1.2224,
         "parent_range_mS_cm": [
-          0.4325,
-          3.1991
+          0.4463,
+          3.348
+        ],
+        "parent_Ea_eV": 0.335,
+        "parent_Ea_err_eV": 0.051,
+        "parent_fit": "same runs as the candidate",
+        "protocol_differences": [
+          "700 K: candidate 40 ps seed 0; parent 30 ps seed 0"
         ],
         "rule": "ranges of one standard error compared: overlap = tied"
       },
+      "ranking_level": "tied",
       "novelty": "related"
     },
     {
@@ -7986,7 +8332,8 @@
         "LiS4"
       ],
       "passivation_reaction_energy": 2.413547,
-      "electrodes_reduced_confidence": false
+      "electrodes_reduced_confidence": false,
+      "ranking_level": "not_fitted"
     },
     {
       "id": "ref:it2-c4",
@@ -8393,7 +8740,8 @@
         "P2S7"
       ],
       "passivation_reaction_energy": 2.50709,
-      "electrodes_reduced_confidence": false
+      "electrodes_reduced_confidence": false,
+      "ranking_level": null
     },
     {
       "id": "ref:it2-c5",
@@ -8443,15 +8791,15 @@
       },
       "meta (rerun)": {
         "calls": 1,
-        "input_tokens": 4785,
-        "output_tokens": 4674,
-        "cost_usd": 0.02585,
+        "input_tokens": 5153,
+        "output_tokens": 5374,
+        "cost_usd": 0.02928,
         "by_provider": {
           "meta": {
             "calls": 1,
-            "input_tokens": 4785,
-            "output_tokens": 4674,
-            "cost_usd": 0.02585
+            "input_tokens": 5153,
+            "output_tokens": 5374,
+            "cost_usd": 0.02928
           }
         }
       }
@@ -9675,19 +10023,45 @@
               "T": 500.0,
               "D_cm2_per_s": 9.15e-06,
               "D_sem_cm2_per_s": 1.52e-06,
-              "runs": 1
+              "runs": 1,
+              "protocol": [
+                [
+                  40,
+                  0
+                ]
+              ]
             },
             {
               "T": 600.0,
               "D_cm2_per_s": 1.27e-05,
               "D_sem_cm2_per_s": 1.66e-06,
-              "runs": 3
+              "runs": 3,
+              "protocol": [
+                [
+                  40,
+                  0
+                ],
+                [
+                  40,
+                  1
+                ],
+                [
+                  40,
+                  2
+                ]
+              ]
             },
             {
               "T": 700.0,
               "D_cm2_per_s": 2.14e-05,
               "D_sem_cm2_per_s": 1.53e-06,
-              "runs": 1
+              "runs": 1,
+              "protocol": [
+                [
+                  30,
+                  0
+                ]
+              ]
             }
           ]
         },
@@ -9711,19 +10085,45 @@
               "T": 500.0,
               "D_cm2_per_s": 2.19e-06,
               "D_sem_cm2_per_s": 5.96e-07,
-              "runs": 1
+              "runs": 1,
+              "protocol": [
+                [
+                  40,
+                  0
+                ]
+              ]
             },
             {
               "T": 600.0,
               "D_cm2_per_s": 5.97e-06,
               "D_sem_cm2_per_s": 9.86e-07,
-              "runs": 3
+              "runs": 3,
+              "protocol": [
+                [
+                  40,
+                  0
+                ],
+                [
+                  40,
+                  1
+                ],
+                [
+                  40,
+                  2
+                ]
+              ]
             },
             {
               "T": 700.0,
               "D_cm2_per_s": 1.97e-05,
               "D_sem_cm2_per_s": 3.98e-06,
-              "runs": 1
+              "runs": 1,
+              "protocol": [
+                [
+                  30,
+                  0
+                ]
+              ]
             }
           ]
         }
@@ -9809,6 +10209,33 @@
         "ref:it2-c2",
         "s9:it1-c4"
       ],
+      "levels": {
+        "s1:it1-c2": "tied",
+        "ref:it2-c2": "tied",
+        "s9:it1-c4": "tied",
+        "s9:it2-c5": "not_fitted",
+        "s1:it1-c1": "not_fitted",
+        "s9:it1-c2": "not_fitted",
+        "s9:it1-c1": "not_fitted",
+        "ref:it1-c2": "not_fitted",
+        "it2-c1": "not_fitted",
+        "it3-c3": "not_fitted",
+        "ref:it1-c3": "not_fitted",
+        "ref:it2-c3": "not_fitted",
+        "it3-c2": "not_fitted",
+        "it3-c1": "not_fitted",
+        "ref:it2-c1": "not_fitted",
+        "ref:it1-c1": "not_fitted",
+        "s9:it2-c2": "not_fitted",
+        "s1:it1-c3": "not_fitted",
+        "it2-c2": "not_fitted",
+        "s9:it2-c3": "not_fitted"
+      },
+      "tie_break": [
+        "e_hull_per_substitution",
+        "activation_energy",
+        "window_width"
+      ],
       "excluded": {
         "it1-c1": "molecular_dynamics: framework moved: Cl diffuses at 17.7% of Li (limit 5%), seed 0, final MSD 4.8 A2",
         "s9:it2-c1": "molecular_dynamics: framework moved: Cl diffuses at 39.8% of Li (limit 5%), seed 0, final MSD 5.4 A2",
@@ -9821,11 +10248,17 @@
         "ref:it2-c4": "electrodes: non_passivating against Li metal (metallic products LiMg, reaction 2.507 eV/atom)",
         "it1-c3": "electrodes: non_passivating against Li metal (metallic products Na, reaction 2.440 eV/atom)"
       },
+      "finalists_order": "convention (same level against the parent)",
       "summary": {
         "finalists": [
           "s1:it1-c2",
           "ref:it2-c2",
           "s9:it1-c4"
+        ],
+        "levels": [
+          "tied",
+          "tied",
+          "tied"
         ],
         "excluded": [
           "it1-c1",
@@ -10117,9 +10550,12 @@
           "activation_energy_eV": 0.421,
           "ionic_conductivity_vs_parent": "tied",
           "parent_ionic_conductivity_range_mS_cm": [
-            0.432,
-            3.199
+            0.446,
+            3.348
           ],
+          "parent_activation_energy_eV": 0.335,
+          "activation_energy_error_eV": 0.104,
+          "ranking_level": "tied with its parent at 300 K",
           "confidence_flags": [],
           "novelty": "close family already studied",
           "novelty_summary": "Se has been introduced as an anion dopant for the Li7P3S11-type sulfide electrolyte to enhance conductivity and moisture stability, and SnSe2-doped 70Li2S-(30-x)P2S5-xSnSe2 glass-ceramic electrolytes based on Li7P3S11 have been prepared by ball-milling and annealing. In the Li-P-Se system, Li7PSe6 has been successfully synthesized in the argyrodite structure, while \u201cLi3PSe4\u201d was noted as unconfirmed experimentally. A computational review notes Li4P2Se6 and Li7PSe6 as reported phases and describes Li4PSe3 constructed by replacing S in Li3PS4 with Se. This search found no exact Li6P2SeS7 report.",
@@ -10240,9 +10676,12 @@
           "activation_energy_eV": 0.236,
           "ionic_conductivity_vs_parent": "tied",
           "parent_ionic_conductivity_range_mS_cm": [
-            0.432,
-            3.199
+            0.446,
+            3.348
           ],
+          "parent_activation_energy_eV": 0.335,
+          "activation_energy_error_eV": 0.07,
+          "ranking_level": "tied with its parent at 300 K",
           "confidence_flags": [],
           "novelty": "close family already studied",
           "novelty_summary": "This search did not return the exact Li12P4SeS15 composition, but a computational phase-stability study lists Li3PSe4 as a predicted stable phase derived from ICSD-Li3PS4, the full-Se analogue of Se-substituted Li3PS4. Se-for-S anion doping in the closely related thiophosphate Li7P3S11 is reported experimentally as a series Li7P3S11-xSex (x=0-0.15), with Se substitution at S sites improving conductivity and moisture stability. The same Li3PS4 parent with a chemically similar anion dopant is reported as O-doped \u03b2-Li3PS4, e.g. Li3PS3.8O0.2 with ionic conductivity 1.13 mS cm-1 and suppressed H2S generation.",
@@ -10263,6 +10702,11 @@
               "Passivating against Li metal with passivation_reaction_energy 2.306084 eV/atom and a defined window V_low 1.8 V to V_high 2.24 V (stable true)."
             ],
             "md_priority": "medium"
+          },
+          "e_hull_vs_champion": {
+            "difference_eV_per_atom": 0.003,
+            "sum_of_error_bars_eV_per_atom": 0.01,
+            "within_error_bars": true
           }
         },
         {
@@ -10363,9 +10807,12 @@
           "activation_energy_eV": 0.12,
           "ionic_conductivity_vs_parent": "tied",
           "parent_ionic_conductivity_range_mS_cm": [
-            58.136,
-            171.795
+            63.696,
+            194.783
           ],
+          "parent_activation_energy_eV": 0.133,
+          "activation_energy_error_eV": 0.051,
+          "ranking_level": "tied with its parent at 300 K",
           "confidence_flags": [
             "window via a polysulfide"
           ],
@@ -10389,6 +10836,11 @@
               "Passivating against Li metal with passivation_reaction_energy 2.528672 eV/atom and softer Se anion may aid Li transport by well-known polarizable anion effect."
             ],
             "md_priority": "medium"
+          },
+          "e_hull_vs_champion": {
+            "difference_eV_per_atom": 0.022,
+            "sum_of_error_bars_eV_per_atom": 0.01,
+            "within_error_bars": false
           }
         }
       ],
@@ -10452,59 +10904,66 @@
       ],
       "not_computed": "measured ionic conductivity (room-temperature values are extrapolated estimates from molecular dynamics at 500-700 K, with their range), DFT calculations (UMA energies carry an error bar measured against DFT on known compounds), synthesis routes, cost of the elements, experimental data",
       "narrative": {
-        "executive_summary": "The champion is Li6P2SeS7 derived from Li3PS4 by Se substitution. Its energy above the hull is -0.007 eV/atom with error 0.005 eV/atom. Its band gap is 2.485 eV by optB88 and 3.102 eV by MBJ. Its electrochemical window is stable from 1.8 V to 2.24 V and it is passivating against lithium metal. Its diffusion coefficient at 600 K is 3.9e-06 cm2/s with error 9.6e-07 cm2/s, tied with the parent within uncertainty. Its ionic conductivity at 300 K is an extrapolated estimate of 0.098 mS/cm within range [0.012, 0.8] mS/cm by own Arrhenius fit (500, 600, 700 K) with activation energy 0.421 eV, tied with the parent range [0.432, 3.199] mS/cm. Failed candidates taught two lessons: Cl- and O-substituted variants moved in molecular dynamics with framework diffusion above the 5% limit, and Na- and LiMg-forming variants were non-passivating against lithium metal. Measured ionic conductivity, DFT checks, synthesis routes, cost and experimental data were not computed.",
+        "executive_summary": "The search sought sulfide electrolytes derived from Li7P3S11 or beta-Li3PS4 that conduct lithium at least as fast as the parent and remain stable against lithium metal. The champion is Li6P2SeS7 derived from Li3PS4, with space group Pmc2_1. Its energy above the hull is -0.007 eV/atom with an error bar of 0.005 eV/atom. Its band gap is 2.485 eV and 3.102 eV. Its electrochemical window is stable from 1.8 V to 2.24 V and its behavior against lithium metal is passivating. Its diffusion coefficient at 600 K is 3.9e-06 cm2/s with an error of 9.6e-07 cm2/s, with a verdict of tied with its parent. Its ionic conductivity at 300 K is an extrapolated estimate of 0.098 mS/cm within 0.012 to 0.8 mS/cm by own Arrhenius fit at 500, 600, 700 K, with a verdict of tied with its parent whose range is 0.446 to 3.348 mS/cm. The other two finalists Li12P4SeS15 and Li7P3SeS10 share the same level of tied with its parent at 300 K. Excluded candidates failed because the framework moved in molecular dynamics with Cl or O diffusion, or because the reaction against lithium metal was non-passivating with metallic products. Measured ionic conductivity, DFT checks, synthesis routes, cost, and experimental data were not computed.",
         "champion_reasons": [
-          "Energy above the hull of -0.007 eV/atom with error 0.005 eV/atom is lower than -0.004 eV/atom with error 0.005 eV/atom for Li12P4SeS15 and 0.015 eV/atom with error 0.005 eV/atom for Li7P3SeS10.",
-          "Energy per modified site of -0.115 eV is more stabilizing than -0.113 eV for Li12P4SeS15 and 0.323 eV for Li7P3SeS10.",
-          "Electrochemical window from 1.8 V to 2.24 V is stable with no confidence flags, while Li7P3SeS10 has a window from 2.28 V to 2.3 V with a window via a polysulfide flag."
+          "All three finalists share the level tied with its parent at 300 K, so Li6P2SeS7 comes first by the convention of lowest energy above the hull per substitution, then lowest activation energy, then widest electrochemical window, not by a significant conductivity difference.",
+          "Its energy above the hull per substitution of -0.115 eV is lower than -0.113 eV for Li12P4SeS15 and 0.323 eV for Li7P3SeS10.",
+          "Its stable window from 1.8 V to 2.24 V matches Li12P4SeS15 from 1.8 V to 2.24 V and is wider than Li7P3SeS10 from 2.28 V to 2.3 V.",
+          "Its energy above the hull of -0.007 eV/atom with an error bar of 0.005 eV/atom differs from Li12P4SeS15 at -0.004 eV/atom within the error bars, while the difference to Li7P3SeS10 at 0.015 eV/atom is larger than the error bars."
         ],
         "tradeoffs": [
-          "Electrochemical window from 1.8 V to 2.24 V is narrow and does not cover typical cathode voltages.",
-          "Interface reaction energy with LiFePO4 is -0.145 eV/atom, indicating cathode reactivity.",
-          "Ionic conductivity at 300 K is an extrapolated estimate of 0.098 mS/cm within range [0.012, 0.8] mS/cm, so the range spans almost two orders of magnitude.",
-          "Novelty is close family already studied, with Se doping of sulfide electrolytes reported before and no exact Li6P2SeS7 report found."
+          "Its window from 1.8 V to 2.24 V is narrow for pairing with high-voltage cathodes.",
+          "Its reaction energy with lithium iron phosphate is -0.145 eV/atom, indicating cathode reactivity.",
+          "Its conductivity estimate of 0.098 mS/cm within 0.012 to 0.8 mS/cm spans almost two orders of magnitude, so high conductivity is not assured.",
+          "Its activation energy is 0.421 eV with an error of 0.104 eV, compared with 0.335 eV for the parent."
         ],
         "uncertainties": [
-          "Energy above the hull carries UMA-vs-DFT error of 0.005 eV/atom from mean difference on 25 known compounds of Li-P-S-Se.",
-          "Diffusion coefficient at 600 K is 3.9e-06 cm2/s with error 9.6e-07 cm2/s from high-temperature dynamics, and the 300 K conductivity range [0.012, 0.8] mS/cm is extrapolated from 500, 600 and 700 K.",
-          "Window stability allows a maximum shift of 0.02 V under a shift of 0.025 eV/atom and lists polysulfides LiS4, P2S7 and SeS7, which limits confidence.",
-          "Diffusion verdict at 600 K is tied with the parent within uncertainty, so no faster or slower claim can be made."
+          "Room-temperature conductivity is an extrapolated estimate from molecular dynamics at 500 to 700 K, not a measurement.",
+          "Diffusion was assessed at 600 K with an error of 9.6e-07 cm2/s, so low-temperature behavior remains uncertain.",
+          "Energies carry an error bar of 0.005 eV/atom from the mean difference on 25 known compounds of Li-P-S-Se.",
+          "The window assessment involves polysulfides LiS4, P2S7 and SeS7 with a shift of 0.025 eV/atom, which limits confidence."
         ],
         "validation": [
           {
-            "text": "Check phase purity and lattice parameters a 6.265 A, b 8.146 A, c 13.146 A in space group Pmc2_1 by powder X-ray diffraction.",
+            "text": "Check phase and lattice by powder X-ray diffraction against the predicted Pmc2_1 cell.",
             "basis": "documented"
           },
           {
-            "text": "Measure ionic conductivity and activation energy by temperature-dependent impedance spectroscopy, since the 300 K value is only an extrapolated estimate of 0.098 mS/cm within [0.012, 0.8] mS/cm.",
+            "text": "Measure ionic and electronic conductivity by impedance spectroscopy with blocking electrodes.",
             "basis": "documented"
           },
           {
-            "text": "Test stability during cycling against lithium metal to confirm passivating behavior and analyze interphase products Li2Se, Li3PS4 and P.",
+            "text": "Check stability against lithium metal by cycling a symmetric cell and by interface analysis.",
             "basis": "documented"
           },
           {
-            "text": "Recalculate energy above the hull and band gap with DFT to confirm the UMA result of -0.007 eV/atom with error 0.005 eV/atom and gaps of 2.485 eV and 3.102 eV.",
+            "text": "Recalculate the energy above the hull and the window with DFT.",
             "basis": "documented"
           }
         ],
         "synthesis": [
           {
-            "text": "Ball milling of sulfide and selenide precursors followed by annealing under inert atmosphere could be tried for this sulfide electrolyte family, but success is not guaranteed.",
+            "text": "Try ball milling of lithium sulfide, phosphorus sulfide and selenium precursors then annealing under inert atmosphere, without guarantee of success.",
             "basis": "documented"
           },
           {
-            "text": "Sealed-tube solid-state reaction with controlled Se content to target Li6P2SeS7 could be tried, but success is not guaranteed.",
+            "text": "Try glass-ceramic annealing near the crystallization of the parent sulfide to favor the substituted phase, without guarantee of success.",
             "basis": "hypothesis"
           }
         ],
         "limitations": [
-          "Measured ionic conductivity was not computed and the 300 K value is only an extrapolated estimate.",
-          "DFT calculations, synthesis routes, cost of the elements and experimental data were not computed.",
-          "Moisture stability, mechanical behavior and long-term cycling were not studied and still need validation.",
-          "The candidates are computational predictions, not proven materials."
+          "Measured ionic conductivity was not computed and the 300 K values are extrapolated estimates with their range.",
+          "DFT calculations were not computed and UMA energies carry an error bar.",
+          "Synthesis routes were not computed and the candidates are computational predictions, not proven materials.",
+          "Cost of the elements and experimental data including moisture stability and long cycling were not computed and still need validation."
         ]
       },
+      "finalists_order": "convention (same level against the parent)",
+      "tie_break": [
+        "lowest E_hull per substitution",
+        "lowest activation energy (own fit)",
+        "widest electrochemical window"
+      ],
       "summary": {
         "champion": "s1:it1-c2",
         "completeness": "complete",
@@ -11617,7 +12076,8 @@
           "interface_reaction_energy": -0.131239,
           "decomposition_polysulfides": [],
           "passivation_reaction_energy": 2.435483,
-          "electrodes_reduced_confidence": true
+          "electrodes_reduced_confidence": true,
+          "ranking_level": null
         },
         {
           "id": "it1-c2",
@@ -12106,7 +12566,8 @@
           "interface_reaction_energy": -0.13783,
           "decomposition_polysulfides": [],
           "passivation_reaction_energy": 2.480857,
-          "electrodes_reduced_confidence": true
+          "electrodes_reduced_confidence": true,
+          "ranking_level": null
         },
         {
           "id": "it1-c3",
@@ -12525,7 +12986,8 @@
           "interface_reaction_energy": null,
           "decomposition_polysulfides": [],
           "passivation_reaction_energy": 2.439706,
-          "electrodes_reduced_confidence": true
+          "electrodes_reduced_confidence": true,
+          "ranking_level": null
         }
       ],
       "comparisons": [
@@ -13610,7 +14072,8 @@
           "interface_reaction_energy": -0.14132,
           "decomposition_polysulfides": [],
           "passivation_reaction_energy": 2.525801,
-          "electrodes_reduced_confidence": true
+          "electrodes_reduced_confidence": true,
+          "ranking_level": "not_fitted"
         },
         {
           "id": "it2-c2",
@@ -14049,7 +14512,8 @@
             "P2S7"
           ],
           "passivation_reaction_energy": 2.560244,
-          "electrodes_reduced_confidence": false
+          "electrodes_reduced_confidence": false,
+          "ranking_level": "not_fitted"
         },
         {
           "id": "it2-c3",
@@ -14390,7 +14854,8 @@
             "P2S7"
           ],
           "passivation_reaction_energy": 2.270785,
-          "electrodes_reduced_confidence": false
+          "electrodes_reduced_confidence": false,
+          "ranking_level": null
         }
       ],
       "comparisons": [
@@ -15358,7 +15823,8 @@
           "interface_reaction_energy": -0.147437,
           "decomposition_polysulfides": [],
           "passivation_reaction_energy": 2.319337,
-          "electrodes_reduced_confidence": false
+          "electrodes_reduced_confidence": false,
+          "ranking_level": "not_fitted"
         },
         {
           "id": "it3-c2",
@@ -15742,7 +16208,8 @@
             "LiS4"
           ],
           "passivation_reaction_energy": 2.469307,
-          "electrodes_reduced_confidence": false
+          "electrodes_reduced_confidence": false,
+          "ranking_level": "not_fitted"
         },
         {
           "id": "it3-c3",
@@ -16221,7 +16688,8 @@
           "interface_reaction_energy": -0.135381,
           "decomposition_polysulfides": [],
           "passivation_reaction_energy": 2.567263,
-          "electrodes_reduced_confidence": true
+          "electrodes_reduced_confidence": true,
+          "ranking_level": "not_fitted"
         }
       ],
       "comparisons": [
@@ -16533,7 +17001,7 @@
     "it2-c2"
   ],
   "rerun": {
-    "from": "conductivity",
+    "from": "report",
     "new_relaxations": 0
   }
 }

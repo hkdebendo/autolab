@@ -12,7 +12,7 @@ CANDIDATE_FIELDS = ("formula", "parent_formula", "substitution", "e_hull", "e_hu
                     "reduced_confidence", "gap_optb88", "gap_mbj", "window", "passivation", "interface_reaction_energy",
                     "electrodes_reduced_confidence", "D_cm2_per_s", "D_ratio_to_parent", "D_ratio_err", "md_verdict",
                     "conduction", "novelty", "analysis", "excluded_at", "exclusion_reason", "e_hull_error", "conductivity",
-                    "window_robust", "md_framework")
+                    "window_robust", "md_framework", "conductivity_vs_parent", "ranking_level")
 
 
 def context(result: dict) -> dict:

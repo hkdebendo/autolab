@@ -13,14 +13,18 @@ After the iterations, on the passed candidates (what was already computed in an 
    (rule fallback: best E_hull per substitution, when no model answers);
 4. molecular_dynamics: Li diffusion at the validated screening settings on Modal, next to the parents;
    "lower" than the parent -> excluded for conduction (MD_EXCLUDED_VERDICTS); not launched above MD_MAX_USD_PER_RUN;
-5. ranking: FINAL_RANK_MD_ORDER, then E_hull per substitution; excluded candidates last; FINALISTS_MAX finalists;
-6. novelty: LGPS control first, then the finalists (web search, cap NOVELTY_COST_CAP_USD, answers cached).
+5. conductivity: sigma at 300 K from the cached MD (own Arrhenius fit, compared with the parent's fit on the same runs);
+6. ranking: level against the parent at 300 K (CONDUCTIVITY_RANK_ORDER; "not_fitted" after every evaluated
+   candidate, ordered there by FINAL_RANK_MD_ORDER), then RANK_TIE_BREAK (a convention); excluded candidates last;
+   FINALISTS_MAX finalists;
+7. novelty: LGPS control first, then the finalists (web search, cap NOVELTY_COST_CAP_USD, answers cached).
 Every step reads the caches (relaxations, MD, MP, band gaps, novelty answers) before computing.
 """
 
 from __future__ import annotations
 
 import json
+import math
 from dataclasses import dataclass
 from typing import Callable
 
@@ -375,16 +379,40 @@ def molecular_dynamics(camp: Campaign) -> dict:
     return out
 
 
+def rt_level(c: dict) -> str:
+    """Level of a candidate against its parent at 300 K: "higher", "tied", "lower" or "not_fitted"."""
+    return (c.get("conductivity_vs_parent") or {}).get("verdict") or "not_fitted"
+
+
+def window_width(c: dict) -> float:
+    """Width of the electrochemical window in V (zero width or not computed: 0)."""
+    w = c.get("window") or {}
+    if not w.get("stable") or w.get("v_low") is None or w.get("v_high") is None:
+        return 0.0
+    return float(w["v_high"]) - float(w["v_low"])
+
+
+def tie_break(c: dict) -> tuple:
+    """config.RANK_TIE_BREAK values of a candidate, smaller first; an activation energy borrowed from the parent
+    (no own fit) does not count."""
+    cond = c.get("conductivity") or {}
+    own_ea = cond.get("Ea_eV") if str(cond.get("method", "")).startswith("own Arrhenius") else None
+    values = {"e_hull_per_substitution": c["e_hull_per_substitution"],
+              "activation_energy": math.inf if own_ea is None else own_ea, "window_width": -window_width(c)}
+    return tuple(values[k] for k in config.RANK_TIE_BREAK)
+
+
 def ranking(camp: Campaign) -> dict:
-    """Kept candidates first; then the verdict of the conductivity at 300 K against the parent (when the candidate
-    has its own Arrhenius fit), the MD verdict at 600 K, and the lowest E_hull per substitution."""
+    """Kept candidates first; then the level against the parent at 300 K (CONDUCTIVITY_RANK_ORDER: candidates
+    without their own Arrhenius fit after every evaluated one, ordered there by their MD verdict at 600 K), then
+    RANK_TIE_BREAK. The order inside a level is a convention: "levels" says which candidates share one."""
     order = {v: i for i, v in enumerate(config.FINAL_RANK_MD_ORDER)}
     rt_order = {v: i for i, v in enumerate(config.CONDUCTIVITY_RANK_ORDER)}
 
     def key(c):
-        rt = (c.get("conductivity_vs_parent") or {}).get("verdict") or "not_fitted"
-        return (bool(c.get("excluded_at")), rt_order.get(rt, len(rt_order)),
-                order.get(c.get("md_verdict") or "not_run", len(order)), *rank_key(c))
+        level = rt_level(c)
+        md = order.get(c.get("md_verdict") or "not_run", len(order)) if level == "not_fitted" else 0
+        return (bool(c.get("excluded_at")), rt_order.get(level, len(rt_order)), md, *tie_break(c), c["e_hull"])
 
     ranked = sorted(camp.passed(), key=key)
     errors = {}
@@ -396,8 +424,16 @@ def ranking(camp: Campaign) -> dict:
         c["e_hull_error"] = errors[f] if errors[f] and errors[f].get("available", True) else None
     kept = [c["id"] for c in ranked if not c.get("excluded_at")]
     out = {"ranking": [c["id"] for c in ranked], "kept": kept, "finalists": kept[:config.FINALISTS_MAX],
+           "levels": {c["id"]: rt_level(c) for c in ranked if not c.get("excluded_at")},
+           "tie_break": list(config.RANK_TIE_BREAK),
            "excluded": {c["id"]: f"{c['excluded_at']}: {c['exclusion_reason']}" for c in ranked if c.get("excluded_at")}}
-    out["summary"] = {"finalists": out["finalists"], "excluded": list(out["excluded"])}
+    for c in ranked:
+        c["ranking_level"] = None if c.get("excluded_at") else out["levels"][c["id"]]
+    shared = [out["levels"][i] for i in out["finalists"]]
+    out["finalists_order"] = ("convention (same level against the parent)" if len(set(shared)) == 1 and len(shared) > 1
+                              else "by level against the parent, then convention inside a level")
+    out["summary"] = {"finalists": out["finalists"], "levels": [out["levels"][i] for i in out["finalists"]],
+                      "excluded": list(out["excluded"])}
     return out
 
 
@@ -415,12 +451,17 @@ def conductivity(camp: Campaign) -> dict:
     for cid, r in res["candidates"].items():
         c = by_id[cid]
         c["conductivity"] = _rounded(r)
-        c["conductivity_vs_parent"] = conductivity_verdict(r, res["parents"].get(c["parent"]))
+        c["conductivity_vs_parent"] = conductivity_verdict(r, r.get("parent_same_protocol")
+                                                           or res["parents"].get(c["parent"]))
     out = {"parents": _rounded(res["parents"]), "candidates": list(res["candidates"]),
            "temperature_K": config.CONDUCTIVITY_T_K}
     out["summary"] = {"computed": len(res["candidates"]), "parents": {k: round(v["sigma_mS_cm"], 3)
                                                                        for k, v in res["parents"].items()}}
     return out
+
+
+def _round(x, digits: int = 3):
+    return None if x is None else round(x, digits)
 
 
 def conductivity_verdict(cand: dict, parent: dict | None) -> dict | None:
@@ -432,9 +473,13 @@ def conductivity_verdict(cand: dict, parent: dict | None) -> dict | None:
     lo, hi = cand["sigma_low_mS_cm"], cand["sigma_high_mS_cm"]
     plo, phi = parent["sigma_low_mS_cm"], parent["sigma_high_mS_cm"]
     verdict = "lower" if hi < plo else "higher" if lo > phi else "tied"
+    same = "differences" in parent  # a fit of the parent on the candidate's runs (agent/conductivity.py)
     return {"verdict": verdict, "ratio": round(cand["sigma_mS_cm"] / parent["sigma_mS_cm"], 3),
             "parent_sigma_mS_cm": round(parent["sigma_mS_cm"], 4),
             "parent_range_mS_cm": [round(plo, 4), round(phi, 4)],
+            "parent_Ea_eV": _round(parent.get("Ea_eV")), "parent_Ea_err_eV": _round(parent.get("Ea_err_eV")),
+            "parent_fit": "same runs as the candidate" if same else "all the parent's runs",
+            "protocol_differences": parent.get("differences", []),
             "rule": "ranges of one standard error compared: overlap = tied"}
 
 
@@ -448,7 +493,8 @@ def render_conductivity(out: dict, result: dict) -> list[str]:
               "Nernst-Einstein relation (tracer diffusion, Haven ratio 1). The range is one standard error of the "
               "extrapolation: an order of magnitude, not a measurement. A candidate with its own fit is \"lower\" or "
               "\"higher\" than its parent only when the two ranges do not overlap; this verdict comes first in the "
-              "final ranking.", "",
+              "final ranking. The parent's range used for a candidate comes from a fit of the parent on the same runs "
+              "(same temperatures, same number of runs); the parents' rows below use all their runs.", "",
               "| Structure | σ at 300 K (mS/cm) | Range (mS/cm) | Activation energy (eV) | Against its parent | "
               "Method |", "|---|---|---|---|---|---|"]
     rows = [(f"parent {pid}", r, None) for pid, r in out["parents"].items()]
@@ -456,10 +502,18 @@ def render_conductivity(out: dict, result: dict) -> list[str]:
              for cid in out["candidates"]]
     for name, r, v in rows:
         vs = "—" if name.startswith("parent") else (
-            f"{v['verdict']} (ratio {v['ratio']:.2g}, parent {v['parent_range_mS_cm'][0]:.2g}–"
-            f"{v['parent_range_mS_cm'][1]:.2g})" if v else "not compared (no own fit)")
+            f"{v['verdict']} (parent {v['parent_range_mS_cm'][0]:.2g}–{v['parent_range_mS_cm'][1]:.2g}, "
+            f"Ea {v['parent_Ea_eV']:.2f} ± {v['parent_Ea_err_eV']:.2f}; {v['parent_fit']})"
+            if v and v.get("parent_Ea_eV") is not None and v.get("parent_Ea_err_eV") is not None else
+            f"{v['verdict']} (parent {v['parent_range_mS_cm'][0]:.2g}–{v['parent_range_mS_cm'][1]:.2g})"
+            if v else "not compared (no own fit)")
         lines.append(f"| {name} | {r['sigma_mS_cm']:.3g} | {r['sigma_low_mS_cm']:.2g}–{r['sigma_high_mS_cm']:.2g} | "
                      f"{r['Ea_eV']:.2f} ± {r['Ea_err_eV']:.2f} | {vs} | {r['method']} |")
+    diffs = [(cid, d) for cid in out["candidates"]
+             for d in (by_id[cid].get("conductivity_vs_parent") or {}).get("protocol_differences", [])]
+    if diffs:
+        lines += ["", "Runs that still differ between a candidate and its parent's fit (lengths or seeds available "
+                      "in the cache):"] + [f"- {cid}: {d}" for cid, d in diffs]
     return lines + [""]
 
 
@@ -655,12 +709,21 @@ def render_md(out: dict, result: dict) -> list[str]:
     return lines + [""]
 
 
+_TIE_BREAK_LABELS = {"e_hull_per_substitution": "lowest E_hull per substitution",
+                     "activation_energy": "lowest activation energy (own fit)",
+                     "window_width": "widest electrochemical window"}
+_LEVEL_LABELS = {"higher": "faster than its parent at 300 K", "tied": "tied with its parent at 300 K",
+                 "lower": "slower than its parent at 300 K", "not_fitted": "not evaluated at 300 K"}
+
+
 def render_ranking(out: dict, result: dict) -> list[str]:
     by_id = _pool(result)
     lines = ["## Final ranking", "",
-             f"Order: conductivity at 300 K against the parent ({' > '.join(config.CONDUCTIVITY_RANK_ORDER)}), then MD "
-             f"verdict at 600 K ({' > '.join(config.FINAL_RANK_MD_ORDER)}), then lowest E_hull per substitution; "
-             "excluded candidates last, with their reason. Candidates are computational predictions, not proven "
+             f"Levels: conductivity at 300 K against the parent ({' > '.join(config.CONDUCTIVITY_RANK_ORDER)}; "
+             "\"not_fitted\": not evaluated at 300 K, a single temperature, ordered by the MD verdict at 600 K). "
+             f"Inside a level, by convention: {', then '.join(_TIE_BREAK_LABELS[k] for k in config.RANK_TIE_BREAK)}; "
+             "this order is not a significant difference (the gaps are often smaller than the error bars). "
+             "Excluded candidates last, with their reason. Candidates are computational predictions, not proven "
              "materials. E_hull ± its error bar: mean absolute UMA-vs-DFT (Materials Project) difference on the known "
              "compounds of the same chemical system.", ""]
     if not out["ranking"]:
@@ -681,7 +744,9 @@ def render_ranking(out: dict, result: dict) -> list[str]:
         if cond:
             ratio += (f"; σ(300 K) {cond['sigma_mS_cm']:.2g} mS/cm ({cond['sigma_low_mS_cm']:.2g}–"
                       f"{cond['sigma_high_mS_cm']:.2g}), " + (f"{rt['verdict']} with its parent" if rt else "not compared"))
-        lines.append(f"{i}. {cid} {c['formula']}{star}: E_hull per substitution {c['e_hull_per_substitution']:.3f} eV, "
+        lv = (out.get("levels") or {}).get(cid)  # runs recorded before 2026-11-02 have no levels
+        level = f"[{_LEVEL_LABELS.get(lv, lv)}] " if lv and not c.get("excluded_at") else ""
+        lines.append(f"{i}. {level}{cid} {c['formula']}{star}: E_hull per substitution {c['e_hull_per_substitution']:.3f} eV, "
                      f"E_hull {c['e_hull']:.3f}{pm} eV/atom, gap {_v(c.get('gap_optb88'))} eV, MD {md}{ratio}"
                      f"{'; ' + '; '.join(flags) if flags else ''}{tail}")
     return lines + [""]
@@ -715,8 +780,8 @@ METHODS = [
 REPORT_SYSTEM = """You write the final report of a computational materials-discovery research, for scientists and for readers who are not specialists. The code gives you the comparison table of the three finalists (the first one is the champion: the best compromise by the criteria of the research), the excluded candidates with their reasons, the literature check and what was not computed.
 Rules:
 - Use only the numbers of the table, quoted exactly with their units; never invent or estimate a value. A missing value was not computed: say so.
-- The energy above the hull comes with its error bar (e_hull_error_eV_per_atom: mean UMA-vs-DFT difference on known compounds of the same system): quote it with the value when given.
-- champion_reasons: why the champion is preferred to the two others, each reason tied to numbers of the table.
+- The energy above the hull comes with its error bar (e_hull_error_eV_per_atom: mean UMA-vs-DFT difference on known compounds of the same system): quote it with the value when given. Say that a finalist's energy above the hull differs from the champion's within the error bars only when its e_hull_vs_champion.within_error_bars is true; when it is false, the difference is larger than the error bars.
+- champion_reasons: why the champion is preferred to the two others, each reason tied to numbers of the table. The finalists are ordered first by their ranking_level against the parent at 300 K, then inside a level by a convention (tie_break_convention). When finalists share a level (finalists_order says so), state that the champion comes first by this convention, not by a significant difference: its gaps to the others are within the error bars.
 - tradeoffs: its compromises and weaknesses. uncertainties: what limits the confidence (methods, temperature of the diffusion, reduced-confidence flags, statistics).
 - validation: experiments or calculations to confirm it (e.g. XRD, impedance spectroscopy, DFT checks, cycling against Li metal), each with "basis": "documented" (standard practice) or "hypothesis".
 - synthesis: possible routes, each with "basis": "documented" only for well-established routes for this family of sulfide electrolytes (e.g. ball milling then annealing under inert atmosphere), else "hypothesis"; never present a route as guaranteed.
@@ -771,12 +836,27 @@ def _finalist_row(c: dict, novelty_by_id: dict) -> dict:
             "ionic_conductivity_vs_parent": ((c.get("conductivity_vs_parent") or {}).get("verdict")
                                              or "not compared (no own Arrhenius fit)"),
             "parent_ionic_conductivity_range_mS_cm": (c.get("conductivity_vs_parent") or {}).get("parent_range_mS_cm"),
+            "parent_activation_energy_eV": (c.get("conductivity_vs_parent") or {}).get("parent_Ea_eV"),
+            "activation_energy_error_eV": (c.get("conductivity") or {}).get("Ea_err_eV"),
+            "ranking_level": _LEVEL_LABELS.get(c.get("ranking_level"), c.get("ranking_level")),
             "confidence_flags": [f for f, on in (("stability via a polysulfide", c.get("reduced_confidence")),
                                                  ("window via a polysulfide", c.get("electrodes_reduced_confidence")),
                                                  ("S-S bonds", c.get("ss_bonds"))) if on],
             "novelty": nv.get("label"), "novelty_summary": nv.get("summary"),
             "novelty_sources": [s.get("url") for s in nv.get("sources", [])][:3],
             "review": c.get("analysis")}
+
+
+def e_hull_gap(row: dict, champion: dict) -> dict | None:
+    """E_hull difference of a finalist to the champion (eV/atom) and whether it is within the sum of their error
+    bars; None when a value or an error bar is missing."""
+    a, b = row.get("e_hull_eV_per_atom"), champion.get("e_hull_eV_per_atom")
+    ea, eb = row.get("e_hull_error_eV_per_atom"), champion.get("e_hull_error_eV_per_atom")
+    if None in (a, b, ea, eb):
+        return None
+    d = round(a - b, 3)
+    return {"difference_eV_per_atom": d, "sum_of_error_bars_eV_per_atom": round(ea + eb, 3),
+            "within_error_bars": abs(d) <= ea + eb}
 
 
 def _rounded(x, digits: int = 3):
@@ -801,6 +881,8 @@ def report(camp: Campaign) -> dict:
     by_id = camp.by_id
     novelty_by_id = {r["id"]: r for r in (camp.outputs.get("novelty", {}).get("candidates") or [])}
     rows = [_rounded(_finalist_row(by_id[i], novelty_by_id)) for i in finalists]
+    for r in rows[1:]:  # whether an E_hull gap to the champion is within the error bars: decided by the code
+        r["e_hull_vs_champion"] = e_hull_gap(r, rows[0])
     needed = ("electrodes", "molecular_dynamics", "ranking", "novelty")
     missing = [n for n in needed if (camp.outputs.get(n) or {}).get("skipped") or n not in camp.outputs
                or (camp.outputs.get(n) or {}).get("error")]
@@ -808,8 +890,10 @@ def report(camp: Campaign) -> dict:
     out = {"completeness": status, "missing_steps": missing, "champion": rows[0]["id"], "finalists": rows,
            "excluded": rk.get("excluded", {}), "methods": [{"step": a, "method": b} for a, b in METHODS],
            "not_computed": config.CAPABILITIES["not_computed"], "narrative": None}
-    facts = {"goal": camp.goal, "status": status, "finalists": rows, "excluded": out["excluded"],
-             "not_computed": out["not_computed"]}
+    out["finalists_order"] = rk.get("finalists_order")
+    out["tie_break"] = [_TIE_BREAK_LABELS[k] for k in rk.get("tie_break") or config.RANK_TIE_BREAK]
+    facts = {"goal": camp.goal, "status": status, "finalists": rows, "finalists_order": out["finalists_order"],
+             "tie_break_convention": out["tie_break"], "excluded": out["excluded"], "not_computed": out["not_computed"]}
     try:
         info = camp.ask([{"role": "system", "content": REPORT_SYSTEM.replace("{template}", template("report"))},
                          {"role": "user", "content": json.dumps(facts, default=str)}], "report", "report")

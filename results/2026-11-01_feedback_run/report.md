@@ -368,7 +368,7 @@ Not selected but already simulated (verdict from the cache, no cost): s1:it1-c2,
 
 ## Ionic conductivity at 300 K (estimate)
 
-Arrhenius fit of the diffusion coefficients of the molecular dynamics (runs up to 750 K), extrapolated to 300 K, then the Nernst-Einstein relation (tracer diffusion, Haven ratio 1). The range is one standard error of the extrapolation: an order of magnitude, not a measurement. A candidate with its own fit is "lower" or "higher" than its parent only when the two ranges do not overlap; this verdict comes first in the final ranking.
+Arrhenius fit of the diffusion coefficients of the molecular dynamics (runs up to 750 K), extrapolated to 300 K, then the Nernst-Einstein relation (tracer diffusion, Haven ratio 1). The range is one standard error of the extrapolation: an order of magnitude, not a measurement. A candidate with its own fit is "lower" or "higher" than its parent only when the two ranges do not overlap; this verdict comes first in the final ranking. The parent's range used for a candidate comes from a fit of the parent on the same runs (same temperatures, same number of runs); the parents' rows below use all their runs.
 
 | Structure | σ at 300 K (mS/cm) | Range (mS/cm) | Activation energy (eV) | Against its parent | Method |
 |---|---|---|---|---|---|
@@ -376,38 +376,43 @@ Arrhenius fit of the diffusion coefficients of the molecular dynamics (runs up t
 | parent mp-985583 | 1.18 | 0.43–3.2 | 0.34 ± 0.05 | — | own Arrhenius fit (500, 600, 700 K) |
 | s9:it1-c1 Li11P4S15Cl | 0.857 | 0.31–2.3 | 0.34 ± 0.05 | not compared (no own fit) | D at 600 K with the parent's activation energy (assumed) |
 | s9:it1-c2 Li6P2S7O | 1.39 | 0.52–3.7 | 0.34 ± 0.05 | not compared (no own fit) | D at 600 K with the parent's activation energy (assumed) |
-| s9:it1-c4 Li7P3SeS10 | 134 | 50–3.6e+02 | 0.12 ± 0.05 | tied (ratio 1.3, parent 58–1.7e+02) | own Arrhenius fit (500, 600, 700 K) |
+| s9:it1-c4 Li7P3SeS10 | 134 | 50–3.6e+02 | 0.12 ± 0.05 | tied (parent 64–1.9e+02, Ea 0.13 ± 0.03; same runs as the candidate) | own Arrhenius fit (500, 600, 700 K) |
 | s9:it2-c1 Li13P6S21Cl | 80.6 | 48–1.3e+02 | 0.14 ± 0.03 | not compared (no own fit) | D at 600 K with the parent's activation energy (assumed) |
 | s9:it2-c5 Li11P4S15I | 0.812 | 0.29–2.3 | 0.34 ± 0.05 | not compared (no own fit) | D at 600 K with the parent's activation energy (assumed) |
 | s1:it1-c1 Li11P4S15Br | 1.05 | 0.39–2.8 | 0.34 ± 0.05 | not compared (no own fit) | D at 600 K with the parent's activation energy (assumed) |
-| s1:it1-c2 Li6P2SeS7 | 0.098 | 0.012–0.8 | 0.42 ± 0.10 | tied (ratio 0.083, parent 0.43–3.2) | own Arrhenius fit (500, 600, 700 K) |
+| s1:it1-c2 Li6P2SeS7 | 0.098 | 0.012–0.8 | 0.42 ± 0.10 | tied (parent 0.45–3.3, Ea 0.34 ± 0.05; same runs as the candidate) | own Arrhenius fit (500, 600, 700 K) |
 | ref:it1-c2 Li13P6S21I | 94 | 54–1.6e+02 | 0.14 ± 0.03 | not compared (no own fit) | D at 600 K with the parent's activation energy (assumed) |
-| ref:it2-c2 Li12P4SeS15 | 5.66 | 1.5–22 | 0.24 ± 0.07 | tied (ratio 4.8, parent 0.43–3.2) | own Arrhenius fit (500, 600, 700 K) |
+| ref:it2-c2 Li12P4SeS15 | 5.66 | 1.5–22 | 0.24 ± 0.07 | tied (parent 0.45–3.3, Ea 0.34 ± 0.05; same runs as the candidate) | own Arrhenius fit (500, 600, 700 K) |
+
+Runs that still differ between a candidate and its parent's fit (lengths or seeds available in the cache):
+- s9:it1-c4: 700 K: candidate 40 ps seed 0; parent 30 ps seed 0
+- s1:it1-c2: 700 K: candidate 40 ps seed 0; parent 30 ps seed 0
+- ref:it2-c2: 700 K: candidate 40 ps seed 0; parent 30 ps seed 0
 
 ## Final ranking
 
-Order: conductivity at 300 K against the parent (higher > tied > not_fitted > lower), then MD verdict at 600 K (higher > tied > not_run), then lowest E_hull per substitution; excluded candidates last, with their reason. Candidates are computational predictions, not proven materials. E_hull ± its error bar: mean absolute UMA-vs-DFT (Materials Project) difference on the known compounds of the same chemical system.
+Levels: conductivity at 300 K against the parent (higher > tied > lower > not_fitted; "not_fitted": not evaluated at 300 K, a single temperature, ordered by the MD verdict at 600 K). Inside a level, by convention: lowest E_hull per substitution, then lowest activation energy (own fit), then widest electrochemical window; this order is not a significant difference (the gaps are often smaller than the error bars). Excluded candidates last, with their reason. Candidates are computational predictions, not proven materials. E_hull ± its error bar: mean absolute UMA-vs-DFT (Materials Project) difference on the known compounds of the same chemical system.
 
-1. s1:it1-c2 Li6P2SeS7 **finalist**: E_hull per substitution -0.115 eV, E_hull -0.007 ± 0.005 eV/atom, gap 2.48 eV, MD tied (D/D(parent) 0.66 ± 0.21); σ(300 K) 0.098 mS/cm (0.012–0.8), tied with its parent
-2. ref:it2-c2 Li12P4SeS15 **finalist**: E_hull per substitution -0.113 eV, E_hull -0.004 ± 0.005 eV/atom, gap 2.59 eV, MD tied (D/D(parent) 0.82 ± 0.25); σ(300 K) 5.7 mS/cm (1.5–22), tied with its parent
-3. s9:it1-c4 Li7P3SeS10 **finalist**: E_hull per substitution 0.323 eV, E_hull 0.015 ± 0.005 eV/atom, gap 2.35 eV, MD tied (D/D(parent) 1.07 ± 0.23); σ(300 K) 1.3e+02 mS/cm (50–3.6e+02), tied with its parent; reduced confidence of the window (decomposes via P2S7)
-4. s9:it2-c5 Li11P4S15I: E_hull per substitution 0.362 eV, E_hull 0.023 ± 0.005 eV/atom, gap 2.52 eV, MD tied (D/D(parent) 0.90 ± 0.34); σ(300 K) 0.81 mS/cm (0.29–2.3), not compared; reduced confidence of the window (decomposes via P2S7)
-5. s1:it1-c1 Li11P4S15Br: E_hull per substitution 0.367 eV, E_hull 0.024 ± 0.005 eV/atom, gap 2.66 eV, MD tied (D/D(parent) 1.15 ± 0.28); σ(300 K) 1 mS/cm (0.39–2.8), not compared; reduced confidence of the window (decomposes via P2S7)
-6. s9:it1-c2 Li6P2S7O: E_hull per substitution 0.384 eV, E_hull 0.024 ± 0.005 eV/atom, gap 2.84 eV, MD tied (D/D(parent) 1.32 ± 0.30); σ(300 K) 1.4 mS/cm (0.52–3.7), not compared
-7. s9:it1-c1 Li11P4S15Cl: E_hull per substitution 0.399 eV, E_hull 0.026 ± 0.005 eV/atom, gap 2.67 eV, MD tied (D/D(parent) 0.93 ± 0.28); σ(300 K) 0.86 mS/cm (0.31–2.3), not compared; reduced confidence of the window (decomposes via P2S7)
-8. ref:it1-c2 Li13P6S21I: E_hull per substitution 0.489 eV, E_hull 0.024 ± 0.005 eV/atom, gap 2.40 eV, MD tied (D/D(parent) 1.15 ± 0.33); σ(300 K) 94 mS/cm (54–1.6e+02), not compared
-9. it2-c1 Li14P6SeS21: E_hull per substitution 0.523 eV, E_hull 0.012 ± 0.005 eV/atom, gap 2.42 eV, MD tied (D/D(parent) 1.34 ± 0.34); σ(300 K) 46 mS/cm (17–1.2e+02), not compared; reduced confidence of the window (decomposes via P2S7)
-10. it3-c3 Li13P6S21Br: E_hull per substitution 0.529 eV, E_hull 0.026 ± 0.005 eV/atom, gap 2.38 eV, MD tied (D/D(parent) 1.01 ± 0.20); σ(300 K) 33 mS/cm (12–87), not compared; reduced confidence of the window (decomposes via P2S7)
-11. ref:it1-c3 Li12AsP3S16: E_hull per substitution -0.154 eV, E_hull -0.005 ± 0.004 eV/atom, gap 2.54 eV, MD not run; reduced confidence (E_hull via LiS4)
-12. ref:it2-c3 Li6AsPS8: E_hull per substitution -0.153 eV, E_hull -0.010 ± 0.004 eV/atom, gap 2.37 eV, MD not run; reduced confidence (E_hull via LiS4)
-13. it3-c2 Li12As3PS16: E_hull per substitution -0.151 eV, E_hull -0.014 ± 0.004 eV/atom, gap 2.30 eV, MD not run; reduced confidence (E_hull via LiS4)
-14. it3-c1 Li3PSeS3: E_hull per substitution -0.100 eV, E_hull -0.012 ± 0.005 eV/atom, gap 2.37 eV, MD not run
-15. ref:it2-c1 Li12SbP3S16: E_hull per substitution 0.412 eV, E_hull 0.013 ± 0.012 eV/atom, gap 2.46 eV, MD not run
-16. ref:it1-c1 Li11P4S15F: E_hull per substitution 0.460 eV, E_hull 0.030 ± 0.006 eV/atom, gap 2.68 eV, MD not run; reduced confidence of the window (decomposes via P2S7)
-17. s9:it2-c2 Li7AsP2S11: E_hull per substitution 0.503 eV, E_hull 0.024 ± 0.004 eV/atom, gap 2.20 eV, MD not run; reduced confidence (E_hull via AsS2, LiS4)
-18. s1:it1-c3 Li7P3S10O: E_hull per substitution 0.510 eV, E_hull 0.024 ± 0.005 eV/atom, gap 2.56 eV, MD not run
-19. it2-c2 Li14AsP5S22: E_hull per substitution 1.007 eV, E_hull 0.024 ± 0.004 eV/atom, gap 2.30 eV, MD not run; reduced confidence (E_hull via AsS2, LiS4, P2S7)
-20. s9:it2-c3 Li14SbP5S22: E_hull per substitution 1.381 eV, E_hull 0.033 ± 0.012 eV/atom, gap 2.23 eV, MD not run; reduced confidence (E_hull via LiS4)
+1. [tied with its parent at 300 K] s1:it1-c2 Li6P2SeS7 **finalist**: E_hull per substitution -0.115 eV, E_hull -0.007 ± 0.005 eV/atom, gap 2.48 eV, MD tied (D/D(parent) 0.66 ± 0.21); σ(300 K) 0.098 mS/cm (0.012–0.8), tied with its parent
+2. [tied with its parent at 300 K] ref:it2-c2 Li12P4SeS15 **finalist**: E_hull per substitution -0.113 eV, E_hull -0.004 ± 0.005 eV/atom, gap 2.59 eV, MD tied (D/D(parent) 0.82 ± 0.25); σ(300 K) 5.7 mS/cm (1.5–22), tied with its parent
+3. [tied with its parent at 300 K] s9:it1-c4 Li7P3SeS10 **finalist**: E_hull per substitution 0.323 eV, E_hull 0.015 ± 0.005 eV/atom, gap 2.35 eV, MD tied (D/D(parent) 1.07 ± 0.23); σ(300 K) 1.3e+02 mS/cm (50–3.6e+02), tied with its parent; reduced confidence of the window (decomposes via P2S7)
+4. [not evaluated at 300 K] s9:it2-c5 Li11P4S15I: E_hull per substitution 0.362 eV, E_hull 0.023 ± 0.005 eV/atom, gap 2.52 eV, MD tied (D/D(parent) 0.90 ± 0.34); σ(300 K) 0.81 mS/cm (0.29–2.3), not compared; reduced confidence of the window (decomposes via P2S7)
+5. [not evaluated at 300 K] s1:it1-c1 Li11P4S15Br: E_hull per substitution 0.367 eV, E_hull 0.024 ± 0.005 eV/atom, gap 2.66 eV, MD tied (D/D(parent) 1.15 ± 0.28); σ(300 K) 1 mS/cm (0.39–2.8), not compared; reduced confidence of the window (decomposes via P2S7)
+6. [not evaluated at 300 K] s9:it1-c2 Li6P2S7O: E_hull per substitution 0.384 eV, E_hull 0.024 ± 0.005 eV/atom, gap 2.84 eV, MD tied (D/D(parent) 1.32 ± 0.30); σ(300 K) 1.4 mS/cm (0.52–3.7), not compared
+7. [not evaluated at 300 K] s9:it1-c1 Li11P4S15Cl: E_hull per substitution 0.399 eV, E_hull 0.026 ± 0.005 eV/atom, gap 2.67 eV, MD tied (D/D(parent) 0.93 ± 0.28); σ(300 K) 0.86 mS/cm (0.31–2.3), not compared; reduced confidence of the window (decomposes via P2S7)
+8. [not evaluated at 300 K] ref:it1-c2 Li13P6S21I: E_hull per substitution 0.489 eV, E_hull 0.024 ± 0.005 eV/atom, gap 2.40 eV, MD tied (D/D(parent) 1.15 ± 0.33); σ(300 K) 94 mS/cm (54–1.6e+02), not compared
+9. [not evaluated at 300 K] it2-c1 Li14P6SeS21: E_hull per substitution 0.523 eV, E_hull 0.012 ± 0.005 eV/atom, gap 2.42 eV, MD tied (D/D(parent) 1.34 ± 0.34); σ(300 K) 46 mS/cm (17–1.2e+02), not compared; reduced confidence of the window (decomposes via P2S7)
+10. [not evaluated at 300 K] it3-c3 Li13P6S21Br: E_hull per substitution 0.529 eV, E_hull 0.026 ± 0.005 eV/atom, gap 2.38 eV, MD tied (D/D(parent) 1.01 ± 0.20); σ(300 K) 33 mS/cm (12–87), not compared; reduced confidence of the window (decomposes via P2S7)
+11. [not evaluated at 300 K] ref:it1-c3 Li12AsP3S16: E_hull per substitution -0.154 eV, E_hull -0.005 ± 0.004 eV/atom, gap 2.54 eV, MD not run; reduced confidence (E_hull via LiS4)
+12. [not evaluated at 300 K] ref:it2-c3 Li6AsPS8: E_hull per substitution -0.153 eV, E_hull -0.010 ± 0.004 eV/atom, gap 2.37 eV, MD not run; reduced confidence (E_hull via LiS4)
+13. [not evaluated at 300 K] it3-c2 Li12As3PS16: E_hull per substitution -0.151 eV, E_hull -0.014 ± 0.004 eV/atom, gap 2.30 eV, MD not run; reduced confidence (E_hull via LiS4)
+14. [not evaluated at 300 K] it3-c1 Li3PSeS3: E_hull per substitution -0.100 eV, E_hull -0.012 ± 0.005 eV/atom, gap 2.37 eV, MD not run
+15. [not evaluated at 300 K] ref:it2-c1 Li12SbP3S16: E_hull per substitution 0.412 eV, E_hull 0.013 ± 0.012 eV/atom, gap 2.46 eV, MD not run
+16. [not evaluated at 300 K] ref:it1-c1 Li11P4S15F: E_hull per substitution 0.460 eV, E_hull 0.030 ± 0.006 eV/atom, gap 2.68 eV, MD not run; reduced confidence of the window (decomposes via P2S7)
+17. [not evaluated at 300 K] s9:it2-c2 Li7AsP2S11: E_hull per substitution 0.503 eV, E_hull 0.024 ± 0.004 eV/atom, gap 2.20 eV, MD not run; reduced confidence (E_hull via AsS2, LiS4)
+18. [not evaluated at 300 K] s1:it1-c3 Li7P3S10O: E_hull per substitution 0.510 eV, E_hull 0.024 ± 0.005 eV/atom, gap 2.56 eV, MD not run
+19. [not evaluated at 300 K] it2-c2 Li14AsP5S22: E_hull per substitution 1.007 eV, E_hull 0.024 ± 0.004 eV/atom, gap 2.30 eV, MD not run; reduced confidence (E_hull via AsS2, LiS4, P2S7)
+20. [not evaluated at 300 K] s9:it2-c3 Li14SbP5S22: E_hull per substitution 1.381 eV, E_hull 0.033 ± 0.012 eV/atom, gap 2.23 eV, MD not run; reduced confidence (E_hull via LiS4)
 21. it1-c1 Li5P2S7Cl: E_hull per substitution 0.373 eV, E_hull 0.050 ± 0.005 eV/atom, gap 2.59 eV, MD higher (D/D(parent) 2.37 ± 0.56); σ(300 K) 0.44 mS/cm (0.075–2.5), not compared; reduced confidence of the window (decomposes via P2S7) — EXCLUDED at molecular_dynamics: framework moved: Cl diffuses at 17.7% of Li (limit 5%), seed 0, final MSD 4.8 A2
 22. s9:it2-c1 Li13P6S21Cl: E_hull per substitution 0.618 eV, E_hull 0.030 ± 0.005 eV/atom, gap 2.25 eV, MD tied (D/D(parent) 0.96 ± 0.20); σ(300 K) 81 mS/cm (48–1.3e+02), not compared — EXCLUDED at molecular_dynamics: framework moved: Cl diffuses at 39.8% of Li (limit 5%), seed 0, final MSD 5.4 A2
 23. it1-c2 Li14P6S21O: E_hull per substitution 0.660 eV, E_hull 0.016 ± 0.005 eV/atom, gap 2.50 eV, MD tied (D/D(parent) 0.85 ± 0.18); σ(300 K) 30 mS/cm (11–80), not compared; reduced confidence of the window (decomposes via P2S7) — EXCLUDED at molecular_dynamics: framework moved: O diffuses at 5.3% of Li (limit 5%), seed 1, final MSD 3.0 A2
@@ -492,7 +497,7 @@ Total: 0 calls, ~$0.0000.
 
 ### Executive summary
 
-The champion is Li6P2SeS7 derived from Li3PS4 by Se substitution. Its energy above the hull is -0.007 eV/atom with error 0.005 eV/atom. Its band gap is 2.485 eV by optB88 and 3.102 eV by MBJ. Its electrochemical window is stable from 1.8 V to 2.24 V and it is passivating against lithium metal. Its diffusion coefficient at 600 K is 3.9e-06 cm2/s with error 9.6e-07 cm2/s, tied with the parent within uncertainty. Its ionic conductivity at 300 K is an extrapolated estimate of 0.098 mS/cm within range [0.012, 0.8] mS/cm by own Arrhenius fit (500, 600, 700 K) with activation energy 0.421 eV, tied with the parent range [0.432, 3.199] mS/cm. Failed candidates taught two lessons: Cl- and O-substituted variants moved in molecular dynamics with framework diffusion above the 5% limit, and Na- and LiMg-forming variants were non-passivating against lithium metal. Measured ionic conductivity, DFT checks, synthesis routes, cost and experimental data were not computed.
+The search sought sulfide electrolytes derived from Li7P3S11 or beta-Li3PS4 that conduct lithium at least as fast as the parent and remain stable against lithium metal. The champion is Li6P2SeS7 derived from Li3PS4, with space group Pmc2_1. Its energy above the hull is -0.007 eV/atom with an error bar of 0.005 eV/atom. Its band gap is 2.485 eV and 3.102 eV. Its electrochemical window is stable from 1.8 V to 2.24 V and its behavior against lithium metal is passivating. Its diffusion coefficient at 600 K is 3.9e-06 cm2/s with an error of 9.6e-07 cm2/s, with a verdict of tied with its parent. Its ionic conductivity at 300 K is an extrapolated estimate of 0.098 mS/cm within 0.012 to 0.8 mS/cm by own Arrhenius fit at 500, 600, 700 K, with a verdict of tied with its parent whose range is 0.446 to 3.348 mS/cm. The other two finalists Li12P4SeS15 and Li7P3SeS10 share the same level of tied with its parent at 300 K. Excluded candidates failed because the framework moved in molecular dynamics with Cl or O diffusion, or because the reaction against lithium metal was non-passivating with metallic products. Measured ionic conductivity, DFT checks, synthesis routes, cost, and experimental data were not computed.
 
 ### Comparison of the three finalists
 
@@ -510,7 +515,7 @@ The champion is Li6P2SeS7 derived from Li3PS4 by Se substitution. Its energy abo
 | D at 600 K (cm²/s) | 3.90e-06 | 4.87e-06 | 1.39e-05 |
 | D / D(parent) | 0.66 ± 0.21 | 0.82 ± 0.25 | 1.07 ± 0.23 |
 | Diffusion verdict | tied | tied | tied |
-| σ at 300 K against the parent | tied (parent 0.43–3.2 mS/cm) | tied (parent 0.43–3.2 mS/cm) | tied (parent 58–1.7e+02 mS/cm) |
+| σ at 300 K against the parent | tied (parent 0.45–3.3 mS/cm) | tied (parent 0.45–3.3 mS/cm) | tied (parent 64–1.9e+02 mS/cm) |
 | Ionic conductivity at 300 K (mS/cm, estimate) | 0.098 (range 0.012–0.8; own Arrhenius fit (500, 600, 700 K)) | 5.66 (range 1.5–22; own Arrhenius fit (500, 600, 700 K)) | 134 (range 50–3.6e+02; own Arrhenius fit (500, 600, 700 K)) |
 | Literature | close family already studied | close family already studied | close family already studied |
 | Confidence flags | none | none | window via a polysulfide |
@@ -518,31 +523,32 @@ The champion is Li6P2SeS7 derived from Li3PS4 by Se substitution. Its energy abo
 ### Champion: Li6P2SeS7
 
 **Why it is preferred.**
-- Energy above the hull of -0.007 eV/atom with error 0.005 eV/atom is lower than -0.004 eV/atom with error 0.005 eV/atom for Li12P4SeS15 and 0.015 eV/atom with error 0.005 eV/atom for Li7P3SeS10.
-- Energy per modified site of -0.115 eV is more stabilizing than -0.113 eV for Li12P4SeS15 and 0.323 eV for Li7P3SeS10.
-- Electrochemical window from 1.8 V to 2.24 V is stable with no confidence flags, while Li7P3SeS10 has a window from 2.28 V to 2.3 V with a window via a polysulfide flag.
+- All three finalists share the level tied with its parent at 300 K, so Li6P2SeS7 comes first by the convention of lowest energy above the hull per substitution, then lowest activation energy, then widest electrochemical window, not by a significant conductivity difference.
+- Its energy above the hull per substitution of -0.115 eV is lower than -0.113 eV for Li12P4SeS15 and 0.323 eV for Li7P3SeS10.
+- Its stable window from 1.8 V to 2.24 V matches Li12P4SeS15 from 1.8 V to 2.24 V and is wider than Li7P3SeS10 from 2.28 V to 2.3 V.
+- Its energy above the hull of -0.007 eV/atom with an error bar of 0.005 eV/atom differs from Li12P4SeS15 at -0.004 eV/atom within the error bars, while the difference to Li7P3SeS10 at 0.015 eV/atom is larger than the error bars.
 
 **Trade-offs.**
-- Electrochemical window from 1.8 V to 2.24 V is narrow and does not cover typical cathode voltages.
-- Interface reaction energy with LiFePO4 is -0.145 eV/atom, indicating cathode reactivity.
-- Ionic conductivity at 300 K is an extrapolated estimate of 0.098 mS/cm within range [0.012, 0.8] mS/cm, so the range spans almost two orders of magnitude.
-- Novelty is close family already studied, with Se doping of sulfide electrolytes reported before and no exact Li6P2SeS7 report found.
+- Its window from 1.8 V to 2.24 V is narrow for pairing with high-voltage cathodes.
+- Its reaction energy with lithium iron phosphate is -0.145 eV/atom, indicating cathode reactivity.
+- Its conductivity estimate of 0.098 mS/cm within 0.012 to 0.8 mS/cm spans almost two orders of magnitude, so high conductivity is not assured.
+- Its activation energy is 0.421 eV with an error of 0.104 eV, compared with 0.335 eV for the parent.
 
 **Uncertainties.**
-- Energy above the hull carries UMA-vs-DFT error of 0.005 eV/atom from mean difference on 25 known compounds of Li-P-S-Se.
-- Diffusion coefficient at 600 K is 3.9e-06 cm2/s with error 9.6e-07 cm2/s from high-temperature dynamics, and the 300 K conductivity range [0.012, 0.8] mS/cm is extrapolated from 500, 600 and 700 K.
-- Window stability allows a maximum shift of 0.02 V under a shift of 0.025 eV/atom and lists polysulfides LiS4, P2S7 and SeS7, which limits confidence.
-- Diffusion verdict at 600 K is tied with the parent within uncertainty, so no faster or slower claim can be made.
+- Room-temperature conductivity is an extrapolated estimate from molecular dynamics at 500 to 700 K, not a measurement.
+- Diffusion was assessed at 600 K with an error of 9.6e-07 cm2/s, so low-temperature behavior remains uncertain.
+- Energies carry an error bar of 0.005 eV/atom from the mean difference on 25 known compounds of Li-P-S-Se.
+- The window assessment involves polysulfides LiS4, P2S7 and SeS7 with a shift of 0.025 eV/atom, which limits confidence.
 
 **Validation.**
-- Check phase purity and lattice parameters a 6.265 A, b 8.146 A, c 13.146 A in space group Pmc2_1 by powder X-ray diffraction. *(documented)*
-- Measure ionic conductivity and activation energy by temperature-dependent impedance spectroscopy, since the 300 K value is only an extrapolated estimate of 0.098 mS/cm within [0.012, 0.8] mS/cm. *(documented)*
-- Test stability during cycling against lithium metal to confirm passivating behavior and analyze interphase products Li2Se, Li3PS4 and P. *(documented)*
-- Recalculate energy above the hull and band gap with DFT to confirm the UMA result of -0.007 eV/atom with error 0.005 eV/atom and gaps of 2.485 eV and 3.102 eV. *(documented)*
+- Check phase and lattice by powder X-ray diffraction against the predicted Pmc2_1 cell. *(documented)*
+- Measure ionic and electronic conductivity by impedance spectroscopy with blocking electrodes. *(documented)*
+- Check stability against lithium metal by cycling a symmetric cell and by interface analysis. *(documented)*
+- Recalculate the energy above the hull and the window with DFT. *(documented)*
 
 **Synthesis routes to consider.**
-- Ball milling of sulfide and selenide precursors followed by annealing under inert atmosphere could be tried for this sulfide electrolyte family, but success is not guaranteed. *(documented)*
-- Sealed-tube solid-state reaction with controlled Se content to target Li6P2SeS7 could be tried, but success is not guaranteed. *(hypothesis)*
+- Try ball milling of lithium sulfide, phosphorus sulfide and selenium precursors then annealing under inert atmosphere, without guarantee of success. *(documented)*
+- Try glass-ceramic annealing near the crystallization of the parent sulfide to favor the substituted phase, without guarantee of success. *(hypothesis)*
 
 ### Methods
 
@@ -560,10 +566,10 @@ The champion is Li6P2SeS7 derived from Li3PS4 by Se substitution. Its energy abo
 
 ### Limitations
 
-- Measured ionic conductivity was not computed and the 300 K value is only an extrapolated estimate.
-- DFT calculations, synthesis routes, cost of the elements and experimental data were not computed.
-- Moisture stability, mechanical behavior and long-term cycling were not studied and still need validation.
-- The candidates are computational predictions, not proven materials.
+- Measured ionic conductivity was not computed and the 300 K values are extrapolated estimates with their range.
+- DFT calculations were not computed and UMA energies carry an error bar.
+- Synthesis routes were not computed and the candidates are computational predictions, not proven materials.
+- Cost of the elements and experimental data including moisture stability and long cycling were not computed and still need validation.
 - Not computed: measured ionic conductivity (room-temperature values are extrapolated estimates from molecular dynamics at 500-700 K, with their range), DFT calculations (UMA energies carry an error bar measured against DFT on known compounds), synthesis routes, cost of the elements, experimental data.
 - The candidates are computational predictions, not proven materials.
 
@@ -574,7 +580,7 @@ Model ranking (last analysis): ['it3-c2', 'it3-c1', 'it3-c3']
 
 - meta: 9 calls, 86240 in / 29922 out tokens, ~$0.2350
 - baseten: 0 calls, 0 in / 0 out tokens, ~$0.0000
-- meta (rerun): 1 calls, 4785 in / 4674 out tokens, ~$0.0259
+- meta (rerun): 1 calls, 5153 in / 5374 out tokens, ~$0.0293
 - candidate analyses (analyst): 0 calls, ~$0.0000
 - novelty web search: 0 calls, ~$0.0000
 - molecular dynamics launched in this research (all iterations): estimate 4.41 $ on Modal H100
