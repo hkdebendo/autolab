@@ -14,7 +14,7 @@ client = TestClient(webapp.app)
 
 
 def test_the_page_opens_at_home_and_at_a_conversation_address():
-    for path in ("/", "/c/3f2a9c1b77aa", "/results", "/results/cathode"):
+    for path in ("/", "/c/3f2a9c1b77aa", "/results", "/results/cathode", "/settings", "/settings/sodium"):
         r = client.get(path)
         assert r.status_code == 200 and "What material shall we discover today?" not in r.text  # rendered by JS
         assert '<script type="module" src="/static/app.js">' in r.text
@@ -107,3 +107,18 @@ def test_the_results_page_shows_champions_by_domain_with_report_and_research_but
     html = (webapp.HERE / "static" / "index.html").read_text(encoding="utf-8")
     assert 'id="results-btn"' in html and "/champions" in js and "function showResults(" in js
     assert "Final report (PDF)" in js and "Open the research" in js and "data-domain" in js
+
+
+def test_the_settings_page_shows_every_domain_rule_from_config_without_the_service(monkeypatch):
+    from autolab import config
+
+    monkeypatch.setattr(webapp, "_service_url", lambda: None)  # read locally, never relayed
+    r = client.get("/api/settings")
+    assert r.status_code == 200
+    data = r.json()
+    assert [d["key"] for d in data["domains"]] == ["electrolyte", "cathode", "sodium"]
+    rules = {x["name"]: x for d in data["domains"] for g in d["groups"] for x in g["rules"]}
+    assert rules["SODIUM_BANDGAP_MIN"]["value"] == config.SODIUM_BANDGAP_MIN
+    assert rules["MD_SCREEN_TEMPERATURE_K"]["status"] == "validated"
+    assert {x["status"] for x in rules.values()} <= {"validated", "justified", "budget"}
+    assert all(hasattr(config, name) for name in rules)

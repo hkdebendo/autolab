@@ -104,8 +104,10 @@ function route() {
   document.querySelector(".main").classList.remove("results-page");
   const m = location.pathname.match(/^\/c\/([\w-]+)/);
   const r = location.pathname.match(/^\/results(?:\/([\w-]+))?/);
+  const st = location.pathname.match(/^\/settings(?:\/([\w-]+))?/);
   if (m) openConversation(m[1]);
   else if (r) showResults(r[1]);
+  else if (st) showSettings(st[1]);
   else showHome();
 }
 
@@ -248,7 +250,7 @@ document.addEventListener("keydown", (e) => {
   if (open) closeModal(open.id);
   else if (L.on && L.full && !L.hidden) labSetFull(false);
 });
-$("settings-btn").onclick = () => { applyTheme(themeChoice()); openModal("settings"); };
+$("settings-btn").onclick = () => navigate("/settings");
 $("theme-choice").addEventListener("change", (e) => applyTheme(e.target.value));
 $("theme-btn").onclick = () => applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
 
@@ -1126,6 +1128,57 @@ async function printReport({ title, goal, date, html, structure, formula }) {
    PDF and the research it came from, to talk with the agent again. */
 
 const champs = { data: null, at: 0, observer: null };
+
+/* ---------- settings: the rules of each domain, read from config.py (read only) ---------- */
+
+const rulesCache = { data: null };
+const STATUS = { validated: ["validated", "fixed by a truth test or a calibration"], justified: ["justified", "a convention or a literature value"],
+  budget: ["budget", "a cost or time limit of one research"] };
+
+async function showSettings(domain) {
+  stopTimers();
+  S.id = null; S.view = null; S.events = []; S.index = null;
+  disposeViewers();
+  const main = document.querySelector(".main");
+  main.classList.remove("home");
+  main.classList.add("results-page");
+  main.appendChild($("composer-wrap"));
+  $("crumb").textContent = "Settings";
+  document.title = "Settings · AutoLab";
+  renderHistory();
+  if (!rulesCache.data) {
+    $("view").innerHTML = loadingHTML("Reading the rules of every domain…");
+    try { rulesCache.data = await api("/settings"); }
+    catch (e) {
+      $("view").innerHTML = `<div class="thread"><div class="notice warn">The rules could not be loaded: ${esc(e.message)}.</div></div>`;
+      return;
+    }
+  }
+  if (!location.pathname.startsWith("/settings")) return;  // the reader went elsewhere meanwhile
+  const { domains, note, source } = rulesCache.data;
+  const current = domains.find((d) => d.key === domain) || domains[0];
+  const val = (r) => `${tx(String(r.value))}${r.unit ? ` <span class="muted">${tx(r.unit)}</span>` : ""}`;
+  $("view").innerHTML = `<div class="results settings-page">
+      <header class="results-head"><h1>Settings</h1>
+        <p>The rules AutoLab decides with, for each research area. Every filter, verdict and limit comes from these values, never from the language models. ${esc(note)}</p>
+        <div class="settings-tools"><span class="chip">source: ${esc(source)}</span>
+          <button class="ghost-btn" type="button" id="theme-open">Appearance</button></div></header>
+      <nav class="domain-tabs" role="tablist">${domains.map((d) => `<button type="button" role="tab" data-domain="${esc(d.key)}"
+        aria-selected="${d.key === current.key}"><b>${esc(d.label)}</b><span>${d.groups.reduce((n, g) => n + g.rules.length, 0)} rules</span></button>`).join("")}</nav>
+      <div class="legend rules-legend">${Object.entries(STATUS).map(([k, [l, t]]) => `<span><i class="st ${k}"></i><b>${l}</b>: ${t}</span>`).join("")}</div>
+      ${current.groups.map((g) => `<section class="rules-group"><h2>${esc(g.title)}</h2>
+        <div class="table-scroll"><table class="data rules"><thead><tr><th>Rule</th><th>Value</th><th>Why</th><th>Status</th><th>Name in config.py</th></tr></thead><tbody>
+        ${g.rules.map((r) => `<tr><td>${tx(r.label)}</td><td class="num">${val(r)}</td><td class="muted">${tx(r.why || "—")}</td>
+          <td><span class="st-chip ${esc(r.status)}">${esc(STATUS[r.status] ? STATUS[r.status][0] : r.status)}</span></td><td><code>${esc(r.name)}</code></td></tr>`).join("")}
+        </tbody></table></div></section>`).join("")}
+    </div>`;
+  $("view").querySelector(".domain-tabs").onclick = (e) => {
+    const b = e.target.closest("[data-domain]");
+    if (b) navigate(`/settings/${b.dataset.domain}`);
+  };
+  $("theme-open").onclick = () => { applyTheme(themeChoice()); openModal("settings"); };
+  $("view").scrollTo({ top: 0 });
+}
 
 async function showResults(domain) {
   stopTimers();

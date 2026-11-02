@@ -48,6 +48,8 @@ app.mount("/static", StaticFiles(directory=HERE / "static"), name="static")
 @app.get("/c/{cid}")
 @app.get("/results")
 @app.get("/results/{domain}")
+@app.get("/settings")
+@app.get("/settings/{domain}")
 def page(cid: str | None = None, domain: str | None = None) -> FileResponse:
     """The single page (a conversation's or a results page's address opens it directly)."""
     return FileResponse(HERE / "static" / "index.html")
@@ -63,6 +65,14 @@ def _client(base: str) -> httpx.AsyncClient:
     if key not in _CLIENTS:
         _CLIENTS[key] = httpx.AsyncClient(base_url=base.rstrip("/"), timeout=TIMEOUT_S)
     return _CLIENTS[key]
+
+
+@app.get("/api/settings")
+def rules() -> dict:
+    """The rules of every domain, read from this code's config.py (no call to the service)."""
+    from autolab.agent.settings_view import settings
+
+    return settings()
 
 
 @app.api_route("/api/{path:path}", methods=METHODS)

@@ -68,6 +68,8 @@ def found(x):
 @app.get("/c/{cid}")
 @app.get("/results")
 @app.get("/results/{domain}")
+@app.get("/settings")
+@app.get("/settings/{domain}")
 def page(cid: str | None = None):
     return FileResponse(WEB / "index.html")
 
@@ -75,6 +77,13 @@ def page(cid: str | None = None):
 @app.get("/api/champions")
 def champions():
     return svc.champions()
+
+
+@app.get("/api/settings")
+def rules():
+    from autolab.agent.settings_view import settings
+
+    return settings()
 
 
 @app.get("/api/conversations")
