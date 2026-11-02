@@ -262,6 +262,17 @@ NOVELTY_STOP_IF_CONTROL_FAILS = True  # control not found as published: the sear
 
 # Domain of the loop (autolab/domains): its funnel, its stages after the iterations, its prompts and thresholds.
 AGENT_DOMAIN = "electrolyte"
+# How the interface names each domain (the results page groups the champions by domain, in this order; a new domain
+# adds its entry here).
+DOMAIN_LABELS = {
+    "electrolyte": {"label": "Solid electrolytes", "kind": "Solid electrolyte · lithium-metal batteries",
+                    "about": "Ion conductors placed between the lithium-metal anode and the cathode: they must be "
+                             "stable, block electrons, survive contact with lithium metal and let Li+ move fast."},
+    "cathode": {"label": "Cobalt-free cathodes", "kind": "Cobalt-free cathode · lithium-ion batteries",
+                "about": "Positive electrodes that store lithium without cobalt: they must be stable and give a high "
+                         "voltage and capacity (energy density) with a small volume change on charge."},
+}
+CHAMPIONS_EXCLUDED = ("first-2026-10-29", "test-2026-10-29-br-i")  # test researches, left out of the results page
 
 # What AutoLab can really do (interface.md 11): the scope check of a request relies on this list, never on a guess.
 CAPABILITIES = {

@@ -66,8 +66,15 @@ def found(x):
 
 @app.get("/")
 @app.get("/c/{cid}")
+@app.get("/results")
+@app.get("/results/{domain}")
 def page(cid: str | None = None):
     return FileResponse(WEB / "index.html")
+
+
+@app.get("/api/champions")
+def champions():
+    return svc.champions()
 
 
 @app.get("/api/conversations")

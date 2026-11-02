@@ -50,6 +50,7 @@ class Service:
 
     def __init__(self, store, models: Callable[[], list], spawn: Callable[[str], None]):
         self.store, self.models, self.spawn = store, models, spawn
+        self._champions = None  # (time, results page) kept a minute
 
     # --- reading -------------------------------------------------------------------------------------------------
 
@@ -65,6 +66,39 @@ class Service:
                 "steps": steps_from_events(events, run_state(conv["status"])) if events or conv["status"] in ACTIVE
                 else [], "events_count": len(events), "has_result": self.store.result(cid) is not None,
                 "files": [a["name"] for a in self.store.artifacts(cid)]}
+
+    def champions(self) -> dict:
+        """The champion of every finished research, for the results page: the first finalist of its final report
+        (numbers as stored, nothing recomputed), its 3D file, the reasons and uncertainties written in the report.
+        Test researches (config.CHAMPIONS_EXCLUDED) and copies of a reused research are left out; a champion found by
+        several researches is shown once, with every research that found it. Kept a minute (a research that ends
+        clears it)."""
+        if self._champions and time.monotonic() - self._champions[0] < 60:
+            return self._champions[1]
+        cards, by_key = [], {}
+        for row in self.store.finished_reports():  # newest first
+            report = row.get("report") or {}
+            if row["id"] in config.CHAMPIONS_EXCLUDED or row.get("source") == "reuse" or not report.get("finalists"):
+                continue
+            champ = report["finalists"][0]
+            domain = row.get("result_domain") or row.get("domain") or config.AGENT_DOMAIN
+            research = {"id": row["id"], "title": row["title"], "goal": row["goal"],
+                        "created_at": _public(row).get("created_at")}
+            key = (domain, champ.get("formula"))
+            if key in by_key:
+                by_key[key]["also_found_by"].append(research)
+                continue
+            narrative = report.get("narrative") or {}
+            card = {"domain": domain, "research": research, "champion": champ,
+                    "structure_file": (row.get("structures") or {}).get(champ.get("id")),
+                    "finalists": len(report["finalists"]), "reasons": (narrative.get("champion_reasons") or [])[:3],
+                    "uncertainties": (narrative.get("uncertainties") or [])[:3], "also_found_by": []}
+            by_key[key] = card
+            cards.append(card)
+        domains = [{"key": k, **v, "count": sum(c["domain"] == k for c in cards)} for k, v in config.DOMAIN_LABELS.items()]
+        out = {"domains": domains, "champions": cards}
+        self._champions = (time.monotonic(), out)
+        return out
 
     def progress(self, cid: str, after: int = 0) -> dict | None:
         conv = self.store.get(cid)
@@ -206,6 +240,7 @@ class Service:
         if conv is None or conv["status"] in ACTIVE:
             return False  # a running research is stopped first
         self.store.delete(cid)
+        self._champions = None  # its champion may leave the results page
         return True
 
     # --- the research itself (worker) ----------------------------------------------------------------------------
@@ -271,6 +306,7 @@ class Service:
             with contextlib.suppress(Exception):  # the 3D files are a bonus: never fail the research for them
                 export(cid, result)
         self.store.update(cid, status="interrupted" if result["stop_reason"] == INTERRUPTED else "done")
+        self._champions = None  # a new champion may have appeared
         return result
 
     def finish(self, cid: str, result: dict, domain) -> None:

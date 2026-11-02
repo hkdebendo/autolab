@@ -653,3 +653,51 @@ body.lab-open::before { content: ""; position: fixed; inset: 0; z-index: 44; bac
 /* a tool working on Muse Spark's proposal: proposal → tool */
 .lab-actor .arrow { color: var(--lm); font-size: 14px; margin: 0 -2px; }
 .lab .model.tool { font-size: 11.5px; padding: 1px 8px; opacity: .92; }
+
+/* ---------- results: the champions by domain ---------- */
+.new-chat.results-link { margin-top: -4px; }
+.main.results-page .composer-wrap { display: none; }
+.results { max-width: 1080px; margin: 0 auto; padding: 26px 24px 60px; }
+.results-head h1 { margin: 0 0 6px; font-size: 26px; letter-spacing: -.02em; }
+.results-head p { margin: 0 0 18px; color: var(--muted); max-width: 760px; }
+.domain-tabs { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 12px; }
+.domain-tabs button { display: grid; gap: 2px; text-align: left; padding: 10px 16px; border-radius: 12px; min-width: 200px;
+  border: 1px solid var(--border); background: var(--raised); color: var(--text-2); }
+.domain-tabs button span { font-size: 12.5px; color: var(--muted); }
+.domain-tabs button[aria-selected="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--text);
+  box-shadow: 0 0 0 1px var(--accent) inset; }
+.domain-about { color: var(--text-2); margin: 4px 0 20px; max-width: 820px; }
+.champ { border: 1px solid var(--border); border-radius: 16px; background: var(--raised); margin: 0 0 22px; overflow: hidden;
+  box-shadow: var(--shadow); }
+.champ-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 18px 20px 14px;
+  border-bottom: 1px solid var(--border); background: linear-gradient(180deg, var(--accent-soft), transparent); }
+.kind-badge { display: inline-block; font-size: 11.5px; font-weight: 600; letter-spacing: .03em; text-transform: uppercase;
+  color: var(--accent); background: var(--raised); border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+  padding: 2px 9px; border-radius: 999px; }
+.champ-head h2 { margin: 8px 0 2px; font: 600 28px "JetBrains Mono", monospace; letter-spacing: -.01em; }
+.champ-sub { margin: 0; color: var(--muted); font-size: 13px; }
+.champ-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.champ-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 20px; padding: 18px 20px 20px; }
+.champ-3d { margin: 0; }
+.champ-3d .viewer3d { height: 360px; }
+.champ-3d figcaption { font-size: 12.5px; color: var(--muted); margin-top: 6px; }
+.champ-info h4 { margin: 14px 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.champ-info h4:first-child { margin-top: 0; }
+.champ-info p { margin: 0; }
+.champ-info ul { margin: 0; padding-left: 18px; font-size: 14px; }
+.champ-info li { margin: 3px 0; }
+.muted-list { color: var(--text-2); }
+table.props { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+table.props th { text-align: left; font-weight: 500; color: var(--text-2); padding: 6px 10px 6px 0; border-bottom: 1px solid var(--border);
+  width: 46%; cursor: help; }
+table.props td { padding: 6px 0; border-bottom: 1px solid var(--border); }
+table.props td b { font-family: "JetBrains Mono", monospace; font-weight: 500; }
+table.props .u { color: var(--muted); font-size: 12px; }
+.champ-origin { margin-top: 14px !important; font-size: 13.5px; }
+.champ-goal { margin-top: 4px !important; font-size: 13px; color: var(--muted); }
+@media (max-width: 900px) {
+  .champ-body { grid-template-columns: 1fr; }
+  .results { padding: 18px 14px 40px; }
+  .domain-tabs button { min-width: 0; flex: 1; }
+}
+table.props .par { margin-left: 10px; font-size: 12px; color: var(--muted); font-family: "JetBrains Mono", monospace; }

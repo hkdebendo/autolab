@@ -14,7 +14,7 @@ client = TestClient(webapp.app)
 
 
 def test_the_page_opens_at_home_and_at_a_conversation_address():
-    for path in ("/", "/c/3f2a9c1b77aa"):
+    for path in ("/", "/c/3f2a9c1b77aa", "/results", "/results/cathode"):
         r = client.get(path)
         assert r.status_code == 200 and "What material shall we discover today?" not in r.text  # rendered by JS
         assert '<script type="module" src="/static/app.js">' in r.text
@@ -100,3 +100,10 @@ def test_light_theme_by_default_and_a_tutorial_of_five_cards():
     assert 'data-theme="light"' in html and '|| "light"' in js
     tutorial = js[js.index("const TUT = ["):js.index("let tutIndex")]
     assert "How does AutoLab work?" in html and len(re.findall(r'(?m)^  { title: "', tutorial)) == 5
+
+
+def test_the_results_page_shows_champions_by_domain_with_report_and_research_buttons():
+    js = (webapp.HERE / "static" / "app.js").read_text(encoding="utf-8")
+    html = (webapp.HERE / "static" / "index.html").read_text(encoding="utf-8")
+    assert 'id="results-btn"' in html and "/champions" in js and "function showResults(" in js
+    assert "Final report (PDF)" in js and "Open the research" in js and "data-domain" in js

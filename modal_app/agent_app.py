@@ -13,6 +13,9 @@ MP_API_KEY, FIREWORKS_API_KEY, GLIMMER_DEPLOYMENT, DATABASE_URL). No access code
 a time and config.LIVE_MAX_RUNS new researches in all protect the budget. No warm container, short limits.
 """
 
+import json
+import os
+
 import modal
 
 from autolab import config
@@ -62,6 +65,15 @@ def _gapmodel_models() -> None:
             zipfile.ZipFile(z).extractall(f"{root}/{name}")
 
 
+CHAMPIONS_FILE = f"{DATA}/cache/champions.json"  # the results page, computed once for every container
+
+
+def _forget_champions() -> None:
+    if os.path.exists(CHAMPIONS_FILE):
+        os.remove(CHAMPIONS_FILE)
+        data.commit()
+
+
 # nonpreemptible: a preempted research container lost its unsaved results and left the research stuck (2026-11-01)
 @app.function(cpu=2.0, memory=6144, volumes={DATA: data}, secrets=[keys], timeout=config.LIVE_RUN_TIMEOUT_S,
               max_containers=1, nonpreemptible=True)
@@ -96,6 +108,7 @@ def run_research(cid: str) -> dict | None:
                          checkpoint=data.commit)  # caches saved after each step, not only at the end
         return {"conversation": cid, "final_ranking": (result or {}).get("final_ranking")}
     finally:
+        _forget_champions()  # a new champion may have appeared
         data.commit()  # new cache entries and the 3D files stay for the next researches
 
 
@@ -129,6 +142,21 @@ def api():
         active = svc.store.active_research()
         return {"ok": True, "busy": bool(active), "researches_used": svc.store.live_runs_used(),
                 "researches_allowed": config.LIVE_MAX_RUNS}
+
+    @web.get("/api/champions")
+    def champions(refresh: bool = False):
+        """The results page, kept in the volume for every container (reading the reports takes seconds): computed
+        again when a research ends or is deleted, or with ?refresh=1."""
+        data.reload()
+        if os.path.exists(CHAMPIONS_FILE) and not refresh:
+            with open(CHAMPIONS_FILE, encoding="utf-8") as f:
+                return json.load(f)
+        out = svc.champions()
+        os.makedirs(os.path.dirname(CHAMPIONS_FILE), exist_ok=True)
+        with open(CHAMPIONS_FILE, "w", encoding="utf-8") as f:
+            json.dump(out, f, default=str)
+        data.commit()
+        return out
 
     @web.get("/api/conversations")
     def conversations():
@@ -168,6 +196,7 @@ def api():
     def delete(cid: str):
         if not svc.delete(cid):
             raise HTTPException(status_code=409, detail="stop the research before deleting it, or it does not exist")
+        _forget_champions()
         return {"deleted": cid}
 
     @web.get("/api/conversations/{cid}/result")

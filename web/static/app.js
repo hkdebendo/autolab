@@ -101,8 +101,11 @@ function navigate(path, replace = false) {
 
 function route() {
   closeDrawer();
+  document.querySelector(".main").classList.remove("results-page");
   const m = location.pathname.match(/^\/c\/([\w-]+)/);
+  const r = location.pathname.match(/^\/results(?:\/([\w-]+))?/);
   if (m) openConversation(m[1]);
+  else if (r) showResults(r[1]);
   else showHome();
 }
 
@@ -224,6 +227,7 @@ $("open-sidebar").onclick = () => {
 };
 $("scrim").onclick = closeDrawer;
 $("new-chat").onclick = () => navigate("/");
+$("results-btn").onclick = () => navigate("/results");
 document.querySelector(".brand").addEventListener("click", (e) => { e.preventDefault(); navigate("/"); });
 
 /* ---------- modals ---------- */
@@ -1077,30 +1081,196 @@ function bindReport() {
 }
 
 async function exportPDF(rep) {
-  const root = $("print-root");
   const c = S.view.conversation;
-  let img = "";
+  let st = null, formula = "";
   const champ = rep.querySelector("[data-champion]");
-  if (champ && window.$3Dmol) {  // a still image of the champion's structure for the paper version
+  if (champ) {
     try {
       const entry = S.index.structures.find((s) => s.id === champ.dataset.champion);
-      const st = await api(`/conversations/${S.id}/files/${entry.file}`);
+      st = await api(`/conversations/${S.id}/files/${entry.file}`);
+      formula = entry.formula;
+    } catch { st = null; }
+  }
+  await printReport({ title: c.title, goal: c.goal, date: c.updated_at, html: rep.querySelector(".prose").innerHTML,
+    structure: st, formula });
+}
+
+async function printReport({ title, goal, date, html, structure, formula }) {
+  const root = $("print-root");
+  let img = "";
+  if (structure && window.$3Dmol) {  // a still image of the champion's structure for the paper version
+    try {
       const holder = document.createElement("div");
       holder.style.cssText = "position:fixed;left:-2000px;top:0;width:600px;height:420px";
       document.body.appendChild(holder);
       const v = window.$3Dmol.createViewer(holder, { backgroundColor: "white" });
-      drawCrystal(v, st, true);
-      img = `<img alt="Crystal structure of ${esc(entry.formula)}" src="${v.pngURI()}">`;
+      drawCrystal(v, structure, true);
+      img = `<img alt="Crystal structure of ${esc(chem(formula))}" src="${v.pngURI()}">`;
       holder.remove();
     } catch { img = ""; }
   }
-  root.innerHTML = `<h1>${tx(c.title)}</h1><p class="meta">AutoLab research report · ${esc(new Date(c.updated_at).toLocaleString())}<br>Goal: ${esc(c.goal)}</p>
-    ${img}${rep.querySelector(".prose").innerHTML}`;
+  root.innerHTML = `<h1>${tx(title)}</h1><p class="meta">AutoLab research report · ${esc(new Date(date).toLocaleString())}<br>Goal: ${tx(goal)}</p>
+    ${img}${html}`;
   document.body.classList.add("printing");
   const done = () => { document.body.classList.remove("printing"); root.innerHTML = ""; window.removeEventListener("afterprint", done); };
   window.addEventListener("afterprint", done);
   setTimeout(() => window.print(), 60);
 }
+
+/* ---------- results: the champion of every research, by domain ----------
+   One card per champion (the first finalist of a research's final report, numbers as stored): what it is, its crystal
+   structure in 3D, its properties with units, why it was chosen and what limits the confidence; its final report as a
+   PDF and the research it came from, to talk with the agent again. */
+
+const champs = { data: null, at: 0, observer: null };
+
+async function showResults(domain) {
+  stopTimers();
+  S.id = null; S.view = null; S.events = []; S.index = null;
+  disposeViewers();
+  const main = document.querySelector(".main");
+  main.classList.remove("home");
+  main.classList.add("results-page");
+  main.appendChild($("composer-wrap"));
+  $("crumb").textContent = "Results";
+  document.title = "Results · AutoLab";
+  renderHistory();
+  if (!champs.data || Date.now() - champs.at > 60000) {
+    $("view").innerHTML = loadingHTML("Gathering the champions of every research…");
+    try { champs.data = await api("/champions"); champs.at = Date.now(); }
+    catch (e) {
+      $("view").innerHTML = `<div class="thread"><div class="notice warn">The results could not be loaded: ${esc(e.message)}.</div></div>`;
+      return;
+    }
+  }
+  if (!location.pathname.startsWith("/results")) return;  // the reader went elsewhere meanwhile
+  const { domains, champions } = champs.data;
+  const current = domains.find((d) => d.key === domain) || domains.find((d) => d.count) || domains[0];
+  const mine = champions.filter((c) => c.domain === current.key);
+  $("view").innerHTML = `<div class="results">
+      <header class="results-head"><h1>Results</h1>
+        <p>The champion of each research, by domain: the best compromise found by the agent, with the numbers computed by the code. Computational predictions, not proven materials.</p></header>
+      <nav class="domain-tabs" role="tablist">${domains.map((d) => `<button type="button" role="tab" data-domain="${esc(d.key)}"
+        aria-selected="${d.key === current.key}"><b>${esc(d.label)}</b><span>${d.count} champion${d.count === 1 ? "" : "s"}</span></button>`).join("")}</nav>
+      <p class="domain-about">${tx(current.about || "")}</p>
+      ${mine.length ? mine.map((c, i) => champCard(c, current, i)).join("") : `<div class="unavailable">No finished research in this domain yet.</div>`}
+    </div>`;
+  $("view").querySelector(".domain-tabs").onclick = (e) => {
+    const b = e.target.closest("[data-domain]");
+    if (b) navigate(`/results/${b.dataset.domain}`);
+  };
+  for (const card of $("view").querySelectorAll(".champ")) bindChamp(card, mine[+card.dataset.i]);
+  $("view").scrollTo({ top: 0 });
+}
+
+const subText2 = (s, parent) => {
+  if (!s) return "";
+  const n = s.count === "all" ? "every" : s.count;
+  return `${n} ${s.remove} replaced by ${s.add}${s.li_vacancies ? ` and ${s.li_vacancies} Li removed for charge balance` : ""} in the ${parent} cell`;
+};
+
+function champRows(c) {
+  const r = c.champion, v = (x, d) => (x === undefined || x === null ? null : Number(x).toFixed(d));
+  const pm = (x, e, d) => (v(x, d) === null ? null : `${v(x, d)}${e !== undefined && e !== null ? ` ± ${v(e, d)}` : ""}`);
+  const rows = [["Energy above the convex hull", pm(r.e_hull_eV_per_atom, r.e_hull_error_eV_per_atom, 3), "eV/atom",
+    "energy released by decomposing into known phases; ± the UMA-vs-DFT error on known compounds of its system"]];
+  if (c.domain === "cathode") {
+    rows.push(
+      ["Average voltage", v(r.voltage_V, 2), "V vs Li/Li⁺", "average over the whole charge", v(r.parent_voltage_V, 2)],
+      ["Theoretical capacity", v(r.capacity_mAh_g, 0), "mAh/g", "from the lithium that can leave", v(r.parent_capacity_mAh_g, 0)],
+      ["Energy density", v(r.energy_density_Wh_kg, 0), "Wh/kg", "voltage × capacity, cathode material alone", v(r.parent_energy_density_Wh_kg, 0)],
+      ["Volume change on charge", v(r.volume_change_pct, 1), "%", "shrinkage of the cell when lithium leaves", v(r.parent_volume_change_pct, 1)],
+      ["Lithium removed on charge", r.li_removed != null ? `${r.li_removed} of ${r.li_total}` : null, "per cell", "what charge neutrality allows"],
+      ["Against its parent", (r.vs_parent || {}).verdict || null, "", "decided by the code: differences within the model's voltage error are not claimed"]);
+  } else {
+    const w = r.window_V;
+    rows.push(
+      ["Electronic band gap (optB88 / mBJ)", v(r.gap_optb88_eV, 2) && `${v(r.gap_optb88_eV, 2)} / ${v(r.gap_mbj_eV, 2)}`, "eV", "an electrolyte must block electrons (≥ 2 eV)"],
+      ["Electrochemical window", w ? (w.stable ? `${v(w.v_low, 2)}–${v(w.v_high, 2)}` : "zero width") : null, "V vs Li/Li⁺", "voltage range where it neither oxidises nor reduces"],
+      ["Contact with lithium metal", r.against_li_metal || null, "", "a metallic product would let electrons through"],
+      ["Reaction with a LiFePO₄ cathode", v(r.reaction_with_LiFePO4_eV_per_atom, 3), "eV/atom", "closer to 0 is better"],
+      ["Li diffusion at 600 K vs parent", r.D_ratio_to_parent != null ? `${v(r.D_ratio_to_parent, 2)} ± ${v(r.D_ratio_error, 2)} (${r.diffusion_verdict})` : r.diffusion_verdict || null, "D / D(parent)", "molecular dynamics with UMA"],
+      ["Ionic conductivity at 300 K", r.ionic_conductivity_300K_mS_cm != null ? `${Number(r.ionic_conductivity_300K_mS_cm).toPrecision(2)} (${Number(r.ionic_conductivity_range_mS_cm[0]).toPrecision(2)}–${Number(r.ionic_conductivity_range_mS_cm[1]).toPrecision(2)})` : null, "mS/cm", "extrapolated estimate with its range"],
+      ["Conductivity against its parent", r.ionic_conductivity_vs_parent || null, "", "ranges compared: overlap = tied"],
+      ["Activation energy", v(r.activation_energy_eV, 2), "eV", "Arrhenius fit of the diffusion"]);
+  }
+  rows.push(["Literature", r.novelty ? `${r.novelty === "related" ? "close family already studied" : r.novelty === "published" ? "already published" : "no publication found in this search"}` : null, "", "web search, a known material checked first as a control"]);
+  return rows.filter((x) => x[1] !== null && x[1] !== undefined && x[1] !== "");
+}
+
+function champCard(c, dom, i) {
+  const r = c.champion;
+  const what = `${dom.kind.split(" · ")[0]} derived from ${r.parent || "a known crystal"} by substitution: ${subText2(r.substitution, r.parent || "parent")}.`;
+  const date = c.research.created_at ? new Date(c.research.created_at).toLocaleDateString([], { day: "numeric", month: "short", year: "numeric" }) : "";
+  return `<article class="champ" data-i="${i}">
+    <header class="champ-head"><div><span class="kind-badge">${esc(dom.kind)}</span><h2 class="formula">${tx(r.formula)}</h2>
+        <p class="champ-sub">${r.space_group ? `space group ${tx(r.space_group)} · ` : ""}${r.atoms_in_cell ? `${r.atoms_in_cell} atoms in the cell · ` : ""}champion of ${c.finalists} finalists</p></div>
+      <div class="champ-actions"><button class="ghost-btn" type="button" data-pdf>Final report (PDF)</button>
+        <button class="primary-btn" type="button" data-open>Open the research</button></div></header>
+    <div class="champ-body">
+      <figure class="champ-3d"><div class="viewer3d" data-viewer>${c.structure_file ? `<div class="loading-inline">Structure shown when visible…</div>` : `<div class="unavailable">3D structure not stored for this research</div>`}</div>
+        <div class="champ-legend"></div>
+        <figcaption>${r.a_A ? `Cell a, b, c = ${Number(r.a_A).toFixed(2)}, ${Number(r.b_A).toFixed(2)}, ${Number(r.c_A).toFixed(2)} Å${r.volume_A3 ? ` · V = ${Number(r.volume_A3).toFixed(0)} Å³` : ""}. ` : ""}Relaxed with UMA; the substituted element is drawn larger. Drag to rotate.</figcaption></figure>
+      <div class="champ-info">
+        <h4>What it is</h4><p>${tx(what)}</p>
+        <h4>Properties</h4>
+        <table class="props"><tbody>${champRows(c).map(([k, val, u, why, par]) => `<tr><th title="${esc(why)}">${tx(k)}</th><td><b>${tx(val)}</b> <span class="u">${tx(u)}</span>${par ? `<span class="par">parent ${tx(par)}</span>` : ""}</td></tr>`).join("")}</tbody></table>
+        ${c.reasons.length ? `<h4>Why it is the champion</h4><ul>${c.reasons.map((x) => `<li>${tx(x)}</li>`).join("")}</ul>` : ""}
+        ${c.uncertainties.length ? `<h4>What limits the confidence</h4><ul class="muted-list">${c.uncertainties.map((x) => `<li>${tx(x)}</li>`).join("")}</ul>` : ""}
+        <p class="champ-origin">Found by the research <a href="/c/${esc(c.research.id)}" data-nav-c="${esc(c.research.id)}">“${tx(c.research.title)}”</a>${date ? ` · ${esc(date)}` : ""}${c.also_found_by.length
+          ? `; also found by ${c.also_found_by.map((x) => `<a href="/c/${esc(x.id)}" data-nav-c="${esc(x.id)}">“${tx(x.title)}”</a>`).join(", ")}` : ""}.</p>
+        <p class="champ-goal">Request: <i>${tx(c.research.goal)}</i></p>
+      </div></div></article>`;
+}
+
+function bindChamp(card, c) {
+  card.querySelector("[data-open]").onclick = () => navigate(`/c/${c.research.id}`);
+  card.querySelector("[data-pdf]").onclick = (e) => champPDF(c, e.currentTarget);
+  for (const a of card.querySelectorAll("[data-nav-c]")) a.onclick = (e) => { e.preventDefault(); navigate(`/c/${a.dataset.navC}`); };
+  if (!c.structure_file) return;
+  const box = card.querySelector("[data-viewer]");
+  const load = async () => {
+    try {
+      const st = await api(`/conversations/${c.research.id}/files/${c.structure_file}`);
+      if (!box.isConnected) return;
+      box.innerHTML = "";
+      const v = newViewer(box);
+      if (v) { drawCrystal(v, st, true); spinSlow(v, box); }
+      card.querySelector(".champ-legend").innerHTML = legendHTML(new Set(st.symbols), st.highlight ? `<span class="muted">substituted: ${esc(st.highlight)}</span>` : "");
+      c._structure = st;
+    } catch { box.innerHTML = `<div class="unavailable">This structure is not available.</div>`; }
+  };
+  if (!("IntersectionObserver" in window)) { load(); return; }  // the 3D is built when the card comes into view
+  const io = new IntersectionObserver((entries) => { if (entries.some((x) => x.isIntersecting)) { io.disconnect(); load(); } });
+  io.observe(box);
+}
+
+function spinSlow(v, box) {
+  let last = 0;
+  const step = (t) => {
+    if (!box.isConnected) return;
+    if (t - last > 50) { v.rotate(0.25, "y"); v.render(); last = t; }
+    requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+async function champPDF(c, btn) {
+  btn.disabled = true;
+  const label = btn.textContent;
+  btn.textContent = "Preparing the PDF…";
+  try {
+    const view = await api(`/conversations/${c.research.id}`);
+    const rep = [...view.messages].reverse().find((m) => m.kind === "report");
+    if (!rep) { toast("This research has no final report."); return; }
+    let st = c._structure;
+    if (!st && c.structure_file) { try { st = await api(`/conversations/${c.research.id}/files/${c.structure_file}`); } catch { st = null; } }
+    await printReport({ title: view.conversation.title, goal: view.conversation.goal, date: view.conversation.updated_at,
+      html: md(rep.content), structure: st, formula: c.champion.formula });
+  } catch (e) { toast(e.message); }
+  finally { btn.disabled = false; btn.textContent = label; }
+}
+
 
 /* ---------- live lab: the agent at work ----------
    The events of a research are played one by one as cards: what is being done, by which model or tool, with its

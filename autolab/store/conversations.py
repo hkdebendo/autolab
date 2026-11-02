@@ -119,6 +119,25 @@ class MemoryStore:
     def result(self, cid: str) -> dict | None:
         return copy.deepcopy(self.results.get(cid))
 
+    def finished_reports(self) -> list[dict]:
+        """Every finished research with its final report stage, domain and structure files, newest first."""
+        rows = []
+        for c in sorted(self.convs.values(), key=lambda c: c["updated_at"], reverse=True):
+            if c["deleted_at"] is not None or c["status"] != "done" or c["id"] not in self.results:
+                continue
+            r = self.results[c["id"]]
+            rows.append({**{k: c[k] for k in ("id", "title", "goal", "domain", "source", "created_at")},
+                         "report": copy.deepcopy((r.get("stages") or {}).get("report")), "result_domain": r.get("domain"),
+                         "structures": {(a.get("meta") or {}).get("id"): a["name"] for a in self.files[c["id"]].values()
+                                        if a["kind"] == "structure"}})
+        return rows
+
+    def report_of(self, cid: str) -> dict | None:
+        """The final report stage and the domain of a stored result (the results page reads only these)."""
+        r = self.results.get(cid)
+        return None if r is None else copy.deepcopy({"report": (r.get("stages") or {}).get("report"),
+                                                      "domain": r.get("domain")})
+
     def add_artifact(self, cid, name, kind, path, meta=None) -> None:
         self.files[cid][name] = {"name": name, "kind": kind, "path": path, "meta": meta}
 
@@ -266,6 +285,28 @@ class PostgresStore:
         with self._conn() as c:
             row = c.execute("select result from autolab.results where conversation_id = %s", (cid,)).fetchone()
         return row["result"] if row else None
+
+    def finished_reports(self) -> list[dict]:
+        """Every finished research with its final report stage, domain and structure files, newest first: two queries
+        on one connection (one query per conversation took 20 s for the results page)."""
+        with self._conn() as c:
+            rows = c.execute("select c.id, c.title, c.goal, c.domain, c.source, c.created_at, "
+                             "r.result->'stages'->'report' as report, r.result->>'domain' as result_domain "
+                             "from autolab.conversations c join autolab.results r on r.conversation_id = c.id "
+                             "where c.deleted_at is null and c.status = 'done' order by c.updated_at desc").fetchall()
+            files = c.execute("select conversation_id, name, meta from autolab.artifacts where kind = 'structure'").fetchall()
+        structures: dict[str, dict] = {}
+        for f in files:
+            structures.setdefault(f["conversation_id"], {})[(f["meta"] or {}).get("id")] = f["name"]
+        return [{**r, "structures": structures.get(r["id"], {})} for r in rows]
+
+    def report_of(self, cid: str) -> dict | None:
+        """The final report stage and the domain of a stored result, read inside the database (a full result weighs
+        megabytes)."""
+        with self._conn() as c:
+            row = c.execute("select result->'stages'->'report' as report, result->>'domain' as domain "
+                            "from autolab.results where conversation_id = %s", (cid,)).fetchone()
+        return {"report": row["report"], "domain": row["domain"]} if row else None
 
     def add_artifact(self, cid, name, kind, path, meta=None) -> None:
         with self._conn() as c:

@@ -182,3 +182,27 @@ def test_a_cathode_request_runs_in_the_cathode_domain_without_the_electrolyte_ca
     svc.run("k1", make_agent, prior=[{"id": "ref:x"}])
     assert seen == {"domain": "cathode", "prior": [], "tools": "CathodeTools"}
     assert store.get("k1")["status"] == "done"
+
+
+def test_the_results_page_lists_one_champion_per_material_without_tests_or_copies(monkeypatch):
+    monkeypatch.setattr(config, "CHAMPIONS_EXCLUDED", ("t1",))
+    svc, store = service(Model([]))
+
+    def research(cid, domain, formula, source="live", title="R"):
+        store.create({"id": cid, "title": title, "goal": "g", "domain": domain, "status": "done", "source": source})
+        store.save_result(cid, {"domain": domain, "stages": {"report": {"finalists": [{"id": "c1", "formula": formula}],
+                                                                       "narrative": {"champion_reasons": ["r1"]}}},
+                                "iterations": [], "prior": []})
+        store.add_artifact(cid, "structures/c1.json", "structure", f"runs/{cid}/structures/c1.json", {"id": "c1"})
+
+    research("a", "electrolyte", "Li6P2SeS7")
+    research("b", "electrolyte", "Li6P2SeS7")  # the same champion found again
+    research("k", "cathode", "LiNiO2")
+    research("t1", "electrolyte", "LiX")  # a test research
+    research("copy", "cathode", "LiNiO2", source="reuse")
+    out = svc.champions()
+    assert sorted((c["domain"], c["champion"]["formula"]) for c in out["champions"]) == [("cathode", "LiNiO2"),
+                                                                                       ("electrolyte", "Li6P2SeS7")]
+    el = next(c for c in out["champions"] if c["domain"] == "electrolyte")
+    assert len(el["also_found_by"]) == 1 and el["structure_file"] == "structures/c1.json" and el["reasons"] == ["r1"]
+    assert [(d["key"], d["count"]) for d in out["domains"]] == [("electrolyte", 1), ("cathode", 1)]
