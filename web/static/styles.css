@@ -738,3 +738,8 @@ table.data.mini th, table.data.mini td { padding: 4px 12px; }
 .verdict.failed { background: rgba(220, 38, 38, .14); color: #dc2626; }
 .verdict.measured { background: rgba(100, 116, 139, .16); color: #64748b; }
 @media (max-width: 760px) { table.bench { table-layout: auto; } table.bench th { width: auto !important; } }
+
+.settings-tools .edit-rules-btn { margin-left: auto; padding: 8px 16px; border-radius: 10px; border: 0; cursor: pointer;
+  background: var(--accent, #3b82f6); color: #fff; font: inherit; font-weight: 600; }
+.settings-tools .edit-rules-btn:hover { filter: brightness(1.08); }
+.settings-tools .edit-rules-btn:focus-visible { outline: 2px solid var(--accent, #3b82f6); outline-offset: 2px; }

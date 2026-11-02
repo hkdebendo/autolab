@@ -1171,8 +1171,8 @@ async function showSettings(domain, edit = false) {
           ? `<button class="ghost-btn" type="button" id="rules-restore">Restore defaults</button>
              <button class="ghost-btn" type="button" id="rules-back">Back</button>
              <span class="muted">Preview: changes are not applied to researches yet.</span>`
-          : `<button class="ghost-btn" type="button" id="rules-edit">Edit the rules</button>
-             <button class="ghost-btn" type="button" id="theme-open">Appearance</button>`}</div></header>
+          : `<button class="ghost-btn" type="button" id="theme-open">Appearance</button>
+             <button class="edit-rules-btn" type="button" id="rules-edit">Edit the rules</button>`}</div></header>
       <nav class="domain-tabs" role="tablist">${domains.map((d) => `<button type="button" role="tab" data-domain="${esc(d.key)}"
         aria-selected="${d.key === current.key}"><b>${esc(d.label)}</b><span>${d.groups.reduce((n, g) => n + g.rules.length, 0)} rules</span></button>`).join("")}</nav>
       ${current.groups.map((g) => `<section class="rules-group"><h2>${esc(g.title)}</h2>
