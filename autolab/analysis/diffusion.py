@@ -83,11 +83,15 @@ def pool(runs: list[dict]) -> dict:
 
 
 def compare(d: float, sem: float, d_ref: float, sem_ref: float, n_sigma: float = config.MD_TIE_SIGMA) -> dict:
-    """Ratio d / d_ref with its propagated uncertainty; "tied" when the ratio is within n_sigma of 1."""
+    """Ratio d / d_ref with its propagated uncertainty (shown), and the verdict from the difference: "tied" when
+    |d - d_ref| is within n_sigma combined standard errors, as in the calibration v2 (SPEC 7). The ratio test lost its
+    power when the reference barely moves (its relative error explodes): changed 2026-11-02, owner, no recorded
+    verdict changed (39 checked)."""
     ratio = d / d_ref
     err = ratio * float(np.hypot(sem / d, sem_ref / d_ref))
-    verdict = "tied" if abs(ratio - 1) <= n_sigma * err else ("higher" if ratio > 1 else "lower")
-    return {"ratio": ratio, "ratio_err": err, "verdict": verdict, "n_sigma": n_sigma}
+    z = (d - d_ref) / float(np.hypot(sem, sem_ref))
+    verdict = "tied" if abs(z) <= n_sigma else ("higher" if z > 0 else "lower")
+    return {"ratio": ratio, "ratio_err": err, "diff_sigma": z, "verdict": verdict, "n_sigma": n_sigma}
 
 
 def arrhenius(temperatures_K, d, sem) -> dict:

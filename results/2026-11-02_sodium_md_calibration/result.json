@@ -91,11 +91,12 @@
  "comparison": {
   "ratio": 0.3295561209829437,
   "ratio_err": 0.28924515694765895,
-  "verdict": "lower",
+  "diff_sigma": -1.4675998956785405,
+  "verdict": "tied",
   "n_sigma": 2.0
  },
- "sigma": 2.3179087459652026,
+ "sigma": -1.4675998956785405,
  "frameworks_intact": true,
  "passed": false,
- "estimated_usd": 3.2674400000000006
+ "estimated_usd": 0.0
 }

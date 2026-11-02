@@ -131,7 +131,17 @@ def test_an_uncalibrated_md_verdict_neither_ranks_nor_excludes():
              {"id": "slow", "formula": "B", "status": "passed", "md_verdict": "lower", "e_hull": 0.01,
               "e_hull_per_substitution": 0.1}]
     lithium = el.ranking(Campaign(SimpleNamespace(tools=None), "g", [dict(c) for c in cands]))
-    sodium = el.ranking(Campaign(SimpleNamespace(tools=None), "g", [dict(c) for c in cands],
-                                 settings={"md_ranks": config.SODIUM_MD_CAN_EXCLUDE}))
-    assert lithium["finalists"] == ["fast", "slow"]
-    assert config.SODIUM_MD_CAN_EXCLUDE is False and sodium["finalists"] == ["slow", "fast"]
+    uncalibrated = el.ranking(Campaign(SimpleNamespace(tools=None), "g", [dict(c) for c in cands],
+                                       settings={"md_ranks": False}))
+    assert lithium["finalists"] == ["fast", "slow"] and uncalibrated["finalists"] == ["slow", "fast"]
+    assert get_domain("sodium").settings["md_ranks"] is config.SODIUM_MD_CAN_EXCLUDE  # calibration v2 decides
+
+
+def test_the_verdict_comes_from_the_difference_when_the_parent_barely_moves():
+    from autolab.analysis.diffusion import compare
+
+    # calibration v2: 28x faster, but the parent's 80 % relative error makes the ratio test call it a tie
+    c = compare(2.09e-6, 7.2e-7, 7.56e-8, 6.0e-8)
+    assert c["verdict"] == "higher" and c["diff_sigma"] == pytest.approx(2.8, abs=0.05)
+    assert abs(c["ratio"] - 1) <= 2 * c["ratio_err"]  # what the ratio test said
+    assert compare(2.16e-7, 1.42e-7, 2.29e-7, 8.6e-8)["verdict"] == "tied"

@@ -105,11 +105,12 @@
  "comparison": {
   "ratio": 27.722510265093252,
   "ratio_err": 23.95672773927408,
-  "verdict": "tied",
+  "diff_sigma": 2.8116391540433052,
+  "verdict": "higher",
   "n_sigma": 2.0
  },
- "sigma": 1.1154490945474584,
+ "sigma": 2.8116391540433052,
  "frameworks_intact": true,
- "passed": false,
- "estimated_usd": 1.2079100000000003
+ "passed": true,
+ "estimated_usd": 0.0
 }

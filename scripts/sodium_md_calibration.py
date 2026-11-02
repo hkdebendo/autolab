@@ -46,7 +46,7 @@ def main() -> None:
     cmp = compare(fast["D_cm2_per_s"], fast["D_sem_cm2_per_s"], slow["D_cm2_per_s"], slow["D_sem_cm2_per_s"])
     intact = all((r.get("framework") or {}).get("intact", False) for r in rows)
     passed = cmp["verdict"] == "higher" and intact
-    sigma = abs(cmp["ratio"] - 1) / cmp["ratio_err"] if cmp["ratio_err"] else None
+    sigma = cmp["diff_sigma"]
     keep = ("id", "formula", "species", "n_li", "n_atoms", "D_cm2_per_s", "D_sem_cm2_per_s", "framework", "md_gpu")
     result = {"criterion": f"D({fast['formula']}) > D({slow['formula']}) by more than {config.MD_TIE_SIGMA:g} combined "
                            f"errors at {config.MD_SCREEN_TEMPERATURE_K} K, both frameworks intact (fixed before the runs)",
@@ -61,7 +61,7 @@ def main() -> None:
         lines.append(f"| {r['formula']} ({r['id']}) | {r.get('n_li')} | {r['D_cm2_per_s']:.2e} | {r['D_sem_cm2_per_s']:.1e} | "
                      f"{'intact' if fw else 'moved' if fw is False else 'not checked'} |")
     lines += ["", f"D({fast['formula']}) / D({slow['formula']}) = {cmp['ratio']:.2f} ± {cmp['ratio_err']:.2f}"
-                  f" ({sigma:.1f} σ): {cmp['verdict']}." if sigma is not None else "",
+                  f"; difference D - D(ref) = {sigma:+.1f} combined standard errors: {cmp['verdict']}." if sigma is not None else "",
               f"**Verdict: {'passed' if passed else 'FAILED: the sodium MD informs and never excludes'}.**", ""]
     (args.out / "report.md").write_text("\n".join(lines), encoding="utf-8")
     print("\n".join(lines))

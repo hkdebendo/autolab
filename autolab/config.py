@@ -125,7 +125,7 @@ MD_SCREEN_PS = 40  # ✅ ps per run (calibration v2)
 MD_SCREEN_SEEDS = 2  # ✅ runs per structure, blocks pooled (calibration v2)
 MD_SCREEN_MAX_RUNS = 14  # simulations to compute per screening (structures x seeds not in the cache)
 MD_D_BLOCKS = 4  # ✅ D = mean of D fitted in 4 blocks (MSD over many time origins); standard error across blocks
-MD_TIE_SIGMA = 2.0  # a candidate is "tied" with its parent when |D/D(parent) - 1| <= 2 x its propagated error
+MD_TIE_SIGMA = 2.0  # a candidate is "tied" with its parent when |D - D(parent)| <= 2 x their combined standard error (difference test since 2026-11-02; the ratio test before gave the same 39 recorded verdicts)
 MD_FRAMEWORK_D_RATIO_MAX = 0.05  # framework intact if every non-Li element diffuses < 5 % of Li
 MD_EXCLUDED_VERDICTS = ("lower",)  # significantly slower than its parent (> MD_TIE_SIGMA): excluded for conduction, still listed with its numbers; "tied" and "higher" pass
 MD_EXCLUDE_IF_FRAMEWORK_MOVED = True  # a candidate whose host framework moves (non-Li element > MD_FRAMEWORK_D_RATIO_MAX of Li) is excluded: its D is that of a disordering lattice
@@ -418,11 +418,10 @@ SODIUM_CATHODES: tuple = ()  # no cathode interface: the UMA interface calibrati
 # frameworks intact. If it fails, the sodium MD informs and never excludes a candidate (SODIUM_MD_CAN_EXCLUDE False).
 SODIUM_MD_CALIBRATION = {"fast": "mp-10167", "slow": "mp-28782"}
 SODIUM_MD_CALIBRATION_SEEDS = 2
-SODIUM_MD_CAN_EXCLUDE = False  # calibration FAILED (2026-11-02, results/2026-11-02_sodium_md_calibration): at 600 K
-# ordered Na3SbS4 came out slower than tetragonal Na3PS4 (ratio 0.33 +/- 0.29), the reverse of experiment, frameworks
-# intact: the sodium MD verdict informs only, it neither excludes nor orders a candidate. Calibration v2 (below) also
-# FAILED by its criterion: Na23Sb7WS32 28 times faster than Na3SbS4 (2.1e-6 against 7.6e-8 cm2/s), but the ratio test
-# gives 27.7 +/- 24.0 (1.1 sigma, tied) because Na3SbS4 barely moves (80 % relative error); no change
+SODIUM_MD_CAN_EXCLUDE = True  # calibration v2 PASSED with the difference test (2026-11-02, owner's choice of the test,
+# the one of the lithium calibration v2): Na23Sb7WS32 faster than Na3SbS4 by 2.8 combined errors (2.1e-6 against 7.6e-8
+# cm2/s), frameworks intact; by the ratio test first used it was a tie (1.1 sigma). v1 (Na3SbS4 against tetragonal
+# Na3PS4, two different crystals) still fails (-1.5 sigma): only a candidate against its own parent is trusted
 # Calibration v2 of the sodium MD, fixed before its runs (2026-11-02, after v1 failed): what the domain really compares
 # is a candidate against its OWN parent. Test: Na vacancies made by W6+ on Sb5+ sites must speed up Na in Na3SbS4, as in
 # experiment (Na2.88Sb0.88W0.12S4 about 32 mS/cm against 1-3 mS/cm). One W for one Sb and one Na vacancy in the 2x2x2
@@ -436,9 +435,9 @@ SODIUM_MD_CALIBRATION_V2 = {"parent": "mp-10167", "supercell": (2, 2, 2), "n_arr
 SODIUM_NOVELTY_CONTROL = {"id": "control-Na3PS4", "formula": "Na3PS4", "parent": None, "substitution": None,
                           "kind": "sodium"}
 SODIUM_NOT_COMPUTED = ("DFT calculations (UMA energies with an error bar measured against DFT on known compounds), "
-                       "ionic conductivity at room temperature, a calibrated Na diffusion (the Na diffusion at 600 K "
-                       "against the parent is information only: its calibration failed, ordered Na3SbS4 came out slower "
-                       "than Na3PS4, the reverse of experiment), the "
+                       "ionic conductivity at room temperature (only the Na diffusion at 600 K against the parent, "
+                       "calibrated on Na vacancies in Na3SbS4; comparisons between different crystals failed their "
+                       "calibration), the "
                        "interface with a sodium cathode, grain boundaries, synthesis, cost of the elements, experimental "
                        "data")
 

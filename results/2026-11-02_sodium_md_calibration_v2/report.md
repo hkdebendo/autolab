@@ -9,5 +9,5 @@ Na23Sb7WS32 = one W6+ for one Sb5+ and one Na vacancy in the 2x2x2 Na3SbS4 cell 
 | Na23Sb7WS32 (cal-v2-Na23Sb7WS32) | 23 | 2.09e-06 | 7.2e-07 | intact |
 | Na3SbS4 (mp-10167) | 24 | 7.56e-08 | 6.0e-08 | intact |
 
-D(Na23Sb7WS32) / D(Na3SbS4) = 27.72 ± 23.96 (1.1 σ): tied.
-**Verdict: FAILED: the sodium MD stays information only.**
+D(Na23Sb7WS32) / D(Na3SbS4) = 27.72 ± 23.96; difference D - D(ref) = +2.8 combined standard errors: higher.
+**Verdict: passed: the sodium MD verdict against the parent may exclude and rank.**

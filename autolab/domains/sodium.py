@@ -4,9 +4,9 @@ The lithium electrolyte funnel and slow tests with Na+ as the mobile ion (config
 sodium conductors (config.SODIUM_PARENTS), charge neutrality with fixed oxidation states (SODIUM_OXIDATION_STATES),
 stability against the stable MP phases relaxed with UMA, GapModel band gap (SODIUM_BANDGAP_MIN), then in each round the
 window and the reaction with sodium metal, an independent review, the model's choice of one candidate and its Na
-diffusion by molecular dynamics against its parent (information only: its calibration on Na3SbS4 vs Na3PS4 failed). The stages are those of the
+diffusion by molecular dynamics against its parent (calibrated on Na vacancies in Na3SbS4: config.SODIUM_MD_CAN_EXCLUDE). The stages are those of the
 electrolyte domain, given this domain's settings (ion, no cathode, prompts, MD cap). After the iterations: ranking by
-stability cost (the uncalibrated diffusion verdict is shown, it does not rank), literature check (a known sodium electrolyte as a control), final report.
+stability cost, literature check (a known sodium electrolyte as a control), final report.
 """
 
 from __future__ import annotations
@@ -190,8 +190,10 @@ METHODS = [
     ("Independent reviews", "Meta Muse Spark Open, one review per candidate, in parallel"),
     ("Sodium diffusion", f"Langevin molecular dynamics with UMA at {config.MD_SCREEN_TEMPERATURE_K} K, "
                          f"{config.MD_SCREEN_SEEDS} x {config.MD_SCREEN_PS} ps per structure, compared with the parent "
-                         "crystal; information only, it neither excludes nor ranks: its calibration failed (ordered "
-                         "Na3SbS4 came out slower than tetragonal Na3PS4 at 600 K, the reverse of experiment)"),
+                         "crystal (difference within 2 combined errors = tied); "
+                         + ("calibrated: Na vacancies made by W in Na3SbS4 speed Na up by 2.8 combined errors, as in "
+                            "experiment; comparisons between different crystals are not trusted" if config.SODIUM_MD_CAN_EXCLUDE
+                            else "information only, it neither excludes nor ranks: its calibration failed")),
     ("Error-driven loop", "the slow tests (reaction with sodium metal, sodium diffusion) run in each round; their "
                           "failures, with the measured numbers, go back to the proposing model, which explains them as "
                           "hypotheses and corrects its next proposals"),
@@ -231,9 +233,11 @@ def report(camp: Campaign) -> dict:
     facts = {"goal": camp.goal, "finalists": rows, "excluded": out["excluded"], "not_computed": out["not_computed"],
              "tie_break_convention": "lowest E_hull per substitution"
              + ("" if config.SODIUM_MD_CAN_EXCLUDE else "; the Na diffusion verdict does not rank (uncalibrated)"),
-             "md_calibration": None if config.SODIUM_MD_CAN_EXCLUDE else
-             "FAILED: at 600 K ordered Na3SbS4 came out slower than tetragonal Na3PS4, the reverse of experiment; "
-             "each Na diffusion verdict is information only and must never be presented as faster or slower conduction"}
+             "md_calibration": ("passed for a candidate against its own parent (Na vacancies in Na3SbS4, +2.8 combined "
+                                "errors); a tied verdict means no difference shown, not equal conduction"
+                                if config.SODIUM_MD_CAN_EXCLUDE else
+                                "FAILED: each Na diffusion verdict is information only and must never be presented as "
+                                "faster or slower conduction")}
     try:
         info = camp.ask([{"role": "system", "content": REPORT_SYSTEM.replace("{template}", template("report"))},
                          {"role": "user", "content": json.dumps(facts, default=str)}], "report", "report")
