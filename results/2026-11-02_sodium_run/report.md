@@ -288,86 +288,6 @@ We have history: it1-c1 Na3PSeS3 passed, passivating, tied diffusion. it1-c2 pas
 
 **run.** The agent proposed nine new sodium solid-electrolyte candidates derived from Na3PS4 or Na3SbS4 and six passed the stability and electronic filtering. Na3PSeS3 was predicted with an energy above the hull of about 0.00 eV per atom and a band gap of about 2.3 eV, and molecular dynamics found its sodium diffusion tied with the parent, about 0.94 times the parent rate. Na3Zr2Ge2PO12 was predicted with an energy above the hull of about 0.00 eV per atom and a band gap of about 4.0 eV, and Na6P2SeS7 was predicted with an energy above the hull of about 0.00 eV per atom and a band gap of about 2.3 eV. One early candidate was excluded because it was not passivating against sodium metal with metallic products and a reaction energy of 1.45 eV per atom. The run ended with three low-energy, insulating finalists, one of which shows diffusion comparable to its parent.
 
-## Final scientific report
-
-### Executive summary
-
-The search targeted new sodium solid electrolytes derived from Na3PS4 or Na3SbS4 that remain compatible with sodium metal. Three computational candidates were retained and one was excluded for being non-passivating against sodium metal. The champion by the study criteria is Na3PSeS3 derived from Na3PS4, with space group Cc and lattice parameters a 7.105 Å, b 7.105 Å, c 7.252 Å, alpha 90.4 degrees, beta 89.6 degrees, gamma 90.1 degrees, volume 366.1 Å³ for 16 atoms in the cell. It shows an energy above the hull of 0.002 eV/atom with an error bar of 0.002 eV/atom (mean absolute UMA-vs-DFT difference on 23 known compounds of Na-P-S-Se) and an energy above the hull per substitution of 0.018 eV. The band gap is 2.266 eV by OPTB88 and 2.931 eV by MBJ, consistent with electronic insulation. The electrochemical window is 1.52 V to 1.7 V and is rated passivating against sodium metal, with reduction products Na2PS3 and Na2Se and oxidation products Na2PS3 and NaSe2, so it is not thermodynamically stable at 0 V vs Na/Na+ and relies on passivation. The sodium diffusion coefficient at 600 K is 2.16e-07 cm²/s with an error of 1.42e-07 cm²/s, a ratio to the parent of 0.944 with an error of 0.714, with a diffusion verdict of tied. This tied verdict means the ranges overlap and cannot be read as faster or slower conduction, and the calibration of diffusion at 600 K failed because ordered Na3SbS4 came out slower than tetragonal Na3PS4, the reverse of experiment, so the diffusion result is information only. The ionic conductivity at 300 K was not computed. All three finalists share the same ranking level against the parent at 300 K, so the champion comes first by the tie-break convention of lowest energy above the hull per substitution, not by a significant difference, and its gaps to the others are within the error bars. The candidates are computational predictions, not proven materials.
-
-### Comparison of the finalists
-
-| | Na3PSeS3 | Na3Zr2Ge2PO12 | Na6P2SeS7 |
-|---|---|---|---|
-| Parent crystal | Na3PS4 | Na3Zr2Si2PO12 | Na3PS4 |
-| Space group | Cc | P1 | P1 |
-| E_hull (eV/atom) | 0.002 ± 0.002 | 0.003 ± 0.008 | 0.002 ± 0.002 |
-| E_hull per substitution (eV) | 0.018 | 0.025 | 0.031 |
-| Band gap optB88 / mBJ (eV) | 2.27 / 2.93 | 3.98 / 4.78 | 2.26 / 3.12 |
-| Window (V vs Na/Na+) | 1.52–1.70 | 1.70–3.28 | 1.52–1.70 |
-| Against Na metal | passivating | passivating | passivating |
-| D at 600 K (cm²/s) | 2.16e-07 | not computed | not computed |
-| D / D(parent) | 0.94 ± 0.71 | not simulated | not simulated |
-| Diffusion verdict | tied | not simulated | not simulated |
-| Literature | not checked | not checked | not checked |
-
-### Champion: Na3PSeS3
-
-**Why it is preferred.**
-
-- The champion Na3PSeS3 is a direct Se-for-S substitution in the target Na3PS4 family, whereas Na3Zr2Ge2PO12 is a Ge-substituted NASICON oxide derived from Na3Zr2Si2PO12 and is off the sulfide goal.
-- The champion has the lowest energy above the hull per substitution at 0.018 eV, compared with 0.025 eV for Na3Zr2Ge2PO12 and 0.031 eV for Na6P2SeS7, which is the tie-break convention used when finalists share the same level.
-- The champion is the only finalist with a simulated sodium diffusion coefficient at 600 K, 2.16e-07 cm²/s with an error of 1.42e-07 cm²/s and a ratio to the parent of 0.944 with an error of 0.714 and a verdict of tied, while diffusion was not simulated for the two other finalists.
-
-**Trade-offs.**
-
-- The electrochemical window of 1.52 V to 1.7 V is narrow and passivating only, not thermodynamically stable at 0 V vs Na/Na+, so performance depends on a kinetic interphase with reduction products Na2PS3 and Na2Se.
-- Selenide substitution gives a softer anion lattice but brings known downsides of moisture sensitivity, H2Se handling and higher cost of Se, and the cell has no added Na vacancies to optimize carrier concentration.
-- The band gap of 2.266 eV by OPTB88 is insulating but smaller than 3.978 eV by OPTB88 for the oxide finalist Na3Zr2Ge2PO12, and the 600 K diffusion is tied to the parent with a large error bar, so no improvement in mobility is demonstrated.
-
-**Uncertainties.**
-
-- Thermodynamic stability rests on UMA energies with an error bar of 0.002 eV/atom for the Na-P-S-Se system, so the very low energies above the hull of 0.002 eV/atom for the champion and for Na6P2SeS7 and 0.003 eV/atom for the oxide are within computational uncertainty.
-- Sodium diffusion at 600 K is uncalibrated and the calibration failed, so the tied verdict cannot be used to rank conduction and the true activation energy and room-temperature conductivity were not computed.
-- Passivation against sodium metal is predicted thermodynamically but its thickness, resistance and kinetic stability, and effects of grain boundaries, moisture and interface reactions, were not computed.
-
-**Validation to do.**
-
-- Confirm structure and phase purity by X-ray diffraction against the predicted Cc cell and lattice parameters, and check for decomposition to Na3PS4 and Na3PSe4. *(documented)*
-- Measure ionic and electronic conductivity by impedance spectroscopy with ion-blocking electrodes and verify the band gap by optical or electrochemical methods. *(documented)*
-- Test stability against sodium metal in symmetric Na|electrolyte|Na cells with impedance and cycling, and compare interphase products Na2PS3 and Na2Se to prediction. *(documented)*
-- Recompute stability and migration barriers with DFT phonon and nudged-elastic-band calculations for the predicted structure. *(documented)*
-
-**Synthesis routes to consider.**
-
-- Ball milling of Na2S, P2S5 and Na2Se or Se in stoichiometric ratio under inert atmosphere followed by annealing in sealed ampoules, a standard route for sulfide and selenide-substituted Na3PS4 electrolytes. *(documented)*
-- Solid-state reaction of Na3PS4 and Na3PSe4 precursors with controlled Se doping and low-temperature annealing to target Na3PSeS3 while avoiding Se loss. *(hypothesis)*
-
-### Methods
-
-- **Candidate proposals and decisions**: Meta Muse Spark (reasoning model), with comparisons computed by the code
-- **Structure relaxation and energies**: Meta FAIR UMA (uma-s-1p2, OMat head), MP2020 corrections; references from Materials Project (the stable phases), all relaxed with UMA
-- **Thermodynamic stability**: energy above the convex hull of the system; kept if <= 0.05 eV/atom; error bar measured against DFT (Materials Project) on the known compounds of the same system
-- **Electronic band gap**: recorded prediction (optB88vdW scale); kept if >= 1.8 eV
-- **Electrochemical window and sodium metal**: grand-potential phase diagrams open to sodium (window vs Na/Na+, reaction with sodium metal)
-- **Independent reviews**: Meta Muse Spark Open, one review per candidate, in parallel
-- **Sodium diffusion**: Langevin molecular dynamics with UMA at 600 K, 2 x 40 ps per structure, compared with the parent crystal; information only, it neither excludes nor ranks: its calibration failed (ordered Na3SbS4 came out slower than tetragonal Na3PS4 at 600 K, the reverse of experiment)
-- **Error-driven loop**: the slow tests (reaction with sodium metal, sodium diffusion) run in each round; their failures, with the measured numbers, go back to the proposing model, which explains them as hypotheses and corrects its next proposals
-- **Literature check**: Meta Muse Spark with web search; a known sodium electrolyte (Na3PS4) checked first as a control
-- **Plain-language summaries**: Meta Muse Glimmer
-
-### Limitations
-
-- Ionic conductivity at 300 K, its extrapolated range and method, was not computed.
-- Calibrated sodium diffusion was not achieved; diffusion at 600 K is information only and the interface with a sodium cathode, grain boundaries and microstructure were not computed.
-- DFT validation beyond UMA with error bars, synthesis, cost of elements and any experimental data are still needed; all candidates are predictions, not proven electrolytes.
-- Not computed: DFT calculations (UMA energies with an error bar measured against DFT on known compounds), ionic conductivity at room temperature, a calibrated Na diffusion (the Na diffusion at 600 K against the parent is information only: its calibration failed, ordered Na3SbS4 came out slower than Na3PS4, the reverse of experiment), the interface with a sodium cathode, grain boundaries, synthesis, cost of the elements, experimental data.
-- The candidates are computational predictions, not proven materials.
-
-## Novelty check (literature, web search)
-
-**Stopped:** language model: meta: HTTP 404: Error code: 404 - The requested model was not found.
-Total: 1 calls, ~$0.0000.
-
 ## Final ranking
 
 Order: lowest E_hull per substitution (the Na diffusion verdict is shown as information: its calibration failed, it does not rank); excluded candidates last, with their reason. Candidates are computational predictions, not proven materials.
@@ -413,6 +333,135 @@ Not selected but already simulated (verdict from the cache, no cost): it1-c1.
 | Na3PS4 (mp-28782) | parent | 2.29e-07 ± 8.6e-08 | — | — | — | intact |
 | Na3PSeS3 (it1-c1) | candidate | 2.16e-07 ± 1.4e-07 | 0.94 ± 0.71 | tied | passes | intact |
 
+## Novelty check (literature, web search)
+
+Search date: 2026-11-02. Links come only from the API (its citations, or the relevant search results it returned when it gave no citation). "No publication found in this search" does not mean the material was never reported.
+
+### control-Na3PS4 Na3PS4 (control, expected: already published): already published
+
+Na3PS4 is described as one of the most promising Na+ conductors for solid-state battery applications. It is reported as a sodium ion conductor and promising electrolyte for all-solid-state batteries using Na+ charge carriers. Its ambient-temperature ionic conductivity is reported on the order of 10-4 S cm-1, optimizable by doping and processing. Leading sulfide materials such as Na3PS4 are reported to achieve room-temperature conductivities of 0.1-1 mS/cm.
+
+Sources:
+- [Enhancing sodium ionic conductivity in tetragonal-Na3PS4 by halogen doping: a first principles investigation. | MediFind](https://www.medifind.com/articles/publication/182341902)
+- [Room-Temperature All-solid-state Rechargeable Sodium-ion Batteries with a Cl-doped Na3PS4 Superionic Conductor. - PDF Download Free](https://d.docksci.com/room-temperature-all-solid-state-rechargeable-sodium-ion-batteries-with-a-cl-dop_5a05bb64d64ab204917a5f3d.html)
+- [Room-Temperature All-solid-state Rechargeable Sodium-ion Batteries with a Cl-doped Na3PS4 Superionic Conductor (Journal Article)](https://www.osti.gov/pages/biblio/1559138)
+- [, James A. Dawsonb,c , François Fauthe , Emmanuelle Suardf ,](https://chemrxiv.org/engage/api-gateway/chemrxiv/assets/orp/resource/item/60c74149842e65255bdb1e55/original/a-new-phase-of-the-na-ion-conductor-na3ps4.pdf)
+- [Room-Temperature All-solid-state Rechargeable Sodium-ion Batteries with a Cl-doped Na3PS4 Superionic Conductor | Scientific Reports](https://www.nature.com/articles/srep33733)
+
+Notes: no inline citation returned by the API: the relevant search results it returned are listed instead
+
+_1 web searches, 12 sources considered, ~$0.0112, 2026-11-02_
+
+### it1-c1 Na3PSeS3: already published
+
+Members of the solid solution Na3PS4-xSex were prepared by high-temperature reaction, with x = 0, 1 reported as tetragonal and x = 2, 3, 4 as cubic. The x = 1 member is Na3PS3Se, the same composition as Na3PSeS3 written differently, with S/Se disorder around P shown by 31P NMR. The Se-substituted family was also developed as cubic Na3PS4-xSex by mechanochemical and high-temperature routes to expand diffusion pathways and enhance conductivity.
+
+Sources:
+- [Drop That Activation Energy: Tetragonal to Cubic Transformations in Na3PS4−xSex for Solid State Sodium Ion Battery Materials](https://www.citedrive.com/en/discovery/drop-that-activation-energy-tetragonal-to-cubic-transformations-in-nasub3subpssub4subisubxsubiseisubxsubi-for-solid-state-sodium-ion-battery-materials/)
+- [Effective Approaches of Improving the Performance of Chalcogenide Solid Electrolytes for All-Solid-State Sodium-Ion Batteries](https://www.frontiersin.org/journals/energy-research/articles/10.3389/fenrg.2020.00097/full)
+
+_5 web searches, 31 sources considered, ~$0.0516, 2026-11-02_
+
+### it2-c3 Na3Zr2Ge2PO12: close family already studied
+
+Ge addition to NASICON Na3Zr2Si2PO12 is reported as Na3[Zr2-delta Ge delta]Si2PO12 with delta = 0.1, 0.2, reaching 1.4 x 10(-2) S cm(-1) at 150 C. That work describes Ge lowering the phase-transition temperature and increasing rhombohedral phase fraction. Sc and Ge co-doping is also reported, with highest total conductivity 4.64 × 10⁻³ S cm⁻¹ for Na3.125Zr1.75Sc0.125Ge0.125Si2PO12. These reports substitute Ge on the Zr site while retaining Si2, unlike the queried full Si-by-Ge composition Na3Zr2Ge2PO12.
+
+Sources:
+- [Stable zero-sodium-excess solid-state batteries enabled by interphase stratification](https://www.newswise.com/pdf_docs/174342583785964_1-s2.0-S2667141724000582-main.pdf)
+- [High-Strength 3D-Ordered Ceramic-Gel Composite Electrolytes Enable Highly Stable Sodium Metal Batteries at − 20 to 60 °C | Nano-Micro Letters | Springer Nature Link](https://link.springer.com/article/10.1007/s40820-025-02032-4)
+- [A High‐Performance Monolithic Solid‐State Sodium Battery with Ca<sup>2+</sup> Doped Na<sub>3</sub>Zr<sub>2</sub>Si<sub>2</sub>PO<sub>12</sub> Electrolyte](https://scite.ai/reports/a-high-performance-monolithic-solid-state-sodium-2NeL5pL)
+- [Researchers develop high-energy, high-efficiency all-solid-state sodium](https://techxplore.com/news/2024-05-high-energy-efficiency-solid-state.amp)
+- [US11830985B2 - Solid electrolyte for all-solid sodium battery, method for producing same, and all-solid sodium battery](https://patents.google.com/patent/US11830985B2/en)
+
+Notes: no inline citation returned by the API: the relevant search results it returned are listed instead
+
+_5 web searches, 56 sources considered, ~$0.0405, 2026-11-02_
+
+### it3-c1 Na6P2SeS7: already published
+
+The Na3PS4-xSex system with S replaced by Se was systematically studied as a Na-ion conductor, monitoring lattice softening and transport by X-ray diffraction and impedance spectroscopy. The exact x=0.5 member, Na3PS3.5Se0.5 equivalent to Na6P2SeS7, was prepared by ball-milling and refined by Rietveld analysis. That composition showed cubic structure with small reflections of tetragonal phase, indicating a minor tetragonal mass fraction.
+
+Sources:
+- [Influence of Lattice Dynamics on Na  Transport in the Solid Electrolyte - PDF Free Download](https://d.docecity.com/influence-of-lattice-dynamics-on-na-transport-in-the-solid-e-5f0ea1c573a85.html)
+
+_5 web searches, 32 sources considered, ~$0.0469, 2026-11-02_
+
+Total: 0 calls, ~$0.0000.
+
+## Final scientific report
+
+### Executive summary
+
+The search looked for new sodium solid electrolytes from Na3PS4 or Na3SbS4 that resist sodium metal and allow fast Na+ motion. The champion is Na3PSeS3 derived from Na3PS4, with space group Cc. Its energy above the hull is 0.002 eV/atom with an error bar of 0.002 eV/atom from the mean difference against density functional theory on 23 known compounds of Na-P-S-Se. Its computed band gaps are 2.266 eV and 2.931 eV. Its electrochemical window is 1.52 V to 1.7 V and it is passivating against sodium metal, so it is not thermodynamically stable at 0 V vs Na/Na+. Its diffusion coefficient at 600 K is 2.16e-07 cm²/s with an error of 1.42e-07 cm²/s, with a verdict of tied, meaning its range overlaps the parent and it cannot be called faster or slower. Literature shows this composition is already published in the Na3PS4-xSex family. The other finalists are Na3Zr2Ge2PO12 and Na6P2SeS7. One candidate was excluded for being non-passivating against sodium metal. Room-temperature ionic conductivity, density functional theory checks, cathode interface, grain boundaries, synthesis, element cost and experimental data were not computed. The candidates are computational predictions, not proven materials.
+
+### Comparison of the finalists
+
+| | Na3PSeS3 | Na3Zr2Ge2PO12 | Na6P2SeS7 |
+|---|---|---|---|
+| Parent crystal | Na3PS4 | Na3Zr2Si2PO12 | Na3PS4 |
+| Space group | Cc | P1 | P1 |
+| E_hull (eV/atom) | 0.002 ± 0.002 | 0.003 ± 0.008 | 0.002 ± 0.002 |
+| E_hull per substitution (eV) | 0.018 | 0.025 | 0.031 |
+| Band gap optB88 / mBJ (eV) | 2.27 / 2.93 | 3.98 / 4.78 | 2.26 / 3.12 |
+| Window (V vs Na/Na+) | 1.52–1.70 | 1.70–3.28 | 1.52–1.70 |
+| Against Na metal | passivating | passivating | passivating |
+| D at 600 K (cm²/s) | 2.16e-07 | not computed | not computed |
+| D / D(parent) | 0.94 ± 0.71 | not simulated | not simulated |
+| Diffusion verdict | tied | not simulated | not simulated |
+| Literature | already published | close family already studied | already published |
+
+### Champion: Na3PSeS3
+
+**Why it is preferred.**
+
+- The champion has the lowest energy above the hull per substitution at 0.018 eV, compared with 0.025 eV for Na3Zr2Ge2PO12 and 0.031 eV for Na6P2SeS7, so it comes first by the convention of lowest energy per substitution, not by a significant difference, with the three sharing the same ranking level.
+- It is the only finalist with a simulated diffusion coefficient at 600 K, at 2.16e-07 cm²/s with an error of 1.42e-07 cm²/s and a verdict of tied, while diffusion for Na3Zr2Ge2PO12 and Na6P2SeS7 was not simulated.
+- It derives from Na3PS4 with an electrochemical window of 1.52 V to 1.7 V, closer to 0 V than the 1.7 V to 3.28 V window of Na3Zr2Ge2PO12, and unlike Na3Zr2Ge2PO12 which derives from Na3Zr2Si2PO12 and is an oxide off the sulfide goal.
+
+**Trade-offs.**
+
+- Its window of 1.52 V to 1.7 V is narrow and not stable at 0 V vs Na/Na+, so stability against sodium metal relies on passivation with risk of thick interphase growth.
+- It is already published in the Na3PS4-xSex solid solution, so it is not a new composition, and selenide content brings moisture sensitivity and cost concerns.
+- It has no added sodium vacancies, leaving carrier concentration unoptimized, and its band gaps of 2.266 eV and 2.931 eV show electronic insulation but do not guarantee low interfacial resistance.
+
+**Uncertainties.**
+
+- Energies are from a universal potential with an error bar of 0.002 eV/atom, not from density functional theory, which was not computed.
+- Diffusion was simulated at 600 K, not at 300 K, and calibration failed because ordered Na3SbS4 came out slower than Na3PS4, the reverse of experiment, so the verdict of tied is information only.
+- The diffusion error of 1.42e-07 cm²/s is large relative to the value of 2.16e-07 cm²/s, and room-temperature ionic conductivity was not computed with a range and method.
+
+**Validation to do.**
+
+- Check phase purity and lattice by powder X-ray diffraction with Rietveld refinement against the predicted Cc cell. *(documented)*
+- Measure Na+ conductivity and activation energy by impedance spectroscopy as a function of temperature. *(documented)*
+- Test stability by cycling against sodium metal and analyzing the interphase by microscopy and spectroscopy. *(documented)*
+- Recompute the energy above the hull and the band structure with density functional theory. *(documented)*
+
+**Synthesis routes to consider.**
+
+- Ball milling followed by annealing under inert atmosphere could be tried for this sulfide-selenide family, without guarantee of success. *(documented)*
+
+### Methods
+
+- **Candidate proposals and decisions**: Meta Muse Spark (reasoning model), with comparisons computed by the code
+- **Structure relaxation and energies**: Meta FAIR UMA (uma-s-1p2, OMat head), MP2020 corrections; references from Materials Project (the stable phases), all relaxed with UMA
+- **Thermodynamic stability**: energy above the convex hull of the system; kept if <= 0.05 eV/atom; error bar measured against DFT (Materials Project) on the known compounds of the same system
+- **Electronic band gap**: recorded prediction (optB88vdW scale); kept if >= 1.8 eV
+- **Electrochemical window and sodium metal**: grand-potential phase diagrams open to sodium (window vs Na/Na+, reaction with sodium metal)
+- **Independent reviews**: Meta Muse Spark Open, one review per candidate, in parallel
+- **Sodium diffusion**: Langevin molecular dynamics with UMA at 600 K, 2 x 40 ps per structure, compared with the parent crystal; information only, it neither excludes nor ranks: its calibration failed (ordered Na3SbS4 came out slower than tetragonal Na3PS4 at 600 K, the reverse of experiment)
+- **Error-driven loop**: the slow tests (reaction with sodium metal, sodium diffusion) run in each round; their failures, with the measured numbers, go back to the proposing model, which explains them as hypotheses and corrects its next proposals
+- **Literature check**: Meta Muse Spark with web search; a known sodium electrolyte (Na3PS4) checked first as a control
+- **Plain-language summaries**: Meta Muse Glimmer
+
+### Limitations
+
+- Room-temperature ionic conductivity was not computed, and no measured conductivity should be inferred.
+- Density functional theory checks, cathode interface, grain boundaries, synthesis, element cost and experimental data were not computed and are still needed.
+- Diffusion at 600 K cannot be presented as faster or slower conduction because calibration failed, and all candidates remain computational predictions, not proven materials.
+- Not computed: DFT calculations (UMA energies with an error bar measured against DFT on known compounds), ionic conductivity at room temperature, a calibrated Na diffusion (the Na diffusion at 600 K against the parent is information only: its calibration failed, ordered Na3SbS4 came out slower than Na3PS4, the reverse of experiment), the interface with a sodium cathode, grain boundaries, synthesis, cost of the elements, experimental data.
+- The candidates are computational predictions, not proven materials.
+
 
 Model ranking (last analysis): ['it1-c1', 'it3-c1', 'it3-c2']
 
@@ -420,8 +469,9 @@ Model ranking (last analysis): ['it1-c1', 'it3-c1', 'it3-c2']
 
 - meta: 10 calls, 0 in / 0 out tokens, ~$0.0000
 - baseten: 10 calls, 28484 in / 37573 out tokens, ~$0.1953
-- candidate analyses (baseten): 6 calls, ~$0.0717
-- novelty web search: 1 calls, ~$0.0000
+- meta (rerun): 1 calls, 3903 in / 5192 out tokens, ~$0.0269
+- candidate analyses (analyst): 0 calls, ~$0.0000
+- novelty web search: 0 calls, ~$0.0000
 - molecular dynamics launched in this research (all iterations): estimate 2.05 $ on Modal H100
 - UMA relaxations: 83 new / 160 allowed
 - events: 143; duration 32.6 min

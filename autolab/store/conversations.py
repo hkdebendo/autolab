@@ -86,6 +86,15 @@ class MemoryStore:
             self.convs[cid]["updated_at"] = now()
         return copy.deepcopy(m)
 
+    def replace_message(self, cid: str, kind: str, content: str, data=None) -> bool:
+        """Replace the content (and data) of the latest message of this kind, e.g. a report written again."""
+        with self._lock:
+            m = next((m for m in reversed(self.msgs.get(cid, [])) if m["kind"] == kind), None)
+            if m is None:
+                return False
+            m["content"], m["data"] = content, data
+        return True
+
     def messages(self, cid: str) -> list[dict]:
         return copy.deepcopy(self.msgs.get(cid, []))
 
@@ -227,6 +236,13 @@ class PostgresStore:
                           (cid, role, kind, content, self._j(data), question_key)).fetchone()
             c.execute("update autolab.conversations set updated_at = now() where id = %s", (cid,))
         return m
+
+    def replace_message(self, cid: str, kind: str, content: str, data=None) -> bool:
+        with self._conn() as c:
+            row = c.execute("update autolab.messages set content = %s, data = %s where id = (select max(id) from "
+                            "autolab.messages where conversation_id = %s and kind = %s) returning id",
+                            (content, self._j(data), cid, kind)).fetchone()
+        return row is not None
 
     def messages(self, cid: str) -> list[dict]:
         with self._conn() as c:

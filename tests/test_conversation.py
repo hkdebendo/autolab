@@ -102,3 +102,15 @@ def test_a_stop_request_interrupts_without_starting_anything_new(li3ps4):
     s = states(steps_from_events(events.events, "interrupted"))
     assert s["md"] == "interrupted" and s["report"] == "interrupted"
     assert config.MD_SELECT_MAX == 3
+
+
+def test_a_report_written_again_replaces_the_stored_one():
+    from autolab.store.conversations import MemoryStore
+
+    store = MemoryStore()
+    store.create({"id": "c1", "title": "t", "goal": "g", "status": "done"})
+    store.add_message("c1", "assistant", "report", "first report")
+    store.add_message("c1", "user", "question", "why?")
+    assert store.replace_message("c1", "report", "second report", {"champion": "x"})
+    assert [(m["kind"], m["content"]) for m in store.messages("c1")] == [("report", "second report"), ("question", "why?")]
+    assert not store.replace_message("c1", "summary", "none")
