@@ -70,6 +70,7 @@ def found(x):
 @app.get("/results/{domain}")
 @app.get("/settings")
 @app.get("/settings/{domain}")
+@app.get("/settings/{domain}/edit")
 def page(cid: str | None = None):
     return FileResponse(WEB / "index.html")
 

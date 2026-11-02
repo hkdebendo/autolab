@@ -50,6 +50,7 @@ app.mount("/static", StaticFiles(directory=HERE / "static"), name="static")
 @app.get("/results/{domain}")
 @app.get("/settings")
 @app.get("/settings/{domain}")
+@app.get("/settings/{domain}/edit")
 def page(cid: str | None = None, domain: str | None = None) -> FileResponse:
     """The single page (a conversation's or a results page's address opens it directly)."""
     return FileResponse(HERE / "static" / "index.html")

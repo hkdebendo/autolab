@@ -14,7 +14,7 @@ client = TestClient(webapp.app)
 
 
 def test_the_page_opens_at_home_and_at_a_conversation_address():
-    for path in ("/", "/c/3f2a9c1b77aa", "/results", "/results/cathode", "/settings", "/settings/sodium"):
+    for path in ("/", "/c/3f2a9c1b77aa", "/results", "/results/cathode", "/settings", "/settings/sodium", "/settings/cathode/edit"):
         r = client.get(path)
         assert r.status_code == 200 and "What material shall we discover today?" not in r.text  # rendered by JS
         assert '<script type="module" src="/static/app.js">' in r.text

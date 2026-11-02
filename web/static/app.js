@@ -104,10 +104,10 @@ function route() {
   document.querySelector(".main").classList.remove("results-page");
   const m = location.pathname.match(/^\/c\/([\w-]+)/);
   const r = location.pathname.match(/^\/results(?:\/([\w-]+))?/);
-  const st = location.pathname.match(/^\/settings(?:\/([\w-]+))?/);
+  const st = location.pathname.match(/^\/settings(?:\/([\w-]+))?(\/edit)?/);
   if (m) openConversation(m[1]);
   else if (r) showResults(r[1]);
-  else if (st) showSettings(st[1]);
+  else if (st) showSettings(st[1], !!st[2]);
   else showHome();
 }
 
@@ -1132,10 +1132,8 @@ const champs = { data: null, at: 0, observer: null };
 /* ---------- settings: the rules of each domain, read from config.py (read only) ---------- */
 
 const rulesCache = { data: null };
-const STATUS = { validated: ["validated", "fixed by a truth test or a calibration"], justified: ["justified", "a convention or a literature value"],
-  budget: ["budget", "a cost or time limit of one research"] };
 
-async function showSettings(domain) {
+async function showSettings(domain, edit = false) {
   stopTimers();
   S.id = null; S.view = null; S.events = []; S.index = null;
   disposeViewers();
@@ -1143,8 +1141,8 @@ async function showSettings(domain) {
   main.classList.remove("home");
   main.classList.add("results-page");
   main.appendChild($("composer-wrap"));
-  $("crumb").textContent = "Settings";
-  document.title = "Settings · AutoLab";
+  $("crumb").textContent = edit ? "Edit the rules" : "Settings";
+  document.title = `${edit ? "Edit the rules" : "Settings"} · AutoLab`;
   renderHistory();
   if (!rulesCache.data) {
     $("view").innerHTML = loadingHTML("Reading the rules of every domain…");
@@ -1157,23 +1155,39 @@ async function showSettings(domain) {
   if (!location.pathname.startsWith("/settings")) return;  // the reader went elsewhere meanwhile
   const { domains } = rulesCache.data;
   const current = domains.find((d) => d.key === domain) || domains[0];
-  const val = (r) => `${tx(String(r.value))}${r.unit ? ` <span class="muted">${tx(r.unit)}</span>` : ""}`;
+  const unit = (r) => (r.unit ? ` <span class="muted">${tx(r.unit)}</span>` : "");
+  const cell = (r) => {
+    if (!edit) return `${tx(String(r.value))}${unit(r)}`;
+    const num = typeof r.value === "number";
+    return `<input class="rule-input" data-name="${esc(r.name)}" data-default="${esc(String(r.value))}" value="${esc(String(r.value))}"
+      ${num ? 'type="number" step="any"' : 'type="text"'} aria-label="${esc(r.label)}">${unit(r)}`;
+  };
   $("view").innerHTML = `<div class="results settings-page">
-      <header class="results-head"><h1>Settings</h1>
-        <div class="settings-tools"><button class="ghost-btn" type="button" id="theme-open">Appearance</button></div></header>
+      <header class="results-head"><h1>${edit ? "Edit the rules" : "Settings"}</h1>
+        <div class="settings-tools">${edit
+          ? `<button class="ghost-btn" type="button" id="rules-restore">Restore defaults</button>
+             <button class="ghost-btn" type="button" id="rules-back">Back</button>
+             <span class="muted">Preview: changes are not applied to researches yet.</span>`
+          : `<button class="ghost-btn" type="button" id="rules-edit">Edit the rules</button>
+             <button class="ghost-btn" type="button" id="theme-open">Appearance</button>`}</div></header>
       <nav class="domain-tabs" role="tablist">${domains.map((d) => `<button type="button" role="tab" data-domain="${esc(d.key)}"
         aria-selected="${d.key === current.key}"><b>${esc(d.label)}</b><span>${d.groups.reduce((n, g) => n + g.rules.length, 0)} rules</span></button>`).join("")}</nav>
       ${current.groups.map((g) => `<section class="rules-group"><h2>${esc(g.title)}</h2>
-        <div class="table-scroll"><table class="data rules"><thead><tr><th>Rule</th><th>Value</th><th>Status</th></tr></thead><tbody>
-        ${g.rules.map((r) => `<tr><td>${tx(r.label)}</td><td class="num">${val(r)}</td>
-          <td><span class="st-chip ${esc(r.status)}" title="${esc(STATUS[r.status] ? STATUS[r.status][1] : "")}">${esc(STATUS[r.status] ? STATUS[r.status][0] : r.status)}</span></td></tr>`).join("")}
+        <div class="table-scroll"><table class="data rules${edit ? " editing" : ""}"><thead><tr><th>Rule</th><th>Value</th></tr></thead><tbody>
+        ${g.rules.map((r) => `<tr><td>${tx(r.label)}</td><td class="num">${cell(r)}</td></tr>`).join("")}
         </tbody></table></div></section>`).join("")}
     </div>`;
   $("view").querySelector(".domain-tabs").onclick = (e) => {
     const b = e.target.closest("[data-domain]");
-    if (b) navigate(`/settings/${b.dataset.domain}`);
+    if (b) navigate(`/settings/${b.dataset.domain}${edit ? "/edit" : ""}`);
   };
-  $("theme-open").onclick = () => { applyTheme(themeChoice()); openModal("settings"); };
+  if (edit) {
+    $("rules-restore").onclick = () => { for (const i of $("view").querySelectorAll(".rule-input")) i.value = i.dataset.default; };
+    $("rules-back").onclick = () => navigate(`/settings/${current.key}`);
+  } else {
+    $("rules-edit").onclick = () => navigate(`/settings/${current.key}/edit`);
+    $("theme-open").onclick = () => { applyTheme(themeChoice()); openModal("settings"); };
+  }
   $("view").scrollTo({ top: 0 });
 }
 
