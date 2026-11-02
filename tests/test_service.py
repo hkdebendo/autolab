@@ -143,7 +143,7 @@ def test_a_restarted_worker_reports_the_research_instead_of_leaving_it_running(l
 def test_an_identical_request_reuses_the_finished_research_without_computing():
     spawned = []
     svc, store = service(Model([scope(), scope()]), spawned)
-    src = svc.start("Find  halide sulfide electrolytes")["conversation"]["id"]
+    src = svc.start("Find  halide sulfide electrolytes from Li7P3S11")["conversation"]["id"]
     store.update(src, status="done")
     store.append_event(src, 0, {"type": "loop", "step": "scope", "data": {}, "timestamp": "2026-11-01T10:00:00+00:00"})
     store.save_result(src, {"goal": "g", "stages": {}, "iterations": [], "prior": []})
@@ -151,7 +151,7 @@ def test_an_identical_request_reuses_the_finished_research_without_computing():
     store.add_message(src, "assistant", "report", "## Old report", data={"champion": "c0"})
     store.add_message(src, "assistant", "report", "## Report", data={"champion": "c1"})
     store.add_artifact(src, "index.json", "index", f"runs/{src}/index.json")
-    v = svc.start("find halide sulfide  ELECTROLYTES")
+    v = svc.start("find halide sulfide  ELECTROLYTES from Li₇P₃S₁₁")  # copied from the page: subscripts
     c = v["conversation"]
     assert spawned == [src] and c["status"] == "done" and c["scope"]["reused_from"]["id"] == src
     assert [m["kind"] for m in v["messages"]] == ["request", "scope", "notice", "summary", "report"]

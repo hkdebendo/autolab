@@ -111,13 +111,14 @@ class Service:
         return self.view(cid)
 
     def reusable(self, text: str) -> dict | None:
-        """The latest finished research whose request is the same text (case and spaces aside), with a result."""
-        key = " ".join(text.lower().split())
+        """The latest finished research whose request is the same text (case, spaces and subscript digits aside: the
+        interface shows Li₇P₃S₁₁ for Li7P3S11, and a request copied from it must still match), with a result."""
+        key = goal_key(text)
         for row in self.store.list():
             if row["status"] != "done":
                 continue
             conv = self.store.get(row["id"])
-            if conv and " ".join((conv.get("goal") or "").lower().split()) == key and self.store.result(conv["id"]):
+            if conv and goal_key(conv.get("goal") or "") == key and self.store.result(conv["id"]):
                 return conv
         return None
 
@@ -284,6 +285,11 @@ RESTARTED = "the computing machine of the research was restarted by the cloud pr
 RESTARTED_NOTICE = ("The research stopped: its computing machine was restarted by the cloud provider. The steps already "
                     "done are kept above; a new research with the same request reuses every saved result.")
 CHECKPOINT_EVENTS = {("loop", "feedback"), ("loop", "iteration"), ("loop", "stop")}
+
+
+def goal_key(text: str) -> str:
+    """A request as compared for reuse: subscript digits as digits, lower case, single spaces."""
+    return " ".join(text.translate(str.maketrans("₀₁₂₃₄₅₆₇₈₉", "0123456789")).lower().split())
 
 
 def code_summary(result: dict) -> str:
