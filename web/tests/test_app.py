@@ -94,12 +94,13 @@ def test_the_lab_opens_full_screen_and_a_paused_replay_can_be_resumed():
     assert 'full: mode === "watch"' in js  # a live research stays in the chat until the button opens it
 
 
-def test_light_theme_by_default_and_a_tutorial_of_five_cards():
+def test_light_theme_by_default_and_a_tutorial_of_six_cards():
     html = (webapp.HERE / "static" / "index.html").read_text(encoding="utf-8")
     js = (webapp.HERE / "static" / "app.js").read_text(encoding="utf-8")
     assert 'data-theme="light"' in html and '|| "light"' in js
     tutorial = js[js.index("const TUT = ["):js.index("let tutIndex")]
-    assert "How does AutoLab work?" in html and len(re.findall(r'(?m)^  { title: "', tutorial)) == 5
+    assert "How does AutoLab work?" in html and len(re.findall(r'(?m)^  { title: "', tutorial)) == 6
+    assert "Muse Spark" in tutorial and "three research areas" in tutorial
 
 
 def test_the_results_page_shows_champions_by_domain_with_report_and_research_buttons():

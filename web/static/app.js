@@ -257,29 +257,49 @@ $("settings-btn").onclick = () => navigate("/settings");
 $("theme-choice").addEventListener("change", (e) => applyTheme(e.target.value));
 $("theme-btn").onclick = () => applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
 
-/* ---------- tutorial: five cards (interface.md 5) ---------- */
+/* ---------- tutorial: how AutoLab works, six cards ---------- */
 
 const TUT = [
-  { title: "Understand the research goal",
-    text: "AutoLab reads your goal in natural language, identifies the constraints and the properties you care about, checks that it is within the research areas it supports, and plans the investigation.",
-    points: ["Free-text request, no form to fill", "Constraints and target properties extracted", "Honest answer when a request is not supported yet"],
-    art: `<svg viewBox="0 0 200 120"><rect x="18" y="22" width="112" height="44" rx="12"/><path d="M40 40h68M40 52h44"/><circle cx="160" cy="70" r="22"/><circle cx="160" cy="70" r="11"/><circle cx="160" cy="70" r="2.5" fill="currentColor"/><path d="M130 66l12 4"/></svg>` },
-  { title: "Generate candidate materials",
-    text: "AutoLab proposes new compositions by chemical substitution in known crystals, builds several atomic arrangements for each and keeps only charge-balanced, not-yet-known compositions.",
-    points: ["Substitutions in known lithium thiophosphates", "Charge neutrality checked before any simulation", "Compositions already in Materials Project are not recomputed"],
-    art: `<svg viewBox="0 0 200 120"><g>${[0, 1, 2, 3, 4].map((i) => [0, 1, 2].map((j) => `<circle cx="${40 + i * 30}" cy="${30 + j * 30}" r="${(i + j) % 3 === 1 ? 8 : 5}" ${(i === 2 && j === 1) ? 'fill="currentColor"' : ""}/>`).join("")).join("")}</g><path d="M40 30h120M40 60h120M40 90h120M40 30v60M70 30v60M100 30v60M130 30v60M160 30v60" opacity=".35"/></svg>` },
-  { title: "Evaluate stability and electronic properties",
-    text: "Promising structures are relaxed with a machine-learned interatomic potential. Their energy above the convex hull tells whether they would decompose, and their band gap whether they would conduct electrons.",
-    points: ["Energy above the hull: at most 0.05 eV/atom", "Band gap: at least 2 eV for an electrolyte", "Every energy from the same method, never mixed"],
-    art: `<svg viewBox="0 0 200 120"><path d="M20 100h170M20 100V14"/><path d="M28 30 L70 80 L120 72 L176 34"/><circle cx="70" cy="80" r="4" fill="currentColor"/><circle cx="120" cy="72" r="4" fill="currentColor"/><circle cx="96" cy="58" r="4"/><path d="M96 62v13" stroke-dasharray="3 3"/></svg>` },
-  { title: "Simulate ion transport and interfaces",
-    text: "For the most promising materials, AutoLab checks the electrochemical window and the reaction with lithium metal and with a cathode, then simulates lithium-ion motion by molecular dynamics and compares it with the parent crystal.",
-    points: ["Window and contact with lithium metal", "Lithium diffusion at 600 K, two independent runs", "Ionic conductivity at room temperature is not computed yet"],
-    art: `<svg viewBox="0 0 200 120"><rect x="20" y="16" width="160" height="88" rx="10"/><path d="M36 84 C60 30, 90 100, 112 56 S 150 30, 166 40" stroke-dasharray="4 4"/><circle cx="36" cy="84" r="5" fill="currentColor"/><circle cx="166" cy="40" r="5" fill="currentColor"/></svg>` },
-  { title: "Compare, rank and explore",
-    text: "AutoLab ranks the candidates with explicit criteria, checks the literature, and writes a report on three finalists with a detailed analysis of the best compromise. Everything is saved: you can reopen it and ask follow-up questions.",
-    points: ["Three finalists, one champion, with their limits", "Literature check with sources", "Saved research, follow-up questions"],
-    art: `<svg viewBox="0 0 200 120"><rect x="76" y="34" width="48" height="70" rx="4"/><rect x="24" y="56" width="48" height="48" rx="4"/><rect x="128" y="68" width="48" height="36" rx="4"/><path d="M100 14l5 10 11 1.5-8 7.5 2 11-10-5.5-10 5.5 2-11-8-7.5 11-1.5z" fill="currentColor"/></svg>` },
+  { title: "An autonomous materials researcher",
+    text: "A researcher writes a goal in plain language. An AI agent runs the whole investigation in their place.",
+    points: ["“Find a solid electrolyte that stays stable against lithium metal”", "Hypotheses, simulations, analysis and report, without supervision", "Built for industrial materials research; applied today to batteries"],
+    art: `<svg viewBox="0 0 200 120"><rect x="14" y="30" width="82" height="40" rx="10"/><path d="M28 44h54M28 56h36"/><path d="M104 50h22" /><path d="M120 44l7 6-7 6"/>
+      <circle cx="160" cy="50" r="7" fill="currentColor"/><ellipse cx="160" cy="50" rx="28" ry="10"/><ellipse cx="160" cy="50" rx="28" ry="10" transform="rotate(60 160 50)"/><ellipse cx="160" cy="50" rx="28" ry="10" transform="rotate(-60 160 50)"/>
+      <path d="M40 96h120" stroke-dasharray="3 5"/></svg>` },
+  { title: "Meta models at the core",
+    text: "Muse Spark leads the research and sends its candidates to the simulation tools.",
+    roles: [["Muse Spark", "proposes, decides, learns from failures, writes the report", "meta"],
+      ["Muse Spark Open", "reviews each candidate independently", "meta"],
+      ["Muse Glimmer", "summarizes each step in plain language", "meta"],
+      ["UMA · Meta FAIR", "simulates the atoms for Muse Spark: structure, energy, ion motion", "meta"],
+      ["GapModel · Materials Project", "band gaps and known phases, queried for Muse Spark", "tool"]],
+    art: `<svg viewBox="0 0 200 120"><circle cx="100" cy="60" r="16" fill="currentColor" fill-opacity=".15"/><circle cx="100" cy="60" r="16"/>
+      <circle cx="38" cy="26" r="9"/><circle cx="162" cy="26" r="9"/><circle cx="38" cy="94" r="9"/><circle cx="162" cy="94" r="9"/>
+      <path d="M86 52 46 31M114 52l40-21M86 68 46 89M114 68l40 21"/><circle cx="100" cy="60" r="4" fill="currentColor"/></svg>` },
+  { title: "From hypothesis to verdict",
+    text: "Each candidate goes through filters from the cheapest to the most demanding.",
+    points: ["Charge balance, and no recomputation of known materials", "Stability and band gap, computed by UMA and GapModel", "Domain tests: contact with the metal, ion motion, voltage"],
+    art: `<svg viewBox="0 0 200 120"><path d="M30 18h140l-44 46v34l-52 14V64z"/>
+      ${[48, 70, 92, 114, 136, 152].map((x, k) => `<circle cx="${x}" cy="${k % 2 ? 30 : 38}" r="3.5"/>`).join("")}
+      <circle cx="94" cy="72" r="3.5"/><circle cx="106" cy="80" r="3.5"/><circle cx="100" cy="96" r="4" fill="currentColor"/></svg>` },
+  { title: "It learns from its failures",
+    text: "Every failure goes back to Muse Spark with its numbers. It explains the cause as a hypothesis and corrects the next round.",
+    points: ["Three rounds of proposals", "Failures are data, never hidden", "Each correction is traced in the report"],
+    art: `<svg viewBox="0 0 200 120"><path d="M64 60a36 36 0 0 1 66-20"/><path d="M136 60a36 36 0 0 1-66 20"/><path d="M124 30l7 11-13 2"/><path d="M76 90l-7-11 13-2"/>
+      <circle cx="100" cy="60" r="6" fill="currentColor"/><path d="M152 60h28M20 60h28" stroke-dasharray="3 4"/></svg>` },
+  { title: "One agent, three research areas",
+    text: "Applied today to energy storage. Only the starting crystals and the tests change: the loop stays the same.",
+    points: ["Lithium solid electrolytes: safer lithium-metal batteries", "Cobalt-free cathodes: without a critical metal", "Sodium solid electrolytes: beyond lithium"],
+    art: `<svg viewBox="0 0 200 120"><rect x="6" y="30" width="58" height="56" rx="8"/><rect x="71" y="30" width="58" height="56" rx="8"/><rect x="136" y="30" width="58" height="56" rx="8"/>
+      <text x="35" y="64" text-anchor="middle" font-size="16" fill="currentColor" stroke="none">Li⁺</text><text x="100" y="58" text-anchor="middle" font-size="12" fill="currentColor" stroke="none">cathode</text>
+      <text x="100" y="72" text-anchor="middle" font-size="10" fill="currentColor" stroke="none">no Co</text>
+      <text x="165" y="64" text-anchor="middle" font-size="16" fill="currentColor" stroke="none">Na⁺</text><path d="M35 94v8h130v-8M100 102v8"/></svg>` },
+  { title: "Science you can check",
+    text: "The rules are fixed in the code, never by the models. Every method is first tested on known materials.",
+    points: ["Truth tests and blind benchmarks, failures kept", "Error bars and a literature check of the finalists", "Results, Benchmark & Tests and Settings pages"],
+    art: `<svg viewBox="0 0 200 120"><path d="M24 100h156M24 100V16"/>
+      ${[[52, 70, 12], [92, 52, 9], [132, 34, 10]].map(([x, y, e]) => `<path d="M${x} ${y - e}v${2 * e}M${x - 5} ${y - e}h10M${x - 5} ${y + e}h10"/><circle cx="${x}" cy="${y}" r="4" fill="currentColor"/>`).join("")}
+      <path d="M150 74l9 9 17-19"/></svg>` },
 ];
 let tutIndex = 0;
 function renderTutorial() {
@@ -288,7 +308,10 @@ function renderTutorial() {
   $("tut-step").textContent = `Step ${tutIndex + 1} of ${TUT.length}`;
   $("tut-title").textContent = c.title;
   $("tut-text").textContent = c.text;
-  $("tut-points").innerHTML = c.points.map((p) => `<li>${esc(p)}</li>`).join("");
+  $("tut-points").className = c.roles ? "tut-roles" : "tut-points";
+  $("tut-points").innerHTML = c.roles
+    ? c.roles.map(([m, r, k]) => `<li><span class="role-model ${k}">${esc(m)}</span><span>${esc(r)}</span></li>`).join("")
+    : c.points.map((p) => `<li>${esc(p)}</li>`).join("");
   $("tut-dots").innerHTML = TUT.map((_, i) => `<i class="${i === tutIndex ? "on" : ""}"></i>`).join("");
   $("tut-prev").disabled = tutIndex === 0;
   $("tut-next").textContent = tutIndex === TUT.length - 1 ? "Done" : "Next";

@@ -749,3 +749,11 @@ table.data.mini th, table.data.mini td { padding: 4px 12px; }
 .examples .try-title { margin: 6px 0 4px; font-size: 17px; font-weight: 700; color: var(--accent, #3b82f6); text-align: center;
   letter-spacing: .01em; }
 .examples button { border-radius: 12px; text-align: left; padding: 10px 14px; }
+
+/* tutorial: the team card */
+.tut-roles { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 7px; font-size: 13.5px; color: var(--text-2); }
+.tut-roles li { display: grid; grid-template-columns: 172px 1fr; gap: 10px; align-items: baseline; }
+.role-model { font-weight: 600; font-size: 12.5px; padding: 2px 9px; border-radius: 999px; justify-self: start; white-space: nowrap; }
+.role-model.meta { background: var(--accent-soft, rgba(59, 130, 246, .12)); color: var(--accent, #3b82f6); }
+.role-model.tool { background: var(--bg-soft, rgba(100, 116, 139, .12)); color: var(--muted, #64748b); }
+@media (max-width: 560px) { .tut-roles li { grid-template-columns: 1fr; gap: 2px; } }
