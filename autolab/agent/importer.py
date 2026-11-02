@@ -18,8 +18,9 @@ def import_run(svc, run_dir: Path, cid: str, title: str, request: str, file_path
         return cid
     run_dir = Path(run_dir)
     result = json.loads((run_dir / "result.json").read_text(encoding="utf-8"))
-    events = [json.loads(line) for line in (run_dir / "events.jsonl").read_text(encoding="utf-8").splitlines()
-              if line.strip()]
+    live = run_dir / "events_live_view.jsonl"  # the same events with the relaxed structures (scripts/live_view_events.py)
+    events = [json.loads(line) for line in (live if live.exists() else run_dir / "events.jsonl").read_text(
+        encoding="utf-8").splitlines() if line.strip()]
     store.create({"id": cid, "title": title, "goal": request, "domain": result.get("domain", "electrolyte"),
                   "status": "done", "source": f"imported:{run_dir.name}",
                   "scope": {"intent": "new_discovery", "status": "supported", "domain": result.get("domain")}})
@@ -44,6 +45,10 @@ def import_run(svc, run_dir: Path, cid: str, title: str, request: str, file_path
 
 
 RECORDED = [  # (folder, conversation id, title, request as it was given)
+    ("results/2026-11-01_feedback_run", "feedback-2026-11-01", "Fast stable sulfide electrolytes (error-driven research)",
+     "Find new sulfide solid electrolytes for lithium-metal batteries, derived from Li7P3S11 or beta-Li3PS4, that conduct "
+     "lithium at least as fast as their parent and stay stable against lithium metal. Learn from the candidates that "
+     "fail."),
     ("results/2026-10-29_reference_run", "ref-2026-10-29", "Sulfide electrolytes: reference research",
      "Find new sulfide solid electrolytes for lithium-metal batteries: thermodynamically stable or slightly "
      "metastable, electronically insulating, by substitutions in known Li-P-S crystals."),

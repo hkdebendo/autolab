@@ -94,7 +94,10 @@ class Service:
         self.store.add_message(cid, "user", "request", text)
         self.store.add_message(cid, "assistant", "scope", scope["reply"] or "", data=scope)
         if scope["action"] == "start":
-            if self.store.active_research():
+            src = self.reusable(text) if config.REUSE_IDENTICAL_GOAL else None
+            if src is not None:
+                self.reuse(cid, src, scope)
+            elif self.store.active_research():
                 self.store.add_message(cid, "assistant", "notice", BUSY)
             elif self.store.live_runs_used() >= config.LIVE_MAX_RUNS:
                 self.store.add_message(cid, "assistant", "notice", LIMIT)
@@ -106,6 +109,35 @@ class Service:
                     self.store.update(cid, status="error", error=f"{type(e).__name__}: {e}"[:300])
                     self.store.add_message(cid, "assistant", "notice", "The research could not start.")
         return self.view(cid)
+
+    def reusable(self, text: str) -> dict | None:
+        """The latest finished research whose request is the same text (case and spaces aside), with a result."""
+        key = " ".join(text.lower().split())
+        for row in self.store.list():
+            if row["status"] != "done":
+                continue
+            conv = self.store.get(row["id"])
+            if conv and " ".join((conv.get("goal") or "").lower().split()) == key and self.store.result(conv["id"]):
+                return conv
+        return None
+
+    def reuse(self, cid: str, src: dict, scope: dict) -> None:
+        """Copy a finished research into conversation `cid`: its events, result, summary, report and 3D files. Nothing
+        is recomputed; the interface shows the copied steps at its own pace, marked as reused."""
+        when = src["created_at"].isoformat() if hasattr(src["created_at"], "isoformat") else str(src["created_at"])
+        self.store.update(cid, source="reuse", scope={**scope, "reused_from": {"id": src["id"], "created_at": when}})
+        self.store.add_message(cid, "assistant", "notice", REUSED_NOTICE.format(date=when[:10]),
+                               data={"action": "reused", "from": src["id"]})
+        self.store.append_events(cid, self.store.events(src["id"]))
+        self.store.save_result(cid, self.store.result(src["id"]))
+        latest = {m["kind"]: m for m in self.store.messages(src["id"])  # the last summary and the last report only
+                  if m["role"] == "assistant" and m["kind"] in ("summary", "report")}
+        for kind in ("summary", "report"):
+            if kind in latest:
+                self.store.add_message(cid, "assistant", kind, latest[kind]["content"], data=latest[kind].get("data"))
+        for a in self.store.artifacts(src["id"]):  # the files stay where they are; the new conversation points to them
+            self.store.add_artifact(cid, a["name"], a["kind"], a["path"], a.get("meta"))
+        self.store.update(cid, status="done")
 
     def post(self, cid: str, text: str) -> dict | None:
         """A message in an existing conversation: follow-up answered from the stored research, never a new one."""
@@ -246,6 +278,8 @@ class Service:
                                    data={"champion": rep.get("champion"), "completeness": rep.get("completeness")})
 
 
+REUSED_NOTICE = ("This exact request was already researched on {date}. AutoLab reuses its saved computations: nothing "
+                 "is recomputed, and the steps are shown again at an accelerated pace.")
 RESTARTED = "the computing machine of the research was restarted by the cloud provider"
 RESTARTED_NOTICE = ("The research stopped: its computing machine was restarted by the cloud provider. The steps already "
                     "done are kept above; a new research with the same request reuses every saved result.")

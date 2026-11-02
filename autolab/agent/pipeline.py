@@ -62,6 +62,42 @@ def _relaxed_structure(res: dict) -> Structure:
     return AseAtomsAdaptor.get_structure(atoms_from_dict(res["atoms"]))
 
 
+def lattice(cell) -> dict:
+    """a, b, c (Angstrom), alpha, beta, gamma (degrees) and volume (Angstrom^3) of a cell matrix."""
+    import numpy as np
+
+    m = np.asarray(cell, dtype=float)
+    a, b, c = (float(np.linalg.norm(v)) for v in m)
+    ang = lambda u, v: float(np.degrees(np.arccos(np.clip(np.dot(u, v) / np.linalg.norm(u) / np.linalg.norm(v), -1, 1))))
+    return {"a": round(a, 3), "b": round(b, 3), "c": round(c, 3), "alpha": round(ang(m[1], m[2]), 2),
+            "beta": round(ang(m[0], m[2]), 2), "gamma": round(ang(m[0], m[1]), 2),
+            "volume": round(abs(float(np.linalg.det(m))), 2)}
+
+
+def live_structure(start: Structure, best: dict, substitution: dict | None) -> dict:
+    """What the interface shows of a relaxation: the arrangement before relaxation and after it (same atom order),
+    their cells, the substituted element and, when recorded, the relaxation path. Display only."""
+    from ase.data import chemical_symbols
+
+    import numpy as np
+
+    end = best["atoms"]
+    rnd = lambda rows, d: [[round(float(x), d) for x in r] for r in rows]
+    # the relaxed positions taken next to their start (an atom across a cell face is not drawn jumping over the cell)
+    cell = np.asarray(end["cell"], dtype=float)
+    frac = np.asarray(end["positions"], dtype=float) @ np.linalg.inv(cell)
+    frac -= np.round(frac - start.frac_coords)
+    end = {**end, "positions": (frac @ cell).tolist()}
+    sub = substitution or {}
+    return {"symbols": [chemical_symbols[z] for z in end["numbers"]],
+            "start": {"positions": rnd(start.cart_coords, 3), "cell": rnd(start.lattice.matrix, 4),
+                      "lattice": lattice(start.lattice.matrix)},
+            "end": {"positions": rnd(end["positions"], 3), "cell": rnd(end["cell"], 4), "lattice": lattice(end["cell"]),
+                    "energy_per_atom": round(best["energy_per_atom"], 5)},
+            "added": sub.get("add"), "removed": sub.get("remove"), "li_vacancies": sub.get("li_vacancies", 0),
+            "trajectory": best.get("trajectory") or [], "steps": best.get("steps")}
+
+
 def n_modified(parent: Structure, substitution: dict) -> int:
     """Number of modified sites: replaced sites plus Li vacancies (each vacancy is a modification)."""
     if substitution["count"] == "all":
@@ -151,11 +187,13 @@ def evaluate_structures(out: dict, structures: list[Structure], tools: Tools, em
     epa = [r["energy_per_atom"] for r in converged]
     if epa:
         out["energy_spread_meV"] = round(1000 * (max(epa) - min(epa)), 1)
+    best = min(converged, key=lambda r: r["energy_per_atom"]) if converged else None
     emit("relax", arrangements=len(results), converged=len(converged),
-         energies_per_atom=[round(e, 4) for e in epa], spread_meV=out["energy_spread_meV"])
+         energies_per_atom=[round(e, 4) for e in epa], spread_meV=out["energy_spread_meV"],
+         cached=all(r.get("cached") for r in results),
+         structure=live_structure(structures[results.index(best)], best, out.get("substitution")) if best else None)
     if not converged:
         return finish(step="relax", reason="no arrangement converged")
-    best = min(converged, key=lambda r: r["energy_per_atom"])
     structure = _relaxed_structure(best)
     out.update(energy=best["energy"], relaxed_atoms=best["atoms"])  # for electrodes and dynamics
 

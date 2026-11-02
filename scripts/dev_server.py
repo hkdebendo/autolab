@@ -11,12 +11,13 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from autolab.agent.importer import RECORDED, import_run
+from autolab.agent.progress import steps_from_events
 from autolab.agent.service import Service
 from autolab.llm.client import Reply
 from autolab.store.conversations import MemoryStore
@@ -117,6 +118,27 @@ def files(cid: str, name: str):
     if art is None:
         raise HTTPException(404, "file not available")
     return json.loads(Path(art["path"]).read_text(encoding="utf-8"))
+
+
+@app.websocket("/ws/conversations/{cid}")
+async def live(ws: WebSocket, cid: str):
+    """The same messages as the web server's WebSocket: all the events, then the steps after the first n events."""
+    await ws.accept()
+    p = svc.progress(cid, 0)
+    if p is None:
+        await ws.close(code=1008)
+        return
+    events = p["events"]
+    await ws.send_json({"type": "events", "events": events, "status": p["status"], "next": p["next"], "steps": p["steps"]})
+    try:
+        while True:
+            msg = await ws.receive_json()
+            if isinstance(msg, dict) and isinstance(msg.get("steps"), int):
+                n = max(0, min(msg["steps"], len(events)))
+                await ws.send_json({"type": "steps", "upto": n,
+                                    "steps": steps_from_events(events[:n], "running" if n < len(events) else "done")})
+    except WebSocketDisconnect:
+        pass
 
 
 if __name__ == "__main__":

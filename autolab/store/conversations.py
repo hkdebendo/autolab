@@ -103,6 +103,15 @@ class MemoryStore:
     def events(self, cid: str, after: int = 0) -> list[dict]:
         return copy.deepcopy([e for e in sorted(self.evs.get(cid, []), key=lambda e: e["seq"]) if e["seq"] >= after])
 
+    def append_events(self, cid: str, events: list[dict], first_seq: int = 0) -> None:
+        for i, e in enumerate(events):
+            self.append_event(cid, first_seq + i, e)
+
+    def replace_events(self, cid: str, events: list[dict]) -> None:
+        with self._lock:
+            self.evs[cid] = []
+        self.append_events(cid, events)
+
     def save_result(self, cid: str, result: dict) -> None:
         self.results[cid] = json.loads(json.dumps(result, default=str))
         self.cands[cid] = candidate_rows(self.results[cid])
@@ -215,6 +224,22 @@ class PostgresStore:
                       "(%s, %s, %s, %s, %s, %s, %s) on conflict do nothing",
                       (cid, seq, event["type"], event["step"], event.get("candidate_id"), self._j(event["data"]),
                        event["timestamp"]))
+
+    def append_events(self, cid: str, events: list[dict], first_seq: int = 0) -> None:
+        """Several events in one connection (a copied research: one connection per event would take a minute)."""
+        # one statement per event on one connection: executemany sent the JSON in a way that garbled non-ASCII
+        # characters (± became Â±), seen on 2026-11-02
+        with self._conn() as c, c.transaction():
+            for i, e in enumerate(events):
+                c.execute("insert into autolab.events (conversation_id, seq, type, step, candidate_id, data, ts) values "
+                          "(%s, %s, %s, %s, %s, %s, %s) on conflict do nothing",
+                          (cid, first_seq + i, e["type"], e["step"], e.get("candidate_id"), self._j(e["data"]),
+                           e["timestamp"]))
+
+    def replace_events(self, cid: str, events: list[dict]) -> None:
+        with self._conn() as c:
+            c.execute("delete from autolab.events where conversation_id = %s", (cid,))
+        self.append_events(cid, events)
 
     def events(self, cid: str, after: int = 0) -> list[dict]:
         with self._conn() as c:

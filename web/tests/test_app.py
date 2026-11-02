@@ -68,10 +68,22 @@ def visible_text() -> str:
     return html + js
 
 
-@pytest.mark.parametrize("word", ["Muse", "Baseten", "Fireworks", "Glimmer", "Meta ", "token", "Replay", "replay",
-                                  "GPU", "credit", "USD", "$/"])
-def test_no_model_provider_cost_or_replay_mode_is_shown(word):
+@pytest.mark.parametrize("word", ["Baseten", "Fireworks", "token", "Replay", "replay", "GPU", "credit", "USD", "$/"])
+def test_no_provider_cost_or_replay_mode_is_shown(word):
     assert word not in visible_text()
+
+
+def test_the_models_at_work_are_named_with_what_they_do():
+    """Owner, 2026-11-02: show which model works and what it does (interface.md 15 amended)."""
+    text = visible_text()
+    for model in ("Muse Spark", "Muse Spark Open", "Muse Glimmer", "UMA", "GapModel", "Materials Project"):
+        assert model in text
+
+
+def test_the_live_view_uses_the_websocket_and_formulas_get_subscripts():
+    js = (webapp.HERE / "static" / "app.js").read_text(encoding="utf-8")
+    assert "/ws/conversations/" in js and "function chem(" in js and "₀₁₂₃₄₅₆₇₈₉" in js
+    assert "reused" in js  # results taken from the saved computations are marked
 
 
 def test_light_theme_by_default_and_a_tutorial_of_five_cards():

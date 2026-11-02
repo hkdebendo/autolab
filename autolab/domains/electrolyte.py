@@ -941,7 +941,7 @@ def render_report(out: dict, result: dict) -> list[str]:
               ("D / D(parent)", None, lambda r: (f"{r['D_ratio_to_parent']:.2f} ± {r['D_ratio_error']:.2f}"
                                                  if r.get("D_ratio_to_parent") is not None else "not simulated")),
               ("Diffusion verdict", "diffusion_verdict", None),
-              ("σ at 300 K against the parent", None, lambda r: r.get("ionic_conductivity_vs_parent") + (
+              ("σ at 300 K against the parent", None, lambda r: (r.get("ionic_conductivity_vs_parent") or "not computed") + (
                   f" (parent {r['parent_ionic_conductivity_range_mS_cm'][0]:.2g}–"
                   f"{r['parent_ionic_conductivity_range_mS_cm'][1]:.2g} mS/cm)"
                   if r.get("parent_ionic_conductivity_range_mS_cm") else "")),

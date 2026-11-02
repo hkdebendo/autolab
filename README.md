@@ -140,8 +140,8 @@ About 36 $ of Modal GPU time (calibrations, benchmark, runs), 1.2 $ of Muse Spar
 ```bash
 pip install -e ".[bandgap,dev]"
 cp .env.example .env          # then fill in your own keys
-pytest                        # 167 CPU tests; GPU and paid-API tests are skipped
-pytest web/tests              # 17 tests of the interface
+pytest                        # 171 CPU tests; GPU and paid-API tests are skipped
+pytest web/tests              # 16 tests of the interface
 pytest --gpu                  # UMA truth tests (NVIDIA GPU only)
 ```
 
@@ -149,7 +149,10 @@ Recorded results need no key: open `results/*/report.md`, or preview the interfa
 
 ```bash
 python scripts/dev_server.py  # http://127.0.0.1:8100, no database, no paid call
+# watch the agent at work on the Nov 1 research: http://127.0.0.1:8100/c/feedback-2026-11-01?watch=2
 ```
+
+The interface shows the agent at work: one card per action, naming the model or tool and what it does (Muse Spark reasoning and proposing, pymatgen building, UMA relaxing the crystal in 3D while the cell parameters move, GapModel band gap, Muse Spark Open reviews, molecular dynamics with the recorded lithium trajectory, failures sent back and explained), the progress list ticking and a lab notebook of the decisions; the research card, the summary and the report come at the end. Results taken from the saved computations are played at a readable pace and marked "reused"; an identical request reuses a finished research without computing anything.
 
 Paid runs (Modal, Meta), each prints its estimated cost first (`--dry-run` / `--plan`):
 

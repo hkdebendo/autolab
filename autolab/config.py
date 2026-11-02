@@ -113,6 +113,7 @@ UMA_PRECISION_MD = "default"  # 2x faster, enough for molecular dynamics
 
 RELAX_FMAX = 0.05  # eV/Angstrom
 RELAX_STEPS = 500
+RELAX_TRAJECTORY_FRAMES = 12  # frames of the relaxation path kept for the interface (positions + cell); display only
 
 MD_TIMESTEP_FS = 1.0
 MD_FRICTION_PER_FS = 0.01
@@ -176,6 +177,10 @@ LIVE_MD_SELECT_MAX = 1  # new MD candidates per iteration of a live run (Modal b
 LIVE_MAX_RUNS = 6  # live runs allowed in production (1-4 $ each), counted in the store; then refused
 LIVE_RUN_TIMEOUT_S = 3 * 3600
 LIVE_GOAL_MAX_CHARS = 500
+# A request identical (case and spaces aside) to a finished research reuses it (owner, 2026-11-02): its events, result,
+# report and 3D files are copied into the new conversation, nothing is recomputed or paid, and the interface shows the
+# steps at its own pace with a "reused" mark. The copy is not a live run (source "reuse").
+REUSE_IDENTICAL_GOAL = True
 STOP_POLL_S = 5  # s between two reads of a stop request by a running research
 LIVE_PRIOR = "results/2026-10-29_reference_run/result.json"  # candidates already evaluated, shown to the model
 
