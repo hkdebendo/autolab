@@ -172,7 +172,14 @@ svg { stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round
 
 /* ---------- messages ---------- */
 .msg { margin: 0 0 22px; animation: rise .25s ease; }
-.msg.user { display: flex; justify-content: flex-end; }
+.msg.user { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.copy-btn { border: 0; background: transparent; color: var(--muted); width: 28px; height: 26px; border-radius: 7px;
+  display: inline-grid; place-items: center; opacity: 0; transition: opacity .15s, background .15s; }
+.copy-btn svg { width: 15px; height: 15px; }
+.msg.user:hover .copy-btn, .copy-btn:focus-visible, .copy-btn.done { opacity: 1; }
+.copy-btn:hover { background: var(--bg-soft); color: var(--text); }
+.copy-btn.done { color: var(--good); }
+@media (hover: none) { .copy-btn { opacity: .7; } }
 .msg.user .bubble { background: var(--bg-soft); border: 1px solid var(--border); border-radius: 16px 16px 4px 16px;
   padding: 10px 14px; max-width: 78%; white-space: pre-wrap; }
 .msg.ai { display: grid; grid-template-columns: 30px 1fr; gap: 12px; }

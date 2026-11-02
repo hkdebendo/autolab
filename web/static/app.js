@@ -527,7 +527,32 @@ function scrollBottom(instant = false) {
 
 /* ---------- thread rendering ---------- */
 
-const userMsg = (t) => `<div class="msg user"><div class="bubble">${tx(t)}</div></div>`;
+const COPY_ICON = `<svg viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg>`;
+const userMsg = (t) => `<div class="msg user"><div class="bubble">${tx(t)}</div>
+  <button class="copy-btn" type="button" data-copy="${esc(t)}" title="Copy the text" aria-label="Copy the text">${COPY_ICON}</button></div>`;
+
+/* copy a sent request in one click: the exact text (plain digits), so that it can be sent again and be recognised */
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); return true; } catch { /* no clipboard API (http, old browser) */ }
+  const area = document.createElement("textarea");
+  area.value = text;
+  area.style.cssText = "position:fixed;left:-9999px;top:0";
+  document.body.appendChild(area);
+  area.select();
+  let ok = false;
+  try { ok = document.execCommand("copy"); } catch { ok = false; }
+  area.remove();
+  return ok;
+}
+$("view").addEventListener("click", async (ev) => {
+  const b = ev.target.closest("[data-copy]");
+  if (!b) return;
+  const ok = await copyText(b.dataset.copy);
+  b.innerHTML = ok ? CHECK : COPY_ICON;
+  b.classList.toggle("done", ok);
+  toast(ok ? "Text copied" : "The text could not be copied");
+  setTimeout(() => { b.innerHTML = COPY_ICON; b.classList.remove("done"); }, 1600);
+});
 const aiBlock = (html, cls = "") => `<div class="msg ai ${cls}"><div class="avatar">${AI_ICON}</div><div class="body">${html}</div></div>`;
 
 function md(text) {
