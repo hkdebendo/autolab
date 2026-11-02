@@ -1,0 +1,101 @@
+{
+ "criterion": "D(Na3SbS4) > D(Na3PS4) by more than 2 combined errors at 600 K, both frameworks intact (fixed before the runs)",
+ "rows": [
+  {
+   "id": "mp-10167",
+   "formula": "Na3SbS4",
+   "species": "Na",
+   "n_li": 24,
+   "n_atoms": 64,
+   "D_cm2_per_s": 7.556629586677363e-08,
+   "D_sem_cm2_per_s": 5.998170593937117e-08,
+   "framework": {
+    "intact": true,
+    "per_seed": [
+     {
+      "intact": true,
+      "ratio_max": 0.05,
+      "elements": {
+       "S": {
+        "msd_final_A2": 0.086,
+        "D_ratio_to_Li": 0.0006350863859442678
+       },
+       "Sb": {
+        "msd_final_A2": 0.0207,
+        "D_ratio_to_Li": -0.14161442851846215
+       }
+      }
+     },
+     {
+      "intact": true,
+      "ratio_max": 0.05,
+      "elements": {
+       "S": {
+        "msd_final_A2": 0.0898,
+        "D_ratio_to_Li": -0.020493524924873028
+       },
+       "Sb": {
+        "msd_final_A2": 0.0581,
+        "D_ratio_to_Li": -0.05729526406370366
+       }
+      }
+     }
+    ]
+   },
+   "md_gpu": "H100"
+  },
+  {
+   "id": "mp-28782",
+   "formula": "Na3PS4",
+   "species": "Na",
+   "n_li": 48,
+   "n_atoms": 128,
+   "D_cm2_per_s": 2.2929720025040774e-07,
+   "D_sem_cm2_per_s": 8.587625450782804e-08,
+   "framework": {
+    "intact": true,
+    "per_seed": [
+     {
+      "intact": true,
+      "ratio_max": 0.05,
+      "elements": {
+       "P": {
+        "msd_final_A2": 0.0704,
+        "D_ratio_to_Li": -0.0686864650808153
+       },
+       "S": {
+        "msd_final_A2": 0.1677,
+        "D_ratio_to_Li": -0.6510788149259875
+       }
+      }
+     },
+     {
+      "intact": true,
+      "ratio_max": 0.05,
+      "elements": {
+       "P": {
+        "msd_final_A2": 0.0492,
+        "D_ratio_to_Li": -0.018218288044279746
+       },
+       "S": {
+        "msd_final_A2": 0.1883,
+        "D_ratio_to_Li": -0.05160647301875544
+       }
+      }
+     }
+    ]
+   },
+   "md_gpu": "H100"
+  }
+ ],
+ "comparison": {
+  "ratio": 0.3295561209829437,
+  "ratio_err": 0.28924515694765895,
+  "verdict": "lower",
+  "n_sigma": 2.0
+ },
+ "sigma": 2.3179087459652026,
+ "frameworks_intact": true,
+ "passed": false,
+ "estimated_usd": 3.2674400000000006
+}

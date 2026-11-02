@@ -58,18 +58,19 @@ def polysulfides_among(formulas, entries: list) -> list[str]:
 
 
 def window_and_passivation(c: dict, entries_fn: Callable = _default_entries, get_gaps: Callable = _mp_gaps,
-                           budget=None) -> dict:
-    """Electrochemical window and passivation against Li metal, with UMA references of the candidate's system."""
+                           budget=None, ion: str = "Li") -> dict:
+    """Electrochemical window and passivation against the metal of the mobile ion (Li metal by default), with UMA
+    references of the candidate's system."""
     target = candidate_entry(c)
     entries, skipped = entries_fn(_elements(target.composition), budget)
-    pas = passivation(target, entries, get_gaps)
+    pas = passivation(target, entries, get_gaps, ion=ion)
     pas["polysulfide_products"] = polysulfides_among({d["formula"] for d in pas["products"]}, entries)
-    win = electrochemical_window(target, entries)
+    win = electrochemical_window(target, entries, ion=ion)
     # Decomposition of the electrolyte (natural, beyond each limit of the window): polysulfides lower the confidence
     win["polysulfide_products"] = polysulfides_among(
         set(win["natural_products"]) | set(win["reduction_products"]) | set(win["oxidation_products"]), entries)
     # ... but only when the limits depend on them: polysulfide energies shifted by their measured UMA error
-    win["sensitivity"] = window_sensitivity(target, entries, base=win) if win["polysulfide_products"] else None
+    win["sensitivity"] = window_sensitivity(target, entries, base=win, ion=ion) if win["polysulfide_products"] else None
     return {"id": c["id"], "formula": target.composition.reduced_formula, "window": win, "passivation": pas,
             "skipped_references": skipped}
 

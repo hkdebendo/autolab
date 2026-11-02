@@ -53,6 +53,7 @@ OXIDATION_STATES: dict[str, int] = {
     "S": -2, "Se": -2, "O": -2, "F": -1, "Cl": -1, "Br": -1, "I": -1,
 }
 CHARGE_TOLERANCE = 1e-6
+MOBILE_IONS = ("Li", "Na")  # the conducting ion of a structure: the first of these it contains (MD species, vacancies)
 
 GENERATOR_N_ARRANGEMENTS = 8
 GENERATOR_SEED = 42
@@ -271,6 +272,10 @@ DOMAIN_LABELS = {
     "cathode": {"label": "Cobalt-free cathodes", "kind": "Cobalt-free cathode · lithium-ion batteries",
                 "about": "Positive electrodes that store lithium without cobalt: they must be stable and give a high "
                          "voltage and capacity (energy density) with a small volume change on charge."},
+    "sodium": {"label": "Sodium solid electrolytes", "kind": "Sodium solid electrolyte · sodium-metal batteries",
+               "about": "Beyond lithium, a geopolitical bottleneck: superionic Na+ conductors for the stationary storage of "
+                        "renewable energy. They must be stable, block electrons, survive contact with sodium metal and "
+                        "let Na+ move fast."},
 }
 CHAMPIONS_EXCLUDED = ("first-2026-10-29", "test-2026-10-29-br-i")  # test researches, left out of the results page
 
@@ -281,6 +286,10 @@ CAPABILITIES = {
                        "Li-P-S crystals (beta-Li3PS4, Li7P3S11), evaluated for thermodynamic stability, electronic band "
                        "gap, electrochemical window, reaction with lithium metal and with a LiFePO4 cathode, lithium "
                        "diffusion by molecular dynamics at 600 K, and prior publication.",
+        "sodium": "Sodium solid electrolytes (superionic Na+ conductors) for sodium-metal batteries and the stationary "
+                  "storage of renewable energy: new compositions by substitution in known sodium conductors (Na3PS4, "
+                  "Na3SbS4, NASICON Na3Zr2Si2PO12), evaluated for thermodynamic stability, band gap, electrochemical "
+                  "window, reaction with sodium metal and sodium diffusion by molecular dynamics at 600 K.",
         "cathode": "Cobalt-free cathode materials for lithium-ion batteries: new compositions by substitution in known "
                    "cobalt-free cathodes (LiFePO4, LiMnPO4, spinel LiMn2O4, LiNi0.5Mn1.5O4), evaluated for thermodynamic "
                    "stability, average voltage, theoretical capacity, energy density and volume change on charge.",
@@ -385,6 +394,42 @@ CATHODE_VOLTAGE_TRUTH_TOL_V = 0.4
 # A candidate's voltage is called different from its parent's only beyond this margin (the largest error of the truth
 # test, 0.31 V, rounded up); the capacity comes from the stoichiometry and is exact.
 CATHODE_VOLTAGE_SIGNIFICANT_V = 0.35
+# --- Third domain: sodium solid electrolytes (owner, 2026-11-02; autolab/domains/sodium.py) -------------------
+# The electrolyte funnel and slow tests with Na+ as the mobile ion: substitutions in known sodium conductors, charge
+# neutrality with fixed oxidation states, stability against the stable MP phases relaxed with UMA, GapModel band gap,
+# window and passivation against sodium metal, Na diffusion by molecular dynamics against the parent.
+SODIUM_GOAL = ("Find new sodium solid electrolytes (superionic Na+ conductors) for sodium-metal batteries: "
+               "thermodynamically stable, electronically insulating, compatible with sodium metal, with fast Na+ motion.")
+SODIUM_PARENTS = ["mp-28782", "mp-10167", "mp-532695"]  # Na3PS4 (P-42_1c, 16 atoms, the tetragonal phase), Na3SbS4
+# (I-43m, 8), NASICON Na3Zr2Si2PO12 (P1 ordering, 80; the most stable one in MP)
+SODIUM_OXIDATION_STATES = {
+    "Na": 1, "Li": 1, "K": 1, "Mg": 2, "Ca": 2, "Sr": 2, "Ba": 2, "Zn": 2, "Al": 3, "Ga": 3, "In": 3, "Sc": 3, "Y": 3,
+    "La": 3, "B": 3, "Si": 4, "Ge": 4, "Sn": 4, "Ti": 4, "Zr": 4, "Hf": 4, "P": 5, "As": 5, "Sb": 5, "Nb": 5, "Ta": 5,
+    "W": 6, "Mo": 6, "O": -2, "S": -2, "Se": -2, "F": -1, "Cl": -1, "Br": -1, "I": -1,
+}
+SODIUM_HULL_REF_EHULL_MAX = 0.0  # the stable MP phases (the NASICON system Na-Zr-Si-P-O holds many near-hull phases)
+SODIUM_EHULL_MAX = 0.05  # eV/atom, as for the lithium electrolytes
+SODIUM_BANDGAP_MIN = 1.8  # eV (optB88 scale): Na3SbS4, a working electrolyte (about 1 mS/cm), has a PBE gap of 1.93 eV
+# in MP; the lithium limit (2.0) would reject it; metals and narrow-gap semiconductors stay out
+SODIUM_MD_MAX_USD = 4.0  # estimated Modal cost of all the MD of one sodium research
+SODIUM_CATHODES: tuple = ()  # no cathode interface: the UMA interface calibration was made for Li cathodes only
+# Calibration of the sodium MD, fixed before the runs (2026-11-02): at 600 K, 2 seeds of 40 ps each, Na3SbS4 (about
+# 1-3 mS/cm at room temperature) faster than tetragonal Na3PS4 (0.01-0.2 mS/cm) by more than 2 combined errors, both
+# frameworks intact. If it fails, the sodium MD informs and never excludes a candidate (SODIUM_MD_CAN_EXCLUDE False).
+SODIUM_MD_CALIBRATION = {"fast": "mp-10167", "slow": "mp-28782"}
+SODIUM_MD_CALIBRATION_SEEDS = 2
+SODIUM_MD_CAN_EXCLUDE = False  # calibration FAILED (2026-11-02, results/2026-11-02_sodium_md_calibration): at 600 K
+# ordered Na3SbS4 came out slower than tetragonal Na3PS4 (ratio 0.33 +/- 0.29), the reverse of experiment, frameworks
+# intact: the sodium MD verdict informs only, it neither excludes nor orders a candidate
+SODIUM_NOVELTY_CONTROL = {"id": "control-Na3PS4", "formula": "Na3PS4", "parent": None, "substitution": None,
+                          "kind": "sodium"}
+SODIUM_NOT_COMPUTED = ("DFT calculations (UMA energies with an error bar measured against DFT on known compounds), "
+                       "ionic conductivity at room temperature, a calibrated Na diffusion (the Na diffusion at 600 K "
+                       "against the parent is information only: its calibration failed, ordered Na3SbS4 came out slower "
+                       "than Na3PS4, the reverse of experiment), the "
+                       "interface with a sodium cathode, grain boundaries, synthesis, cost of the elements, experimental "
+                       "data")
+
 # Blind benchmark of the cathode funnel (fixed before the runs, 2026-11-02): known compounds go through steps 3-5 of the
 # funnel with their own composition removed from the hull; expected outcome of each, from experiment.
 CATHODE_BENCHMARK = [

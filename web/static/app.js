@@ -300,6 +300,7 @@ const EXAMPLES = [  // the first one is the recorded research of Nov 1, word for
   "Explore halide substitutions in Li7P3S11 to improve lithium-ion diffusion.",
   "Which substitutions in beta-Li3PS4 keep it stable and electronically insulating?",
   "Find new cobalt-free cathodes for lithium-ion batteries with a higher energy density than LiFePO4.",
+  "Find new sodium solid electrolytes derived from Na3PS4 or Na3SbS4 that stay stable against sodium metal and let Na+ move fast.",
 ];
 
 function showHome() {
@@ -748,7 +749,7 @@ function candidatesHTML(cands) {
       Voltage: average over the whole charge, vs Li/Li⁺. Energy density = voltage × theoretical capacity, of the cathode material alone.</p>`;
   }
   return `<div class="table-scroll"><table class="data"><thead><tr><th>Material</th><th>E<sub>hull</sub> (eV/atom)</th><th>Band gap (eV)</th>
-    <th>Window (V)</th><th>Li metal</th><th>D / D(parent)</th><th>Status</th></tr></thead><tbody>
+    <th>Window (V)</th><th>${ionOf(domainOf())} metal</th><th>D / D(parent)</th><th>Status</th></tr></thead><tbody>
     ${cands.map((c) => `<tr class="${hasStructure(c.id) ? "clickable" : ""}" data-id="${esc(c.id)}">
       <td class="formula">${tx(c.formula || c.id)}</td><td class="num">${fmt(c.e_hull)}</td><td class="num">${fmt(c.gap, 2)}</td>
       <td class="num">${c.window ? (c.window.stable ? `${fmt(c.window.v_low, 2)}–${fmt(c.window.v_high, 2)}` : "zero width") : "—"}</td>
@@ -756,7 +757,7 @@ function candidatesHTML(cands) {
       <td class="num">${c.ratio !== undefined ? `${fmt(c.ratio, 2)} <span class="muted">(${esc(c.verdict)})</span>` : "—"}</td>
       <td>${statusChip(c)}</td></tr>`).join("")}</tbody></table></div>
     <p class="viewer-cap">${S.index ? "Click a material to see its crystal structure in 3D." : "3D structures become available when the research is finished."}
-    E<sub>hull</sub>: energy above the convex hull (≤ 0.05 kept). D / D(parent): lithium diffusion relative to the parent crystal at 600 K.</p>`;
+    E<sub>hull</sub>: energy above the convex hull (≤ 0.05 kept). D / D(parent): ${ionName(domainOf())} diffusion relative to the parent crystal at 600 K.</p>`;
 }
 
 function hasStructure(id) { return !!(S.index && S.index.structures.find((s) => s.id === id)); }
@@ -952,11 +953,12 @@ async function openStructure(id) {
 function renderMDSection(box) {
   const cands = (S.index?.md || []).filter((e) => e.kind === "candidate");
   if (!cands.length) {
-    box.innerHTML = `<div class="unavailable">${S.index ? "No molecular dynamics was run in this research." : "Lithium-diffusion animations become available when the research is finished."}</div>`;
+    box.innerHTML = `<div class="unavailable">${S.index ? "No molecular dynamics was run in this research." : "Diffusion animations become available when the research is finished."}</div>`;
     return;
   }
   const ids = [...new Set(cands.map((e) => e.id))];
-  box.innerHTML = `<figure class="chart"><h4>Lithium-ion diffusion (molecular dynamics, 600 K)</h4>
+  const ion = ionOf(domainOf()), ionWord = ionName(domainOf());
+  box.innerHTML = `<figure class="chart"><h4>${ionWord[0].toUpperCase() + ionWord.slice(1)}-ion diffusion (molecular dynamics, 600 K)</h4>
     <div class="viz-controls"><label>Material <select id="md-pick">${ids.map((id) => `<option value="${esc(id)}">${tx(cands.find((e) => e.id === id).formula)}</option>`).join("")}</select></label>
       <label>Run <select id="md-seed"></select></label>
       <button class="ghost-btn" type="button" id="md-play">Pause</button>
@@ -964,11 +966,11 @@ function renderMDSection(box) {
     <div class="viewer-row"><div><div class="viewer3d" id="md-a"></div><p class="viewer-cap" id="md-a-cap"></p></div>
       <div><div class="viewer3d" id="md-b"></div><p class="viewer-cap" id="md-b-cap"></p></div></div>
     <p class="stats" id="md-time"></p>
-    <div class="legend"><span><i style="background:#3b82f6"></i>Li within 1.5 Å of its start (vibrating)</span>
-      <span><i style="background:#f59e0b"></i>Li 1.5–3 Å away</span><span><i style="background:#dc2626"></i>Li over 3 Å away (hopped)</span>
+    <div class="legend"><span><i style="background:#3b82f6"></i>${ion} within 1.5 Å of its start (vibrating)</span>
+      <span><i style="background:#f59e0b"></i>${ion} 1.5–3 Å away</span><span><i style="background:#dc2626"></i>${ion} over 3 Å away (hopped)</span>
       <span class="muted">framework atoms in CPK colours, at their starting positions</span></div>
     <div id="md-curve"></div><p class="stats" id="md-stats"></p>
-    <figcaption>The animation shows the lithium positions recorded during the simulation (one frame every 0.1 ps). The framework is drawn fixed: only its mean displacement was recorded (grey curves below).</figcaption></figure>`;
+    <figcaption>The animation shows the ${ionWord} positions recorded during the simulation (one frame every 0.1 ps). The framework is drawn fixed: only its mean displacement was recorded (grey curves below).</figcaption></figure>`;
   const md = { a: null, b: null, frame: 0, playing: true };
   const seeds = () => {
     const id = $("md-pick").value;
@@ -1002,11 +1004,12 @@ function renderMDSection(box) {
     if (!v || !data) return;
     v.removeAllModels(); v.removeAllShapes();
     const syms = data.framework.symbols.slice(), pos = data.framework.positions.slice(), nF = syms.length;
-    for (const p of data.frames[frameOf(data, f)]) { syms.push("Li"); pos.push(p); }
+    const ion = data.species || "Li";
+    for (const p of data.frames[frameOf(data, f)]) { syms.push(ion); pos.push(p); }
     v.addModel(xyz(syms, pos), "xyz");
     v.setStyle({}, { sphere: { scale: 0.26, colorscheme: "Jmol" } });
     const disp = (data.displacement_A || [])[frameOf(data, f)] || [];
-    v.setStyle({ elem: "Li" }, { sphere: { scale: 0.42, colorfunc: (atom) => { const d = disp[atom.index - nF] || 0; return d < 1.5 ? "#3b82f6" : d < 3 ? "#f59e0b" : "#dc2626"; } } });
+    v.setStyle({ elem: ion }, { sphere: { scale: 0.42, colorfunc: (atom) => { const d = disp[atom.index - nF] || 0; return d < 1.5 ? "#3b82f6" : d < 3 ? "#f59e0b" : "#dc2626"; } } });
     drawCell(v, data.cell);
     if (!v._zoomed) { v.zoomTo(); v._zoomed = true; }
     v.render();
@@ -1015,8 +1018,8 @@ function renderMDSection(box) {
     drawOne(md.va, md.a, md.frame); drawOne(md.vb, md.b, md.frame);
     const t = (md.frame * md.a.frame_fs) / 1000, hop = (d) => (d ? d.filter((x) => x > 3).length : 0);
     const da = (md.a.displacement_A || [])[md.frame], db = md.b && (md.b.displacement_A || [])[frameOf(md.b, md.frame)];
-    $("md-time").innerHTML = `<span>t = <b>${t.toFixed(1)} ps</b></span><span>${tx(md.a.formula)}: <b>${hop(da)} / ${md.a.frames[0].length}</b> Li hopped</span>` +
-      (db ? `<span>${tx(md.b.formula)}: <b>${hop(db)} / ${md.b.frames[0].length}</b> Li hopped</span>` : "");
+    $("md-time").innerHTML = `<span>t = <b>${t.toFixed(1)} ps</b></span><span>${tx(md.a.formula)}: <b>${hop(da)} / ${md.a.frames[0].length}</b> ${md.a.species || "Li"} hopped</span>` +
+      (db ? `<span>${tx(md.b.formula)}: <b>${hop(db)} / ${md.b.frames[0].length}</b> ${md.b.species || "Li"} hopped</span>` : "");
     $("md-frame").value = md.frame;
     const cur = document.getElementById("msd-cursor");
     if (cur) { const x = cur.dataset.l * 1 + (t / cur.dataset.t) * cur.dataset.w; cur.setAttribute("x1", x); cur.setAttribute("x2", x); }
@@ -1053,7 +1056,7 @@ function msdChart(a, b) {
   }
   s += series.map((g, i) => `<text x="${L + 10 + (i % 3) * 190}" y="${T + 12 + Math.floor(i / 3) * 13}" style="fill:${g.color}">— ${tx(g.label)}</text>`).join("");
   s += `<line id="msd-cursor" data-l="${L}" data-w="${W - L - R}" data-t="${tmax}" x1="${L}" x2="${L}" y1="${T}" y2="${H - B}" style="stroke:var(--bad)" stroke-width="1"/>`;
-  return `${s}</svg><p class="viewer-cap">The slope of the lithium curve gives the diffusion coefficient D; a flat framework curve means the crystal stays intact.</p>`;
+  return `${s}</svg><p class="viewer-cap">The slope of the ${ionName(domainOf())} curve gives the diffusion coefficient D; a flat framework curve means the crystal stays intact.</p>`;
 }
 
 /* ---------- final report in the chat, PDF export ---------- */
@@ -1182,6 +1185,13 @@ function champRows(c) {
       ["Volume change on charge", v(r.volume_change_pct, 1), "%", "shrinkage of the cell when lithium leaves", v(r.parent_volume_change_pct, 1)],
       ["Lithium removed on charge", r.li_removed != null ? `${r.li_removed} of ${r.li_total}` : null, "per cell", "what charge neutrality allows"],
       ["Against its parent", (r.vs_parent || {}).verdict || null, "", "decided by the code: differences within the model's voltage error are not claimed"]);
+  } else if (c.domain === "sodium") {
+    const w = r.window_V;
+    rows.push(
+      ["Electronic band gap (optB88 / mBJ)", v(r.gap_optb88_eV, 2) && `${v(r.gap_optb88_eV, 2)} / ${v(r.gap_mbj_eV, 2)}`, "eV", "an electrolyte must block electrons (≥ 1.8 eV in this domain)"],
+      ["Electrochemical window", w ? (w.stable ? `${v(w.v_low, 2)}–${v(w.v_high, 2)}` : "zero width") : null, "V vs Na/Na⁺", "voltage range where it neither oxidises nor reduces"],
+      ["Contact with sodium metal", r.against_na_metal || null, "", "a metallic product would let electrons through"],
+      ["Na diffusion at 600 K vs parent", r.D_ratio_to_parent != null ? `${v(r.D_ratio_to_parent, 2)} ± ${v(r.D_ratio_error, 2)} (${r.diffusion_verdict})` : r.diffusion_verdict || null, "D / D(parent)", "molecular dynamics with UMA"]);
   } else {
     const w = r.window_V;
     rows.push(
@@ -1297,6 +1307,8 @@ const lerpRows = (A, B, k) => A.map((r, i) => r.map((x, j) => lerp(x, (B[i] || r
 const modelOf = (p) => PROVIDER_MODEL[p] || "Muse Spark";
 const fname = (id) => L.formulas[id] || id;
 const domainOf = () => (S.view && S.view.conversation && S.view.conversation.domain) || "electrolyte";
+const ionOf = (domain) => (domain === "sodium" ? "Na" : "Li");  // the conducting ion of a domain
+const ionName = (domain) => (domain === "sodium" ? "sodium" : "lithium");
 const subText = (s) => (s ? `${s.remove} → ${s.add} ×${s.count}${s.li_vacancies ? `, −${s.li_vacancies} Li` : ""}` : "");
 function hexMix(a, b, k) {
   const p = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
@@ -1763,17 +1775,18 @@ async function mdScene(card, box, entry) {
     if (!card.el.isConnected) return;
     v.removeAllModels(); v.removeAllShapes();
     const syms = data.framework.symbols.slice(), pos = data.framework.positions.slice();
-    for (const p of data.frames[f]) { syms.push("Li"); pos.push(p); }
+    const ion = data.species || "Li";
+    for (const p of data.frames[f]) { syms.push(ion); pos.push(p); }
     v.addModel(xyz(syms, pos), "xyz");
     v.setStyle({}, { sphere: { scale: 0.24, colorscheme: "Jmol" } });
     const disp = (data.displacement_A || [])[f] || [];
-    v.setStyle({ elem: "Li" }, { sphere: { scale: 0.4, colorfunc: (a) => { const d = disp[a.index - nF] || 0; return d < 1.5 ? "#3b82f6" : d < 3 ? "#f59e0b" : "#ef4444"; } } });
+    v.setStyle({ elem: ion }, { sphere: { scale: 0.4, colorfunc: (a) => { const d = disp[a.index - nF] || 0; return d < 1.5 ? "#3b82f6" : d < 3 ? "#f59e0b" : "#ef4444"; } } });
     drawCell(v, data.cell);
     if (!v._zoomed) { v.zoomTo(); v._zoomed = true; }
     v.render();
     const t = (f * data.frame_fs) / 1000, hop = disp.filter((x) => x > 3).length;
     const cap = card.el.querySelector(".md-cap");
-    if (cap) cap.innerHTML = `${tx(data.formula)} · t = <b>${t.toFixed(1)} ps</b> · <b>${hop}</b> of ${data.frames[0].length} Li hopped more than 3 Å`;
+    if (cap) cap.innerHTML = `${tx(data.formula)} · t = <b>${t.toFixed(1)} ps</b> · <b>${hop}</b> of ${data.frames[0].length} ${ion} hopped more than 3 Å`;
     f = (f + 1) % data.frames.length;
   };
   const timer = setInterval(frame, 80);
@@ -1819,15 +1832,21 @@ function chargeScene(card, st, ms) {
   card.raf = requestAnimationFrame(step);
 }
 
-function voltBar(w) {
+function voltBar(w, ion = "Li") {
   const X = (v) => Math.max(0, Math.min(100, (v / 5) * 100));
   const seg = w && w.stable ? `<i class="win" style="left:${X(w.v_low)}%;width:${Math.max(0.6, X(w.v_high) - X(w.v_low))}%"></i>` : `<i class="win none"></i>`;
-  return `<div class="volt">${seg}<em class="li" style="left:0%">Li</em><em class="fe" style="left:${X(3.45)}%">LiFePO₄</em></div>`;
+  const cathode = ion === "Li" ? `<em class="fe" style="left:${X(3.45)}%">LiFePO₄</em>` : "";  // no cathode interface for Na
+  return `<div class="volt">${seg}<em class="li" style="left:0%">${ion}</em>${cathode}</div>`;
 }
 
 function aheadOf(pred) { return L.queue.find(pred) || S.events.find(pred); }
 
 /* what each event shows */
+
+// the stage titles of the sodium domain (the stages are the electrolyte ones, with Na+ as the mobile ion)
+const SODIUM_TITLES = { electrodes: "Electrodes: stability window and contact with sodium metal",
+  molecular_dynamics: "Sodium-ion diffusion: molecular dynamics at 600 K" };
+const stageTitle = (name, title) => (L.domain === "sodium" && SODIUM_TITLES[name]) || title;
 
 const STAGES = {
   electrodes: { title: "Electrodes: stability window, lithium metal, cathode", actor: ["pymatgen", "computes the phase diagrams against the electrodes", "compute", "Muse Spark's candidates"],
@@ -1855,7 +1874,7 @@ function stageCard(name, d, e) {
   L.stageGroup[name] = g;
   if (card.isNew) {
     card.isNew = false;
-    cardHead(card, meta.title, d && d.iteration != null ? `round ${d.iteration}: this round's candidates` : "the whole pool of candidates", e);
+    cardHead(card, stageTitle(name, meta.title), d && d.iteration != null ? `round ${d.iteration}: this round's candidates` : "the whole pool of candidates", e);
   }
   labActor(...meta.actor);
   return card;
@@ -1878,7 +1897,7 @@ function playStage(e) {
     const it = cardAdd(card, `<div class="md-plan"><div><span class="tag">UMA on Modal ${tx(d.gpu || "")}</span>
         <b>${d.runs}</b> new runs of 40 ps (${d.total_runs} with the parents) · about <b>${Math.max(1, Math.round((d.wall_s || 0) / 60))}</b> min</div>
         <div class="md-view">${entry ? `<div class="lab-3d" id="md-${e.seq}"></div><p class="md-cap"></p>` :
-          `<div class="md-anim"><i></i><i></i><i></i><i></i><i></i><i></i></div><p class="md-cap">lithium ions hopping at 600 K: the simulation follows every atom</p>`}</div></div>`);
+          `<div class="md-anim"><i></i><i></i><i></i><i></i><i></i><i></i></div><p class="md-cap">${ionName(L.domain)} ions hopping at 600 K: the simulation follows every atom</p>`}</div></div>`);
     if (entry) mdScene(card, it.querySelector(".lab-3d"), entry);
     labLog(`Molecular dynamics launched: ${ids.map(fname).join(", ") || "candidates"} next to their parent crystals`);
     return 3800;
@@ -1887,8 +1906,8 @@ function playStage(e) {
   const meta = STAGES[name];
   if (name === "ranking") {
     cardAdd(card, `<div class="podium">${(d.finalists || []).map((id, i) => `<div class="pod p${i + 1}"><span class="n">${i + 1}</span>
-        <b>${tx(fname(id))}</b><span>${tx((d.levels || [])[i] ? `${d.levels[i]} with its parent at 300 K` : "")}</span></div>`).join("")}</div>
-      ${(d.levels || []).length && new Set(d.levels).size === 1 ? `<p class="muted">Same level for the three: their order is a stated convention (lowest E<sub>hull</sub> per substitution, then activation energy, then window), not a significant difference.</p>` : ""}`);
+        <b>${tx(fname(id))}</b><span>${tx((d.levels || [])[i] && d.levels[i] !== "not_fitted" ? `${d.levels[i]} with its parent at 300 K` : "")}</span></div>`).join("")}</div>
+      ${(d.levels || []).length && new Set(d.levels).size === 1 && d.levels[0] !== "not_fitted" ? `<p class="muted">Same level for the three: their order is a stated convention (lowest E<sub>hull</sub> per substitution, then activation energy, then window), not a significant difference.</p>` : ""}`);
     labLog(`Finalists: ${(d.finalists || []).map(fname).join(", ")}`, "good");
     return 4200;
   }
@@ -1988,10 +2007,10 @@ function playCandidate(e) {
   const d = e.data || {}, id = e.candidate_id;
   if (e.step === "electrodes:done") {
     const card = stageCard("electrodes", d, e);
-    cardAdd(card, `<div class="erow"><b>${tx(d.formula || fname(id))}</b>${voltBar(d.window)}
+    cardAdd(card, `<div class="erow"><b>${tx(d.formula || fname(id))}</b>${voltBar(d.window, ionOf(L.domain))}
       <span class="${d.passivation === "non_passivating" ? "no" : "ok"}">${tx(d.passivation || "")}</span>
       <span class="muted">${d.window && d.window.stable ? `${fmt(d.window.v_low, 2)}–${fmt(d.window.v_high, 2)} V` : "zero width"}${d.interface_reaction_energy != null ? ` · LiFePO₄ ${fmt(d.interface_reaction_energy, 3)} eV/atom` : ""}</span></div>`, "row");
-    if (d.excluded) labLog(`${d.formula}: reacts with lithium metal (${d.passivation}) — excluded`, "bad");
+    if (d.excluded) labLog(`${d.formula}: reacts with ${ionName(L.domain)} metal (${d.passivation}) — excluded`, "bad");
     return d.iteration != null ? 1500 : 650;
   }
   if (e.step === "candidate_analyses:done") {
@@ -2143,6 +2162,8 @@ function playLoop(e) {
     cardAdd(card, `<div class="plan-box"><div><span class="tag">parent crystals</span>${(d.parents || []).map((p) => `<span class="chip">${tx(p.formula)} · ${esc(p.id)}</span>`).join(" ")}</div>
       <div><span class="tag">filters</span>${cathode
         ? `no cobalt · E<sub>hull</sub> ≤ ${th.CATHODE_EHULL_MAX} eV/atom · voltage ${th.CATHODE_VOLTAGE_MIN}–${th.CATHODE_VOLTAGE_MAX} V · capacity ≥ ${th.CATHODE_CAPACITY_MIN} mAh/g · volume change ≤ ${th.CATHODE_VOLUME_CHANGE_MAX} %`
+        : L.domain === "sodium"
+        ? `E<sub>hull</sub> ≤ ${th.SODIUM_EHULL_MAX ?? 0.05} eV/atom · band gap ≥ ${th.SODIUM_BANDGAP_MIN ?? 1.8} eV · contact with sodium metal · Na diffusion at 600 K`
         : `E<sub>hull</sub> ≤ ${th.EHULL_SYNTHESIZABLE ?? 0.05} eV/atom · band gap ≥ ${th.BANDGAP_MIN ?? 2} eV · Li diffusion at ${th.MD_SCREEN_TEMPERATURE_K ?? 600} K`}</div>
       ${(d.prior || []).length ? `<div><span class="tag">memory</span>${d.prior.length} candidates from earlier researches, reused, never recomputed</div>` : ""}</div>`);
     team.forEach(([m, role, k], i) => later(card, 500 + i * 320, () => cardAdd(card, `<span class="model ${k}">${tx(m)}</span> ${tx(role)}`, "team pop")));

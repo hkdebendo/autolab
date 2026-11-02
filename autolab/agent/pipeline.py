@@ -94,7 +94,8 @@ def live_structure(start: Structure, best: dict, substitution: dict | None) -> d
                       "lattice": lattice(start.lattice.matrix)},
             "end": {"positions": rnd(end["positions"], 3), "cell": rnd(end["cell"], 4), "lattice": lattice(end["cell"]),
                     "energy_per_atom": round(best["energy_per_atom"], 5)},
-            "added": sub.get("add"), "removed": sub.get("remove"), "li_vacancies": sub.get("li_vacancies", 0),
+            "added": sub.get("add"), "removed": sub.get("remove"),
+            "li_vacancies": sub.get("li_vacancies") or sub.get("vacancies") or 0,
             "trajectory": best.get("trajectory") or [], "steps": best.get("steps")}
 
 
@@ -104,7 +105,9 @@ def n_modified(parent: Structure, substitution: dict) -> int:
         replaced = sum(site.specie.symbol == substitution["remove"] for site in parent)
     else:
         replaced = int(substitution["count"])
-    return replaced + int(substitution.get("li_vacancies", 0))
+    from autolab.chem.generator import vacancies_of
+
+    return replaced + max(0, vacancies_of(substitution))
 
 
 def evaluate_candidate(
@@ -115,8 +118,12 @@ def evaluate_candidate(
     tools: Tools | None = None,
     events: EventLog | None = None,
     budget=None,
+    charge_check=None,
+    ehull_max: float = config.EHULL_SYNTHESIZABLE,
+    gap_min: float = config.BANDGAP_MIN,
 ) -> dict:
-    """Run the funnel on one substitution; return a JSON-serialisable result.
+    """Run the funnel on one substitution; return a JSON-serialisable result. `charge_check`, `ehull_max` and
+    `gap_min`: the domain's (the electrolyte ones by default).
 
     sim.backend.BudgetExceeded propagates: the caller stops the run cleanly.
     """
@@ -147,7 +154,8 @@ def evaluate_candidate(
         return out
 
     # 1. Chemical rule + charge neutrality, before any simulation.
-    gen = generate_candidates(parent, substitution, parent_id)
+    gen = (generate_candidates(parent, substitution, parent_id) if charge_check is None
+           else generate_candidates(parent, substitution, parent_id, charge_check=charge_check))
     out["formula"] = gen["formula"]
     emit("generate", accepted=gen["accepted"], formula=gen["formula"], charge=gen["charge"],
          arrangements=len(gen["candidates"]), reason=gen["reason"])
@@ -167,11 +175,12 @@ def evaluate_candidate(
         out["known_in_mp"] = [k["material_id"] for k in known]
         return finish(step="known", reason=f"composition already in Materials Project: {', '.join(out['known_in_mp'])}")
     structures = [Structure.from_dict(c["structure"]) for c in gen["candidates"]]
-    return evaluate_structures(out, structures, tools, emit, finish, budget)
+    return evaluate_structures(out, structures, tools, emit, finish, budget, ehull_max=ehull_max, gap_min=gap_min)
 
 
 def evaluate_structures(out: dict, structures: list[Structure], tools: Tools, emit: Callable, finish: Callable,
-                        budget=None, hidden_formulas: frozenset[str] = frozenset()) -> dict:
+                        budget=None, hidden_formulas: frozenset[str] = frozenset(),
+                        ehull_max: float = config.EHULL_SYNTHESIZABLE, gap_min: float = config.BANDGAP_MIN) -> dict:
     """Steps 3-6 of the funnel on ready structures (arrangements of one composition): relaxation, E_hull,
     band gap, S-S flag. `hidden_formulas`: reduced formulas removed from the hull references (blind benchmark of
     a known compound, judged as if it were new)."""
@@ -215,15 +224,17 @@ def evaluate_structures(out: dict, structures: list[Structure], tools: Tools, em
                e_hull_per_substitution=round(hull["e_hull"] * out["n_atoms"] / out["n_modified"], 4))
     emit("hull", e_hull=hull["e_hull"], e_hull_per_substitution=out["e_hull_per_substitution"],
          decomposition=out["decomposition"], references=len(entries), skipped_references=skipped)
-    if hull["e_hull"] > config.EHULL_SYNTHESIZABLE:
-        return finish(step="hull", reason=f"E_hull {hull['e_hull']:.3f} > {config.EHULL_SYNTHESIZABLE} eV/atom")
+    if hull["e_hull"] > ehull_max:
+        return finish(step="hull", reason=f"E_hull {hull['e_hull']:.3f} > {ehull_max} eV/atom")
 
     # 5. Band gap (GapModel): the electrolyte must be an electronic insulator.
     gap = tools.bandgap(structure)
+    if gap_min != config.BANDGAP_MIN:  # the domain's limit (e.g. sodium)
+        gap = {**gap, "passes": gap["gap_optb88"] is not None and gap["gap_optb88"] >= gap_min}
     out.update(gap_optb88=gap["gap_optb88"], gap_mbj=gap["gap_mbj"], gap_low_confidence=gap["low_confidence"])
     emit("bandgap", **{k: gap[k] for k in ("gap_optb88", "gap_mbj", "passes", "low_confidence")})
     if not gap["passes"]:
-        return finish(step="bandgap", reason=f"gap {gap['gap_optb88']:.2f} < {config.BANDGAP_MIN} eV")
+        return finish(step="bandgap", reason=f"gap {gap['gap_optb88']:.2f} < {gap_min} eV")
 
     # 6. S-S bonds: a warning only (UMA less reliable for polysulfides).
     out["ss_bonds"] = bool(has_ss_bonds(structure))

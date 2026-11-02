@@ -101,7 +101,46 @@ CATHODE_STEPS = (
     Step("report", "Final scientific report", "The finalists are compared with their parents and the best one "
          "analysed in detail, with its limits and the validations still needed.", stage="report"),
 )
-DOMAIN_STEPS = {"electrolyte": ELECTROLYTE_STEPS, "cathode": CATHODE_STEPS}
+SODIUM_STEPS = (
+    Step("goal", "Understanding the research goal",
+         "AutoLab reads the request, checks that it is within the supported research areas and sets the constraints.",
+         ("loop/scope",)),
+    Step("propose", "Proposing candidate sodium conductors",
+         "New compositions are proposed by chemical substitution in known sodium conductors (Na3PS4, Na3SbS4, NASICON).",
+         ("llm/proposal",)),
+    Step("build", "Building and relaxing crystal structures",
+         "Each composition is built in several atomic arrangements, checked for charge neutrality and relaxed with a "
+         "machine-learned interatomic potential (UMA); compositions already known are not recomputed.",
+         ("candidate/generate", "candidate/known_check", "candidate/relax")),
+    Step("stability", "Thermodynamic stability",
+         "The energy above the convex hull of the stable known phases says whether a crystal would decompose.",
+         ("candidate/hull",)),
+    Step("bandgap", "Electronic band gap",
+         "An electrolyte must not conduct electrons: the band gap is predicted with a band-gap model.",
+         ("candidate/bandgap", "candidate/ss_check", "candidate/done")),
+    Step("learn", "Interpreting the results",
+         "The numbers of this round, failures included, go back to the agent, which explains them as hypotheses and "
+         "corrects the next proposals.", ("loop/feedback", "llm/analysis", "llm/summary")),
+    Step("electrodes", "Electrochemical window and contact with sodium metal",
+         "Stability window in volts vs Na/Na+ and reaction with sodium metal (a candidate forming a metal is excluded).",
+         stage="electrodes"),
+    Step("review", "Independent review of the candidates",
+         "Each remaining candidate is reviewed separately: strengths, risks and interest for ion-transport simulation.",
+         stage="candidate_analyses"),
+    Step("md_choice", "Choosing candidates for ion-transport simulation",
+         "Molecular dynamics is the most expensive step: the most informative candidates not yet simulated are chosen.",
+         stage="md_selection"),
+    Step("md", "Sodium-ion diffusion (molecular dynamics)",
+         "Sodium motion is simulated at 600 K and compared with the parent crystal; the failures are sent back to guide "
+         "the next round.", stage="molecular_dynamics"),
+    Step("ranking", "Ranking the candidates", "Candidates are ordered by their diffusion verdict against their parent, "
+         "then by their stability cost per substitution.", stage="ranking"),
+    Step("literature", "Literature check", "A web search tells whether each finalist, or its close family, is already "
+         "published; a known sodium electrolyte is checked first as a control.", stage="novelty"),
+    Step("report", "Final scientific report", "The finalists are compared and the best compromise analysed in detail, "
+         "with its limits and the validations still needed.", stage="report"),
+)
+DOMAIN_STEPS = {"electrolyte": ELECTROLYTE_STEPS, "cathode": CATHODE_STEPS, "sodium": SODIUM_STEPS}
 
 
 def domain_of(events: list[dict]) -> str:

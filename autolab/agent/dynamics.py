@@ -18,7 +18,7 @@ def parent_job(material_id: str, relax: Callable | None = None) -> dict:
     from autolab.data.mp import get_structure
     from autolab.sim.backend import relax_structures
 
-    relax = relax or (lambda s: relax_structures([s], max_new=0)[0])
+    relax = relax or (lambda s: relax_structures([s], max_new=1)[0])  # a parent not relaxed yet (new domain): one relaxation
     s = get_structure(material_id)
     return {"id": material_id, "formula": s.composition.reduced_formula, "kind": "parent", "atoms": relax(s)["atoms"]}
 
@@ -138,7 +138,7 @@ def md_screen(jobs: list[dict], temperature_K: float = config.MD_SCREEN_TEMPERAT
         row = {k: v for k, v in job.items() if k != "atoms"}
         res = results[0]
         row.update(temperature_K=temperature_K, ps=ps, seeds=seeds, n_atoms=res["n_atoms"],
-                   n_li=len(res["positions"][0]), ms_per_step=res["ms_per_step"],
+                   n_li=len(res["positions"][0]), species=res.get("species", "Li"), ms_per_step=res["ms_per_step"],
                    cached=all(r.get("cached", False) for r in results), wall_s=round(time.perf_counter() - t0, 1),
                    gpu=res.get("gpu"), md_gpu=g, **d)
         checks = [framework_check(r["framework_msd"], r["dt_record_fs"], di["D_A2_per_ps"])
@@ -166,8 +166,9 @@ def _cached_only(atoms, temperature_K, n_steps, seed=0, backend=None, gpu=None) 
     return run_md(atoms, temperature_K, n_steps, seed=seed, backend=backend, gpu=gpu)
 
 
-def _moved_reason(framework: dict) -> str:
-    """The element that moved most, as in the calibration criterion (non-Li D > MD_FRAMEWORK_D_RATIO_MAX of Li's)."""
+def _moved_reason(framework: dict, ion: str = "Li") -> str:
+    """The element that moved most, as in the calibration criterion (a framework element's D > MD_FRAMEWORK_D_RATIO_MAX
+    of the mobile ion's)."""
     worst = None
     for k, check in enumerate(framework.get("per_seed") or [framework]):
         for el, v in check.get("elements", {}).items():
@@ -175,7 +176,7 @@ def _moved_reason(framework: dict) -> str:
                 worst = (el, v["D_ratio_to_Li"], k, v["msd_final_A2"])
     if worst is None:
         return "framework moved"
-    return (f"framework moved: {worst[0]} diffuses at {worst[1]:.1%} of Li (limit {config.MD_FRAMEWORK_D_RATIO_MAX:.0%}), "
+    return (f"framework moved: {worst[0]} diffuses at {worst[1]:.1%} of {ion} (limit {config.MD_FRAMEWORK_D_RATIO_MAX:.0%}), "
             f"seed {worst[2]}, final MSD {worst[3]:.1f} A2")
 
 
@@ -203,7 +204,8 @@ def md_verdicts(rows: list[dict], n_sigma: float = config.MD_TIE_SIGMA,
             moved = exclude_moved and r.get("framework") is not None and not r["framework"]["intact"]
             no_hop = r["D_cm2_per_s"] <= 0
             r["conduction"] = "excluded" if verdict in excluded or moved or no_hop else "passes"
-            r["conduction_reason"] = (_moved_reason(r["framework"]) if moved else "no Li diffusion seen" if no_hop else
+            ion = r.get("species") or "Li"
+            r["conduction_reason"] = (_moved_reason(r["framework"], ion) if moved else f"no {ion} diffusion seen" if no_hop else
                                       f"slower than its parent by more than {n_sigma:g} combined errors"
                                       if verdict in excluded else verdict)
         out.append(r)

@@ -44,7 +44,7 @@ def _substitution_key(parent: str, sub: dict) -> str:
     count = sub.get("count")
     norm = {"remove": sub.get("remove"), "add": sub.get("add"),
             "count": "all" if str(count).lower() == "all" else int(count) if str(count).isdigit() else count,
-            "li_vacancies": int(sub.get("li_vacancies") or 0)}
+            "li_vacancies": int(sub.get("li_vacancies") or sub.get("vacancies") or 0)}
     return json.dumps([parent, norm], sort_keys=True)
 
 
@@ -193,7 +193,7 @@ class Agent:
             if config.FEEDBACK_LOOP and (d.iteration_stages or d.feedback):  # slow tests, then their feedback
                 if d.iteration_stages:
                     camp = Campaign(self, goal, record["candidates"], iteration=it,
-                                    settings={"md_select_max": config.ITERATION_MD_SELECT_MAX})
+                                    settings={**d.settings, "md_select_max": config.ITERATION_MD_SELECT_MAX})
                     record["stages"] = {}
                     if self._run_stages(d.iteration_stages, camp, record["stages"], it):
                         result["stop_reason"] = INTERRUPTED
@@ -239,7 +239,7 @@ class Agent:
         result["model_ranking"] = last["ranking"] if last else []
         if stages:
             final = {"md_select_max": config.FINAL_MD_SELECT_MAX} if config.FEEDBACK_LOOP and d.iteration_stages else {}
-            self.run_stages(Campaign(self, goal, prior + candidates, settings=final), result)
+            self.run_stages(Campaign(self, goal, prior + candidates, settings={**d.settings, **final}), result)
         result["final_ranking"] = result["stages"].get("ranking", {}).get("ranking", result["funnel_ranking"])
         if self.summarizer is not None and result["stop_reason"] == INTERRUPTED:
             result["summaries"] = self.summarizer.close(timeout=0)  # nothing new is asked after a stop

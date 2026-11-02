@@ -88,7 +88,8 @@ def main() -> None:
     feedback_run = any(r.get("feedback") is not None and "stages" in r for r in result["iterations"])
     settings = {"md_select_max": config.FINAL_MD_SELECT_MAX} if feedback_run else {}
     campaign = Campaign(agent, result["goal"], candidates,
-                        {k: v for k, v in result["stages"].items() if k not in rerun}, settings=settings)
+                        {k: v for k, v in result["stages"].items() if k not in rerun},
+                        settings={**domain.settings, **settings})
     result["stages"] = {k: v for k, v in result["stages"].items() if k not in rerun}
 
     class Only:  # the domain with the rerun stages only

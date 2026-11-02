@@ -113,6 +113,12 @@ Each E_hull carries its UMA-vs-DFT error bar, measured on the stable known compo
 
 Limits: average voltage over the whole charge only (no voltage profile), no oxygen redox, lithium diffusion in the cathode and cycling not computed; UMA underestimates the Mn voltages by about 0.2-0.3 V, overestimates Li2FeSiO4 by about 0.5 V, and underestimates the volume change of LiFePO4 (3.6 % against 6.8 % measured).
 
+## Third domain: sodium solid electrolytes
+
+Beyond lithium, a geopolitical bottleneck: the same agent searches **sodium solid electrolytes (Na+ conductors) for sodium-metal batteries**, the post-lithium option for the stationary storage of renewable energy (`autolab/domains/sodium.py`). Muse Spark proposes substitutions in tetragonal Na3PS4, cubic Na3SbS4 and the NASICON Na3Zr2Si2PO12; the code checks charge neutrality, relaxes the crystal with UMA, measures its stability against the stable known phases (relaxed with UMA), predicts its band gap (kept at 1.8 eV or more: Na3SbS4, a working electrolyte, sits at 1.93 eV in DFT), then in each round its electrochemical window vs Na/Na+, its reaction with sodium metal and, for one candidate chosen by the model, its sodium diffusion by molecular dynamics against its parent. The lithium stages are reused with Na+ as the mobile ion; the lithium behaviour is unchanged.
+
+**The sodium MD calibration failed, and the agent says so.** The test was fixed before the runs: at 600 K, Na3SbS4 (about 1-3 mS/cm at room temperature) should diffuse faster than tetragonal Na3PS4 (0.01-0.2 mS/cm). UMA gave the reverse: D ratio 0.33 ± 0.29, frameworks intact (`results/2026-11-02_sodium_md_calibration/`). Following the rule fixed in advance, the sodium diffusion is shown as information only: it never excludes or ranks a candidate, which are ranked by stability. Untested hypotheses: the ordered cells hold no Na vacancies (the fast conduction of Na3SbS4 goes through them), and Na3PS4 turns cubic near 530 K.
+
 ## Limits that were addressed, and what remains
 
 | Limit | What was done | What remains |

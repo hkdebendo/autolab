@@ -30,12 +30,13 @@ def _with_target(target, entries: list) -> list:
     return entries if any(_key(e) == _key(target) for e in entries) else [*entries, target]
 
 
-def li_metal_mu(entries: list) -> float:
-    """Chemical potential of Li metal: lowest energy per atom among elemental Li entries."""
-    li = [e for e in entries if e.composition.reduced_formula == "Li"]
-    if not li:
-        raise ValueError("entries contain no elemental Li")
-    return min(e.energy_per_atom for e in li)
+def li_metal_mu(entries: list, ion: str = "Li") -> float:
+    """Chemical potential of the metal of the mobile ion (Li by default): lowest energy per atom among its elemental
+    entries."""
+    metal = [e for e in entries if e.composition.reduced_formula == ion]
+    if not metal:
+        raise ValueError(f"entries contain no elemental {ion}")
+    return min(e.energy_per_atom for e in metal)
 
 
 def _natural_products(target, pd: PhaseDiagram) -> set:
@@ -43,10 +44,12 @@ def _natural_products(target, pd: PhaseDiagram) -> set:
     return {_key(e) for e, f in decomp.items() if f > FRACTION_EPS}
 
 
-def _open_decomposition(target, entries: list, mu_li: float) -> tuple[dict, float]:
-    """Products and reaction energy (eV/atom of the open-system composition) at fixed mu_Li."""
-    gpd = GrandPotentialPhaseDiagram(entries, {LI: mu_li})
-    gentry = GrandPotPDEntry(target, {LI: mu_li})
+def _open_decomposition(target, entries: list, mu_li: float, ion: str = "Li") -> tuple[dict, float]:
+    """Products and reaction energy (eV/atom of the open-system composition) at a fixed chemical potential of the
+    mobile ion (Li by default)."""
+    el = LI if ion == "Li" else Element(ion)
+    gpd = GrandPotentialPhaseDiagram(entries, {el: mu_li})
+    gentry = GrandPotPDEntry(target, {el: mu_li})
     decomp, e_above = gpd.get_decomp_and_e_above_hull(gentry, allow_negative=True)
     products = {g.original_entry: f for g, f in decomp.items()}
     return products, float(e_above)
@@ -58,27 +61,28 @@ def electrochemical_window(
     v_min: float = config.WINDOW_V_MIN,
     v_max: float = config.WINDOW_V_MAX,
     step: float = config.WINDOW_V_STEP,
+    ion: str = "Li",
 ) -> dict:
-    """Voltage range (V vs Li/Li+) where the target keeps its natural decomposition.
+    """Voltage range (V vs Li/Li+, or vs Na/Na+ with ion="Na") where the target keeps its natural decomposition.
 
     Works for metastable compounds: 'stable' means no Li exchange with the
     reservoir, i.e. the products are exactly those of the closed system.
     """
     entries = _with_target(target, entries)
     check_single_source(entries)
-    mu_metal = li_metal_mu(entries)
+    mu_metal = li_metal_mu(entries, ion)
     natural = _natural_products(target, PhaseDiagram(entries))
 
     stable_v = []
     for v in np.round(np.arange(v_min, v_max + step / 2, step), 6):
-        products, _ = _open_decomposition(target, entries, mu_metal - v)
+        products, _ = _open_decomposition(target, entries, mu_metal - v, ion)
         if {_key(e) for e, f in products.items() if f > FRACTION_EPS} == natural:
             stable_v.append(float(v))
 
     def outside(v):  # decomposition products just beyond a limit of the window
         if v < v_min - 1e-9 or v > v_max + 1e-9:
             return []
-        products, _ = _open_decomposition(target, entries, mu_metal - v)
+        products, _ = _open_decomposition(target, entries, mu_metal - v, ion)
         return sorted({e.composition.reduced_formula for e, f in products.items() if f > FRACTION_EPS})
 
     decomp = PhaseDiagram(entries).get_decomposition(target.composition)
@@ -105,13 +109,13 @@ def _shifted(entries: list, formulas: set[str], delta: float) -> list:
 
 
 def window_sensitivity(target, entries: list, base: dict | None = None,
-                       delta: float = config.POLYSULFIDE_ENERGY_ERROR_EV) -> dict:
+                       delta: float = config.POLYSULFIDE_ENERGY_ERROR_EV, ion: str = "Li") -> dict:
     """Does the window depend on the polysulfide energies, where UMA is least reliable? The window is recomputed with
     every polysulfide of the hull (S-S bonds; the target excepted) shifted by -delta and +delta eV/atom; `robust`
     when no limit moves by more than config.WINDOW_SENSITIVITY_MAX_V (and the window keeps a width)."""
     from autolab.analysis.uma_errors import is_polysulfide
 
-    base = base or electrochemical_window(target, entries)
+    base = base or electrochemical_window(target, entries, ion=ion)
     polys = sorted({e.composition.reduced_formula for e in entries if is_polysulfide(e)}
                    - {target.composition.reduced_formula})
     out = {"delta_eV_per_atom": delta, "polysulfides": polys, "windows": [], "max_shift_V": 0.0, "robust": True,
@@ -120,7 +124,7 @@ def window_sensitivity(target, entries: list, base: dict | None = None,
         return out
     shifts = []
     for sign in (-1, 1):
-        w = electrochemical_window(target, _shifted(entries, set(polys), sign * delta))
+        w = electrochemical_window(target, _shifted(entries, set(polys), sign * delta), ion=ion)
         out["windows"].append({"shift_eV_per_atom": sign * delta, "stable": w["stable"], "v_low": w["v_low"],
                                "v_high": w["v_high"]})
         if w["stable"] != base["stable"]:  # the window vanishes, or a zero-width window opens
@@ -138,8 +142,9 @@ def passivation(
     target,
     entries: list,
     get_gaps: Callable[[list[str]], dict[str, float | None]] | None = None,
+    ion: str = "Li",
 ) -> dict:
-    """Reaction with Li metal (0 V): products, metallic products and verdict.
+    """Reaction with the metal of the mobile ion (Li metal by default, at 0 V): products, metallic products, verdict.
 
     get_gaps maps MP material ids to MP band gaps (default: one batched MP
     request through data.mp). Verdicts: stable, passivating, quasi_stable,
@@ -148,7 +153,7 @@ def passivation(
     entries = _with_target(target, entries)
     check_single_source(entries)
     natural = _natural_products(target, PhaseDiagram(entries))
-    products, e_above = _open_decomposition(target, entries, li_metal_mu(entries))
+    products, e_above = _open_decomposition(target, entries, li_metal_mu(entries, ion), ion)
     products = {e: f for e, f in products.items() if f > FRACTION_EPS}
     force = max(e_above, 0.0)
 

@@ -20,10 +20,23 @@ def _sites_of(structure: Structure, symbol: str) -> list[int]:
     return [i for i, site in enumerate(structure) if site.specie.symbol == symbol]
 
 
+def mobile_ion(structure: Structure) -> str:
+    """The conducting ion of a structure: the first of config.MOBILE_IONS it contains."""
+    present = {site.specie.symbol for site in structure}
+    return next((ion for ion in config.MOBILE_IONS if ion in present), "Li")
+
+
+def vacancies_of(sub: dict) -> int:
+    """Vacancies of the mobile ion asked by a substitution ("li_vacancies", or "vacancies" in the sodium domain)."""
+    v = sub.get("li_vacancies") if sub.get("li_vacancies") is not None else sub.get("vacancies", 0)
+    return v if isinstance(v, int) else -1
+
+
 def _validate(structure: Structure, sub: dict) -> str | None:
     """Return a rejection reason, or None if the substitution can be applied."""
     remove, add, count = sub.get("remove"), sub.get("add"), sub.get("count")
-    vacancies = sub.get("li_vacancies", 0)
+    vacancies = vacancies_of(sub)
+    ion = mobile_ion(structure)
     if not remove or not add:
         return "substitution needs 'remove' and 'add'"
     for symbol in (remove, add):
@@ -34,12 +47,12 @@ def _validate(structure: Structure, sub: dict) -> str | None:
         return f"{remove} is not in the parent structure"
     if count != "all" and (not isinstance(count, int) or not 1 <= count <= n_remove):
         return f"count must be 'all' or an integer between 1 and {n_remove}"
-    if not isinstance(vacancies, int) or vacancies < 0:
-        return "li_vacancies must be a non-negative integer"
+    if vacancies < 0:
+        return "vacancies must be a non-negative integer"
     n_replaced = n_remove if count == "all" else count
-    n_li = len(_sites_of(structure, "Li")) - n_replaced * (remove == "Li") + n_replaced * (add == "Li")
-    if vacancies > n_li:
-        return f"cannot remove {vacancies} Li: only {n_li} left"
+    n_ion = len(_sites_of(structure, ion)) - n_replaced * (remove == ion) + n_replaced * (add == ion)
+    if vacancies > n_ion:
+        return f"cannot remove {vacancies} {ion}: only {n_ion} left"
     return None
 
 
@@ -50,9 +63,9 @@ def _arrangement(parent: Structure, sub: dict, rng: random.Random) -> Structure:
     else:
         for i in rng.sample(_sites_of(s, sub["remove"]), sub["count"]):
             s.replace(i, sub["add"])
-    vacancies = sub.get("li_vacancies", 0)
+    vacancies = vacancies_of(sub)
     if vacancies:
-        s.remove_sites(rng.sample(_sites_of(s, "Li"), vacancies))
+        s.remove_sites(rng.sample(_sites_of(s, mobile_ion(parent)), vacancies))
     return s
 
 
@@ -85,7 +98,7 @@ def generate_candidates(
         result["reason"] = reason
         return result
 
-    randomised = substitution["count"] != "all" or substitution.get("li_vacancies", 0) > 0
+    randomised = substitution["count"] != "all" or vacancies_of(substitution) > 0
     rng = random.Random(seed)
     structures = [_arrangement(parent, substitution, rng) for _ in range(n_arrangements if randomised else 1)]
 

@@ -48,6 +48,7 @@ class Domain:
     iteration_stages: tuple[Stage, ...] = ()  # slow tests run in each iteration on its candidates (FEEDBACK_LOOP)
     feedback: Callable[[list[dict]], list[dict]] | None = None  # iteration candidates -> results of the slow tests
     render_feedback: Callable[[dict], list[str]] | None = None  # iteration record -> report lines of its feedback
+    settings: dict = field(default_factory=dict)  # read by shared stages (e.g. the mobile ion, cathodes, prompts)
 
 
 @dataclass
@@ -98,6 +99,8 @@ def get_domain(name: str) -> Domain:
         from autolab.domains import electrolyte  # noqa: F401  (registers itself)
     if name == "cathode" and name not in _DOMAINS:
         from autolab.domains import cathode  # noqa: F401  (registers itself)
+    if name == "sodium" and name not in _DOMAINS:
+        from autolab.domains import sodium  # noqa: F401  (registers itself)
     if name not in _DOMAINS:
-        raise ValueError(f"unknown domain {name!r} (known: electrolyte, cathode)")
+        raise ValueError(f"unknown domain {name!r} (known: electrolyte, cathode, sodium)")
     return _DOMAINS[name]()

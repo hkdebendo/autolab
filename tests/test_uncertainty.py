@@ -47,7 +47,7 @@ def test_system_errors_compares_two_separate_hulls():
 def test_window_sensitivity_flags_only_windows_that_move(monkeypatch):
     shifts = {}
 
-    def window(target, entries):  # the upper limit follows the polysulfide energy
+    def window(target, entries, **kw):  # the upper limit follows the polysulfide energy
         poly = next(e for e in entries if e.composition.reduced_formula == "LiS4")
         shift = poly.energy_per_atom - (-0.5)
         shifts.setdefault("seen", []).append(round(shift, 4))
@@ -69,7 +69,7 @@ def test_window_sensitivity_flags_only_windows_that_move(monkeypatch):
 
 def test_window_that_vanishes_is_not_robust(monkeypatch):
     monkeypatch.setattr(electrodes, "electrochemical_window",
-                        lambda t, es: {"stable": False, "v_low": None, "v_high": None})
+                        lambda t, es, **kw: {"stable": False, "v_low": None, "v_high": None})
     monkeypatch.setattr(uma_errors, "is_polysulfide", lambda e: e.composition.reduced_formula == "P2S7")
     target = entry("Li7P3S11", -1.0)
     s = electrodes.window_sensitivity(target, [entry("P2S7", -0.3), target],

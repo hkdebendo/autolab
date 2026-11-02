@@ -159,8 +159,10 @@ def electrodes(camp: Campaign) -> dict:
     from autolab.sim.backend import BudgetExceeded
 
     t = camp.tools
+    cathodes = tuple(camp.settings.get("cathodes", config.AGENT_CATHODES))
+    ion = camp.settings.get("ion", "Li")
     top = sorted(camp.passed(), key=rank_key)[:config.ELECTRODES_TOP]
-    out = {"cathodes": list(config.AGENT_CATHODES), "calibrations": {}, "candidates": [], "excluded": [],
+    out = {"cathodes": list(cathodes), "calibrations": {}, "candidates": [], "excluded": [],
            "not_computed": {}, "stopped": None}
     memo = getattr(camp.agent, "electrode_calibrations", None)  # computed once per research, reused by each iteration
     if memo is None:
@@ -170,7 +172,7 @@ def electrodes(camp: Campaign) -> dict:
         except AttributeError:
             pass
     try:
-        for cathode in config.AGENT_CATHODES:
+        for cathode in cathodes:
             if cathode in memo:
                 out["calibrations"][cathode] = memo[cathode]
                 continue
@@ -210,12 +212,12 @@ def electrodes(camp: Campaign) -> dict:
                  passivation_reaction_energy=p["reaction_energy"], passivation_products=p["products"],
                  metallic_products=p["metallic_products"])
         if p["verdict"] in config.ELECTRODE_EXCLUDED_PASSIVATION:  # excluded: no interface computed
-            exclude(c, "electrodes", f"{p['verdict']} against Li metal (metallic products "
+            exclude(c, "electrodes", f"{p['verdict']} against {ion} metal (metallic products "
                                      f"{', '.join(p['metallic_products']) or 'none'}, reaction "
                                      f"{p['reaction_energy']:.3f} eV/atom)")
             out["excluded"].append(c["id"])
         interfaces = {}
-        for cathode in config.AGENT_CATHODES:
+        for cathode in cathodes:
             if c.get("excluded_at") or not out["calibrations"][cathode]["ok"]:
                 interfaces[cathode] = None  # excluded, or UMA not trusted for this cathode
                 continue
@@ -269,8 +271,9 @@ def candidate_analyses(camp: Campaign) -> dict:
     def review(c: dict):
         mine = [s for s in comps if c["id"] in json.dumps(s)]
         view = {k: c.get(k) for k in ANALYSIS_FIELDS if k in c}
+        messages = camp.settings.get("review_messages", prompts.candidate_analysis_messages)
         try:
-            obj, replies = client.complete_json(prompts.candidate_analysis_messages(camp.goal, view, mine),
+            obj, replies = client.complete_json(messages(camp.goal, view, mine),
                                                 "candidate_analysis",
                                                 max_output_tokens=config.CANDIDATE_ANALYSIS_MAX_OUTPUT_TOKENS)
         except (BudgetExceeded, LLMError) as e:
@@ -313,8 +316,8 @@ def md_selection(camp: Campaign) -> dict:
     view = [{k: c.get(k) for k in FOR_SELECTION if k in c and k != "md_cached"} for c in choices]
     ids = [c["id"] for c in choices]
     try:
-        info = camp.ask(prompts.md_selection_messages(camp.goal, view, comparisons(eligible), n),
-                        "md_selection", "md_selection")
+        messages = camp.settings.get("md_selection_messages", prompts.md_selection_messages)
+        info = camp.ask(messages(camp.goal, view, comparisons(eligible), n), "md_selection", "md_selection")
         reply = info["reply"]
         out["llm"] = {k: v for k, v in info.items() if k != "reply"}
         out["selected"] = list(dict.fromkeys(i for i in reply["selected"] if i in ids))[:n]
@@ -346,9 +349,11 @@ def molecular_dynamics(camp: Campaign) -> dict:
     out["plan"] = {k: plan.get(k) for k in ("gpu", "runs", "total_runs", "wall_s", "usd", "usd_max", "timeout_s")}
     camp.emit("molecular_dynamics", "plan", **out["plan"])
     spent = getattr(camp.agent, "md_usd", 0.0)  # MD already launched in this research (earlier iterations)
-    if spent + plan["usd"] > config.MD_MAX_USD_PER_RUN:
+    cap = camp.settings.get("md_max_usd", config.MD_MAX_USD_PER_RUN)
+    if spent + plan["usd"] > cap:
         out["stopped"] = (f"estimated Modal cost {plan['usd']:.2f} $ (plus {spent:.2f} $ already launched in this "
-                          f"research) above MD_MAX_USD_PER_RUN ({config.MD_MAX_USD_PER_RUN:g} $): not launched")
+                          f"research) above {camp.settings.get('md_max_usd_name', 'MD_MAX_USD_PER_RUN')} ({cap:g} $): "
+                          "not launched")
     elif plan["runs"] > config.MD_SCREEN_MAX_RUNS:
         out["stopped"] = f"{plan['runs']} MD runs to compute, above MD_SCREEN_MAX_RUNS ({config.MD_SCREEN_MAX_RUNS}): not launched"
     if out["stopped"]:
@@ -368,9 +373,11 @@ def molecular_dynamics(camp: Campaign) -> dict:
                  md_verdict=v["verdict"] if v else "undetermined", conduction=r["conduction"],
                  md_framework_intact=(r.get("framework") or {}).get("intact"),
                  md_framework=framework_view(r.get("framework")), md_gpu=r.get("md_gpu"))
-        if r["conduction"] == "excluded":
+        if r["conduction"] == "excluded" and camp.settings.get("md_can_exclude", True):
             exclude(c, "molecular_dynamics", r["conduction_reason"])
             out["excluded"].append(c["id"])
+        elif r["conduction"] == "excluded":  # an MD not calibrated for this domain informs, it does not exclude
+            c["conduction"] = "information"
         camp.emit("molecular_dynamics", "done", c["id"], formula=c["formula"], D_cm2_per_s=c["D_cm2_per_s"],
                   ratio=c["D_ratio_to_parent"], verdict=c["md_verdict"], conduction=c["conduction"])
     out["summary"] = {"verdicts": {r["id"]: (r.get("vs_parent") or {}).get("verdict") for r in rows
@@ -408,10 +415,11 @@ def ranking(camp: Campaign) -> dict:
     RANK_TIE_BREAK. The order inside a level is a convention: "levels" says which candidates share one."""
     order = {v: i for i, v in enumerate(config.FINAL_RANK_MD_ORDER)}
     rt_order = {v: i for i, v in enumerate(config.CONDUCTIVITY_RANK_ORDER)}
+    md_ranks = camp.settings.get("md_ranks", True)  # False: an uncalibrated MD verdict does not order (sodium)
 
     def key(c):
         level = rt_level(c)
-        md = order.get(c.get("md_verdict") or "not_run", len(order)) if level == "not_fitted" else 0
+        md = order.get(c.get("md_verdict") or "not_run", len(order)) if level == "not_fitted" and md_ranks else 0
         return (bool(c.get("excluded_at")), rt_order.get(level, len(rt_order)), md, *tie_break(c), c["e_hull"])
 
     ranked = sorted(camp.passed(), key=key)
@@ -549,7 +557,7 @@ def framework_view(framework: dict | None) -> dict | None:
     return {"intact": framework.get("intact"), "limit_D_ratio_to_Li": config.MD_FRAMEWORK_D_RATIO_MAX, "elements": els}
 
 
-def feedback(cands: list[dict]) -> list[dict]:
+def feedback(cands: list[dict], ion: str = "Li") -> list[dict]:
     """Results of the slow tests of one iteration, measured by the code: contact with Li metal (failures only) and
     Li diffusion (every simulated candidate). Each item: what was tested, outcome, the measurements and a factual
     message; the cause of a failure is left to the model, as a hypothesis."""
@@ -559,12 +567,12 @@ def feedback(cands: list[dict]) -> list[dict]:
             continue
         base = {"id": c["id"], "formula": c["formula"], "parent": c.get("parent"), "substitution": c.get("substitution")}
         if c.get("excluded_at") == "electrodes":
-            out.append({**base, "test": "contact with Li metal", "outcome": "failed", "reason": c["exclusion_reason"],
+            out.append({**base, "test": f"contact with {ion} metal", "outcome": "failed", "reason": c["exclusion_reason"],
                         "measured": {"passivation": c.get("passivation"),
                                      "reaction_energy_eV_per_atom": c.get("passivation_reaction_energy"),
                                      "products_with_Li": c.get("passivation_products"),
                                      "metallic_products": c.get("metallic_products")},
-                        "message": f"Negative result: {c['formula']} ({c['id']}) failed the contact test with Li metal: "
+                        "message": f"Negative result: {c['formula']} ({c['id']}) failed the contact test with {ion} metal: "
                                    f"{c['exclusion_reason']}."})
         if c.get("md_verdict") is None:
             continue
@@ -572,7 +580,7 @@ def feedback(cands: list[dict]) -> list[dict]:
         ratio = (f"D/D(parent) = {c['D_ratio_to_parent']:.2f} ± {c['D_ratio_err']:.2f}"
                  if c.get("D_ratio_to_parent") is not None else "D/D(parent) undetermined")
         reason = c["exclusion_reason"] if failed else f"{c['md_verdict']} with its parent ({ratio})"
-        test = f"Li diffusion at {config.MD_SCREEN_TEMPERATURE_K} K (molecular dynamics, against its parent)"
+        test = f"{ion} diffusion at {config.MD_SCREEN_TEMPERATURE_K} K (molecular dynamics, against its parent)"
         out.append({**base, "test": test, "outcome": "failed" if failed else "passed", "reason": reason,
                     "measured": {"D_cm2_per_s": c.get("D_cm2_per_s"), "D_error_cm2_per_s": c.get("D_sem_cm2_per_s"),
                                  "D_ratio_to_parent": c.get("D_ratio_to_parent"), "D_ratio_error": c.get("D_ratio_err"),
@@ -610,15 +618,21 @@ def _v(x, fmt=".2f") -> str:
     return "—" if x is None else format(x, fmt)
 
 
+def _ion(result: dict) -> str:
+    """The mobile ion of a run's domain (the sodium domain shares these stages)."""
+    return "Na" if result.get("domain") == "sodium" else "Li"
+
+
 def render_electrodes(out: dict, result: dict) -> list[str]:
     by_id = _pool(result)
+    ion = _ion(result)
     lines = ["## Electrodes (UMA + MP2020 energies)", ""]
     for cal in out["calibrations"].values():
         lines.append(f"- Calibration Li3PS4 / {cal['cathode']}: UMA {cal['uma']:.3f} vs MP {cal['mp']:.3f} eV/atom "
                      f"(diff {cal['diff']:+.3f}, tolerance {cal['tolerance']}) → "
                      f"{'trusted' if cal['ok'] else 'NOT trusted: interfaces not computed'}")
     if out["candidates"]:
-        lines += ["", f"| Candidate | Formula | Window (V) | Against Li metal | Worst reaction with "
+        lines += ["", f"| Candidate | Formula | Window (V vs {ion}/{ion}+) | Against {ion} metal | Worst reaction with "
                       f"{', '.join(out['cathodes'])} (eV/atom) | Confidence | Decision |", "|---|---|---|---|---|---|---|"]
         for cid in out["candidates"]:
             c = by_id[cid]
@@ -644,12 +658,13 @@ def render_electrodes(out: dict, result: dict) -> list[str]:
         lines.append(f"- {cid}: not computed ({why})")
     if out.get("stopped"):
         lines += ["", f"**Stopped:** {out['stopped']}"]
-    lines += ["", "Reduced confidence: the decomposition of the electrolyte (window limits, Li metal) goes through a "
+    lines += ["", f"Reduced confidence: the decomposition of the electrolyte (window limits, {ion} metal) goes through a "
                   "polysulfide, where UMA is least reliable, and the window limits move by more than "
                   f"{config.WINDOW_SENSITIVITY_MAX_V} V when every polysulfide energy is shifted by "
                   f"±{config.POLYSULFIDE_ENERGY_ERROR_EV} eV/atom (twice the largest UMA-vs-DFT difference measured on "
-                  "known polysulfides). Interfaces are informative (no threshold); a polysulfide "
-                  "formed with the cathode (FeS2 for almost every sulfide against LiFePO4) is shown as information only."]
+                  "known polysulfides)." + (" Interfaces are informative (no threshold); a polysulfide formed with the "
+                  "cathode (FeS2 for almost every sulfide against LiFePO4) is shown as information only." if out["cathodes"]
+                  else " No cathode interface is computed in this domain.")]
     return lines + [""]
 
 
@@ -684,7 +699,7 @@ def render_md(out: dict, result: dict) -> list[str]:
     from autolab.sim.backend import gpu_type
 
     gpus = sorted({g for g in (gpu_type(r.get("gpu")) for r in out.get("rows") or []) if g}) or [config.MODAL_MD_GPU]
-    lines = [f"## Li diffusion ({config.MD_SCREEN_TEMPERATURE_K} K, {config.MD_SCREEN_SEEDS} seeds of "
+    lines = [f"## {_ion(result)} diffusion ({config.MD_SCREEN_TEMPERATURE_K} K, {config.MD_SCREEN_SEEDS} seeds of "
              f"{config.MD_SCREEN_PS} ps pooled, Modal {' + '.join(gpus)})", ""]
     p = out.get("plan")
     if p:

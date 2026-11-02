@@ -24,7 +24,7 @@ def run_md(
     calc,
     temperature_K: float,
     n_steps: int,
-    species: str = "Li",
+    species: str | None = None,
     timestep_fs: float = config.MD_TIMESTEP_FS,
     friction_per_fs: float = config.MD_FRICTION_PER_FS,
     record_every: int = config.MD_RECORD_EVERY,
@@ -34,6 +34,9 @@ def run_md(
 ) -> dict:
     """Run NVT dynamics on a supercell, record unwrapped positions of `species` and the MSD of every other element
     (to check that the framework did not melt)."""
+    if species is None:  # the conducting ion: Li in the lithium domains, Na in the sodium one
+        present = set(atoms.get_chemical_symbols())
+        species = next((ion for ion in config.MOBILE_IONS if ion in present), "Li")
     reps = supercell_reps(atoms, min_length)
     sc = atoms.repeat(reps)
     sc.calc = calc
