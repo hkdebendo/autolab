@@ -853,10 +853,14 @@ function renderViz(panel, cands) {
 
 const CPK = { Li: "#CC80FF", Na: "#AB5CF2", Mg: "#8AFF00", Al: "#BFA6A6", Si: "#F0C8A0", P: "#FF8000", S: "#FFFF30",
   Cl: "#1FF01F", O: "#FF0D0D", F: "#90E050", Br: "#A62929", I: "#940094", Se: "#FFA100", Ge: "#668F8F",
-  As: "#BD80E3", Sb: "#9E63B5", Sn: "#668080", Fe: "#E06633", Mn: "#9C7AC7", Co: "#F090A0", N: "#3050F8", C: "#909090" };
+  As: "#BD80E3", Sb: "#9E63B5", Sn: "#668080", Fe: "#E06633", Mn: "#9C7AC7", Co: "#F090A0", N: "#3050F8", C: "#909090",
+  Ni: "#50D050", Ti: "#BFC2C7", V: "#A6A6AB", Zr: "#94E0E0", Cr: "#8A99C7", Cu: "#C88033", Zn: "#7D80B0", Nb: "#73C2C9",
+  Mo: "#54B5B5", W: "#2194D6", Ca: "#3DFF00", K: "#8F40D4", Ga: "#C28F8F", B: "#FFB5B5", Sc: "#E6E6E6", Y: "#94FFFF" };
 const NAMES = { Li: "lithium", Na: "sodium", Mg: "magnesium", Al: "aluminium", Si: "silicon", P: "phosphorus", S: "sulfur",
   Cl: "chlorine", O: "oxygen", F: "fluorine", Br: "bromine", I: "iodine", Se: "selenium", Ge: "germanium", As: "arsenic",
-  Sb: "antimony", Sn: "tin", Fe: "iron", Mn: "manganese", Co: "cobalt", N: "nitrogen", C: "carbon" };
+  Sb: "antimony", Sn: "tin", Fe: "iron", Mn: "manganese", Co: "cobalt", N: "nitrogen", C: "carbon", Ni: "nickel",
+  Ti: "titanium", V: "vanadium", Zr: "zirconium", Cr: "chromium", Cu: "copper", Zn: "zinc", Nb: "niobium", Mo: "molybdenum",
+  W: "tungsten", Ca: "calcium", K: "potassium", Ga: "gallium", B: "boron", Sc: "scandium", Y: "yttrium" };
 
 function legendHTML(elements, extra = "") {
   return `<div class="legend">${[...elements].map((el) => `<span><i style="background:${CPK[el] || "#999"}"></i>${esc(el)} · ${esc(NAMES[el] || el)}</span>`).join("")}${extra}</div>`;
@@ -1366,10 +1370,15 @@ function labSteps() {
   L.el.querySelector(".lab-bar i").style.width = `${L.steps.length ? (100 * done) / L.steps.length : 0}%`;
 }
 
-function labActor(who, what, kind = "compute") {
+/* a tool works on what Muse Spark proposed or chose: the proposal first, then the tool that runs it (the code launches
+   the tools; Muse Spark does not call them itself) */
+const TOOLS = new Set(["UMA", "pymatgen", "Materials Project", "GapModel", "UMA + Materials Project"]);
+function labActor(who, what, kind = "compute", origin = null) {
   const a = L.el.querySelector(".lab-actor");
   a.dataset.kind = kind;
-  a.innerHTML = `<span class="model ${kind}">${tx(who)}</span><span class="what">${tx(what)}</span><span class="dots"><i></i><i></i><i></i></span>`;
+  const by = origin || (TOOLS.has(who) ? "Muse Spark's candidate" : null);
+  a.innerHTML = (by ? `<span class="model think">${tx(by)}</span><span class="arrow">→</span><span class="model ${kind} tool">${tx(who)}</span>`
+    : `<span class="model ${kind}">${tx(who)}</span>`) + `<span class="what">${tx(what)}</span><span class="dots"><i></i><i></i><i></i></span>`;
   L.el.querySelector(".orb").dataset.kind = kind;
 }
 
@@ -1651,13 +1660,13 @@ function aheadOf(pred) { return L.queue.find(pred) || S.events.find(pred); }
 /* what each event shows */
 
 const STAGES = {
-  electrodes: { title: "Electrodes: stability window, lithium metal, cathode", actor: ["pymatgen", "grand-potential phase diagrams against the electrodes", "compute"],
+  electrodes: { title: "Electrodes: stability window, lithium metal, cathode", actor: ["pymatgen", "computes the phase diagrams against the electrodes", "compute", "Muse Spark's candidates"],
     done: (d) => `${d.computed ?? 0} computed${(d.excluded || []).length ? ` · excluded: ${d.excluded.map(fname).join(", ")}` : ""}` },
   candidate_analyses: { title: "Independent reviews", actor: ["Muse Spark Open", "reviewing each candidate separately", "think"],
     done: (d) => (d.skipped ? `not needed: ${d.skipped}` : `${d.analysed ?? 0} reviewed${d.reused ? `, ${d.reused} reused` : ""}`) },
   md_selection: { title: "Choosing what to simulate", actor: ["Muse Spark", "deciding which candidate deserves molecular dynamics", "think"],
     done: (d) => d.reason || `selected: ${(d.selected || []).map(fname).join(", ") || "none"}${d.chosen_by ? ` (chosen by ${PROVIDER_MODEL[d.chosen_by] || d.chosen_by})` : ""}` },
-  molecular_dynamics: { title: "Lithium-ion diffusion: molecular dynamics at 600 K", actor: ["UMA", "molecular dynamics at 600 K", "compute"],
+  molecular_dynamics: { title: "Lithium-ion diffusion: molecular dynamics at 600 K", actor: ["UMA", "runs molecular dynamics at 600 K", "compute", "Muse Spark's choice"],
     done: (d) => `${Object.keys(d.verdicts || {}).length} simulated${(d.excluded || []).length ? ` · excluded for conduction: ${d.excluded.map(fname).join(", ")}` : ""}` },
   conductivity: { title: "Ionic conductivity at 300 K", actor: ["AutoLab", "Arrhenius fit 500–700 K and Nernst–Einstein relation", "compute"],
     done: (d) => `${d.computed ?? 0} structures · parents: ${Object.entries(d.parents || {}).map(([k, v]) => `${L.parents[k] || k} ${v} mS/cm`).join(", ")}` },
@@ -1837,7 +1846,7 @@ function playCandidate(e) {
   const card = candidateCard(e);
   if (e.step === "generate") {
     strip(card, "build");
-    labActor("pymatgen", "building charge-balanced crystal structures", "compute");
+    labActor("pymatgen", "builds the crystal structures and checks charge neutrality", "compute");
     card.el.querySelector(".sub-line").textContent = "";
     cardAdd(card, d.accepted ? `<span class="ok">charge-balanced ✓</span> ${d.arrangements > 1 ? `<b>${d.arrangements}</b> atomic arrangements built (random placements of the substituted sites)` : "one atomic arrangement (every site of the element replaced)"}`
       : `<span class="no">rejected before any simulation:</span> ${tx(d.reason || "")}`);
@@ -1853,14 +1862,14 @@ function playCandidate(e) {
   }
   if (e.step === "known_check") {
     strip(card, "known");
-    labActor("Materials Project", "checking whether this composition is already known", "data");
+    labActor("Materials Project", "checks whether the composition is already known", "data");
     cardAdd(card, (d.known || []).length ? `<span class="no">already known:</span> ${tx(d.known.map((k) => k.material_id || k).join(", "))} — not recomputed`
       : d.error ? `<span class="no">database unreachable:</span> computed anyway` : `<span class="ok">new composition</span> — not in Materials Project`);
     return 1200;
   }
   if (e.step === "relax") {
     strip(card, "relax");
-    labActor("UMA", `relaxing ${d.arrangements} arrangements: atoms and cell move to their lowest energy`, "compute");
+    labActor("UMA", `relaxes ${d.arrangements} arrangements: atoms and cell move to their lowest energy`, "compute");
     const st = d.structure, ms = 3600;
     if (st) {
       const extra = card.el.querySelector(".cap3d p");
@@ -1879,14 +1888,14 @@ function playCandidate(e) {
   }
   if (e.step === "hull") {
     strip(card, "hull");
-    labActor("UMA + Materials Project", `convex hull against ${d.references} known phases, all relaxed with UMA`, "compute");
+    labActor("UMA + Materials Project", `compute the convex hull against ${d.references} known phases, all relaxed with UMA`, "compute");
     cardAdd(card, gauge({ label: "energy above the convex hull", value: d.e_hull, min: Math.min(0, d.e_hull), max: Math.max(0.1, d.e_hull * 1.25), threshold: 0.05, better: "low", unit: "eV/atom" })
       + `<p class="muted">would decompose into ${tx((d.decomposition || []).map((x) => x.formula).join(" + "))} · per substitution <b>${fmt(d.e_hull_per_substitution)}</b> eV</p>`);
     return 2700;
   }
   if (e.step === "bandgap") {
     strip(card, "gap");
-    labActor("GapModel", "predicting the electronic band gap", "compute");
+    labActor("GapModel", "predicts the electronic band gap", "compute");
     cardAdd(card, gauge({ label: "band gap (optB88)", value: d.gap_optb88, max: 6, threshold: 2, better: "high", unit: "eV", digits: 2 })
       + `<p class="muted">mBJ estimate <b>${fmt(d.gap_mbj, 2)}</b> eV${d.low_confidence ? " · low confidence" : ""}</p>`);
     return 2300;
@@ -1894,7 +1903,7 @@ function playCandidate(e) {
   if (e.step === "voltage") {
     strip(card, "charge");
     const k = d.li_removed, n = d.li_total;
-    labActor("UMA", k ? `charging: ${k} of ${n} Li removed, the charged cell relaxed` : "charging: no Li can be removed", "compute");
+    labActor("UMA", k ? `charges the crystal: ${k} of ${n} Li removed, the charged cell relaxed` : "charges the crystal: no Li can be removed", "compute");
     if (!k) { cardAdd(card, `<span class="no">no lithium can leave</span> — no element can be oxidised further`); return 1800; }
     if (d.error) { cardAdd(card, `<span class="no">${tx(d.error)}</span>`); return 1800; }
     const p = d.parent || {}, lim = d.limits || {};
@@ -2007,24 +2016,26 @@ function labPlay(e) {
   return 250;
 }
 
-const STEP_ACTOR = { voltage: ["UMA", "charging: removing lithium and relaxing the charged cell", "compute"],
+const STEP_ACTOR = { voltage: ["UMA", "charges the crystal: removes lithium and relaxes the charged cell", "compute"],
   goal: ["Muse Spark", "reading the request", "think"], propose: ["Muse Spark", "reasoning about new substitutions", "think"],
-  build: ["UMA", "relaxing crystal structures", "compute"], stability: ["UMA + Materials Project", "computing the convex hull", "compute"],
-  bandgap: ["GapModel", "predicting band gaps", "compute"], learn: ["Muse Spark", "interpreting the results", "think"],
-  electrodes: ["pymatgen", "phase diagrams against the electrodes", "compute"], review: ["Muse Spark Open", "reviewing each candidate", "think"],
-  md_choice: ["Muse Spark", "choosing what to simulate", "think"], md: ["UMA", "molecular dynamics at 600 K on Modal H100", "compute"],
+  build: ["UMA", "relaxes the crystal structures", "compute"], stability: ["UMA + Materials Project", "compute the convex hull", "compute"],
+  bandgap: ["GapModel", "predicts band gaps", "compute"], learn: ["Muse Spark", "interpreting the results", "think"],
+  electrodes: ["pymatgen", "computes the phase diagrams against the electrodes", "compute", "Muse Spark's candidates"],
+  review: ["Muse Spark Open", "reviewing each candidate", "think"],
+  md_choice: ["Muse Spark", "choosing what to simulate", "think"],
+  md: ["UMA", "runs molecular dynamics at 600 K on Modal H100", "compute", "Muse Spark's choice"],
   conductivity: ["AutoLab", "Arrhenius extrapolation to 300 K", "compute"], ranking: ["AutoLab", "ranking the candidates", "plan"],
   literature: ["Muse Spark", "searching the literature", "think"], report: ["Muse Spark", "writing the final report", "think"] };
 
 function labWorking() {
   const run = (S.view.steps || []).find((s) => s.state === "running");
-  const [who, what, kind] = (run && STEP_ACTOR[run.key]) || ["AutoLab", "working", "compute"];
-  labActor(who, what, kind);
+  const [who, what, kind, origin] = (run && STEP_ACTOR[run.key]) || ["AutoLab", "working", "compute"];
+  labActor(who, what, kind, origin);
   if (L.group === "working") return;
   const card = labCard("working");
   card.el.classList.add("banner", "working");
   card.el.innerHTML = `<div class="pulse"><i></i><i></i><i></i></div><p><b>${tx(run ? run.label : "Working")}</b></p>
-    <p class="muted">${tx(who)} is computing now; the next result appears as soon as it is ready.</p>`;
+    <p class="muted">${TOOLS.has(who) ? `${tx(who)} is computing on ${tx(origin || "Muse Spark's candidate")}` : `${tx(who)} is working`}; the next result appears as soon as it is ready.</p>`;
 }
 
 

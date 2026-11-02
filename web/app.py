@@ -83,11 +83,11 @@ async def relay(path: str, request: Request) -> Response:
 def _steps(events: list[dict], upto: int, status: str) -> list[dict] | None:
     """Steps of the research after its first `upto` events (the page shows the steps as it plays the events)."""
     try:
-        from autolab.agent.progress import steps_from_events
+        from autolab.agent.progress import DOMAIN_STEPS, domain_of, steps_from_events
     except ImportError:  # the page then keeps the steps the service sent
         return None
     state = "running" if upto < len(events) else RUN_STATE.get(status, "done")
-    return steps_from_events(events[:upto], state)
+    return steps_from_events(events[:upto], state, DOMAIN_STEPS.get(domain_of(events)))  # domain from the whole run
 
 
 @app.websocket("/ws/conversations/{cid}")

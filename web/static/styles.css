@@ -649,3 +649,7 @@ body.lab-open::before { content: ""; position: fixed; inset: 0; z-index: 44; bac
 .stats-row { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--lm); }
 .stats-row b { font: 600 18px "JetBrains Mono", monospace; color: #fff; }
 .stats-row em { font-style: normal; font-size: 11.5px; color: #fcd34d; margin-left: 4px; }
+
+/* a tool working on Muse Spark's proposal: proposal → tool */
+.lab-actor .arrow { color: var(--lm); font-size: 14px; margin: 0 -2px; }
+.lab .model.tool { font-size: 11.5px; padding: 1px 8px; opacity: .92; }

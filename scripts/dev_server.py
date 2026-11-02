@@ -17,7 +17,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from autolab.agent.importer import RECORDED, import_run
-from autolab.agent.progress import steps_from_events
+from autolab.agent.progress import DOMAIN_STEPS, domain_of, steps_from_events
 from autolab.agent.service import Service
 from autolab.llm.client import Reply
 from autolab.store.conversations import MemoryStore
@@ -136,7 +136,8 @@ async def live(ws: WebSocket, cid: str):
             if isinstance(msg, dict) and isinstance(msg.get("steps"), int):
                 n = max(0, min(msg["steps"], len(events)))
                 await ws.send_json({"type": "steps", "upto": n,
-                                    "steps": steps_from_events(events[:n], "running" if n < len(events) else "done")})
+                                    "steps": steps_from_events(events[:n], "running" if n < len(events) else "done",
+                                                               DOMAIN_STEPS.get(domain_of(events)))})
     except WebSocketDisconnect:
         pass
 
