@@ -188,7 +188,7 @@ LIVE_ITERATIONS = 3  # owner, 2026-11-01: the error-driven loop needs rounds aft
 LIVE_CANDIDATES = 3
 LIVE_MAX_RELAXATIONS = 160  # 3 rounds x 3 candidates x ~8 arrangements, plus references (T4, ~0.005 $ each)
 LIVE_MD_SELECT_MAX = 1  # new MD candidates per iteration of a live run (Modal budget; cached verdicts apply to all)
-LIVE_MAX_RUNS = 6  # live runs allowed in production (1-4 $ each), counted in the store; then refused
+LIVE_MAX_RUNS = 7  # live runs allowed in production (1-4 $ each), counted in the store; then refused (6 -> 7: owner, 2026-11-02, for the memristor research)
 LIVE_RUN_TIMEOUT_S = 3 * 3600
 LIVE_GOAL_MAX_CHARS = 500
 # A request identical (case and spaces aside) to a finished research reuses it (owner, 2026-11-02): its events, result,
