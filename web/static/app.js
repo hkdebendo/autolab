@@ -1215,8 +1215,7 @@ async function showResults(domain) {
   const current = domains.find((d) => d.key === domain) || domains.find((d) => d.count) || domains[0];
   const mine = champions.filter((c) => c.domain === current.key);
   $("view").innerHTML = `<div class="results">
-      <header class="results-head"><h1>Results</h1>
-        <p>The champion of each research, by domain: the best compromise found by the agent, with the numbers computed by the code. Computational predictions, not proven materials.</p></header>
+      <header class="results-head"><h1>Results</h1></header>
       <nav class="domain-tabs" role="tablist">${domains.map((d) => `<button type="button" role="tab" data-domain="${esc(d.key)}"
         aria-selected="${d.key === current.key}"><b>${esc(d.label)}</b><span>${d.count} champion${d.count === 1 ? "" : "s"}</span></button>`).join("")}</nav>
       <p class="domain-about">${tx(current.about || "")}</p>
