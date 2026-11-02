@@ -161,19 +161,6 @@ MODAL_MD_MS_PER_ATOM_STEP = {"H100": 0.147, "A10G": 0.281, "A100": 0.398}  # ms,
 MODAL_STARTUP_S = 180  # s per container: start, model load and compilation (estimate)
 MODAL_TIMEOUT_FACTOR = 2.0  # time limit of a run = factor x its estimate
 MODAL_MAX_TIMEOUT_S = 4 * 3600  # hard cap per run
-# --- Vacancy migration barriers (nudged elastic band, autolab/sim/neb.py; memristor domain, 2026-11-02) ---------
-NEB_MIN_LENGTH = 9.0  # Angstrom, minimum perpendicular width of the supercell (vacancy images apart)
-NEB_MAX_HOPS = 2  # distinct hops computed per structure (the lowest barrier is kept)
-NEB_HOP_CUTOFF_A = 3.2  # Angstrom, O-O distance of a nearest-neighbour hop in the oxides studied (2.5-3.0)
-NEB_NEAR_CUTOFF_A = 2.6  # Angstrom, an O bonded to the dopant (for the hops the dopant changes)
-NEB_IMAGES = 5  # images between the two end points
-NEB_FMAX = 0.1  # eV/A on the images (climbing image included)
-NEB_IMAGES_RETRY = 9  # a band not converged with NEB_IMAGES is computed once more with this many images (a narrow
-# saddle point: the HfO2 2.54 A hop of the truth test rose from 0.38 to 2.18 eV over one image), never more
-NEB_STEPS = 600  # FIRE steps on the band (300 left one HfO2 hop unconverged in the first truth-test run)
-MODAL_NEB_TIMEOUT = 3000  # s per hop on a T4 (end points + band, up to NEB_STEPS)
-MODAL_NEB_S_PER_ATOM = 2.0  # s per atom of the supercell and hop on a T4: CeO2 80 atoms, 21 band steps, 119 s (2026-11-02; 2 relaxations + 5 images x
-# up to 300 steps); corrected after the first runs
 MODAL_GPU_USD_PER_H = {"T4": 0.59, "L4": 0.80, "A10G": 1.10, "A100": 2.10, "H100": 3.95}  # modal.com/pricing, 2026-10-29
 MODAL_RELAX_CHUNK = 10  # structures per remote call
 
@@ -188,7 +175,7 @@ LIVE_ITERATIONS = 3  # owner, 2026-11-01: the error-driven loop needs rounds aft
 LIVE_CANDIDATES = 3
 LIVE_MAX_RELAXATIONS = 160  # 3 rounds x 3 candidates x ~8 arrangements, plus references (T4, ~0.005 $ each)
 LIVE_MD_SELECT_MAX = 1  # new MD candidates per iteration of a live run (Modal budget; cached verdicts apply to all)
-LIVE_MAX_RUNS = 7  # live runs allowed in production (1-4 $ each), counted in the store; then refused (6 -> 7: owner, 2026-11-02, for the memristor research)
+LIVE_MAX_RUNS = 6  # live runs allowed in production (1-4 $ each), counted in the store; then refused
 LIVE_RUN_TIMEOUT_S = 3 * 3600
 LIVE_GOAL_MAX_CHARS = 500
 # A request identical (case and spaces aside) to a finished research reuses it (owner, 2026-11-02): its events, result,
@@ -289,10 +276,6 @@ DOMAIN_LABELS = {
                "about": "Beyond lithium, a geopolitical bottleneck: superionic Na+ conductors for the stationary storage of "
                         "renewable energy. They must be stable, block electrons, survive contact with sodium metal and "
                         "let Na+ move fast."},
-    "memristor": {"label": "Memristor oxides", "kind": "Oxide memristor · neuromorphic chips",
-                  "about": "AI designing the hardware of AI: oxides whose resistance switches when oxygen vacancies "
-                           "move, the artificial synapses of neuromorphic chips. They must be stable and insulating, "
-                           "and let an oxygen vacancy hop over a barrier suited to switching."},
 }
 CHAMPIONS_EXCLUDED = ("first-2026-10-29", "test-2026-10-29-br-i")  # test researches, left out of the results page
 
@@ -307,10 +290,6 @@ CAPABILITIES = {
                   "storage of renewable energy: new compositions by substitution in known sodium conductors (Na3PS4, "
                   "Na3SbS4, NASICON Na3Zr2Si2PO12), evaluated for thermodynamic stability, band gap, electrochemical "
                   "window, reaction with sodium metal and sodium diffusion by molecular dynamics at 600 K.",
-        "memristor": "Doped oxides for valence-change memristors (resistive memories, artificial synapses of "
-                     "neuromorphic chips): new compositions by isovalent substitution in known switching oxides (HfO2, "
-                     "TiO2, SrTiO3), evaluated for thermodynamic stability, band gap and the migration barrier of an "
-                     "oxygen vacancy (nudged elastic band) against the parent oxide.",
         "cathode": "Cobalt-free cathode materials for lithium-ion batteries: new compositions by substitution in known "
                    "cobalt-free cathodes (LiFePO4, LiMnPO4, spinel LiMn2O4, LiNi0.5Mn1.5O4), evaluated for thermodynamic "
                    "stability, average voltage, theoretical capacity, energy density and volume change on charge.",
@@ -461,49 +440,6 @@ SODIUM_NOT_COMPUTED = ("DFT calculations (UMA energies with an error bar measure
                        "calibration), the "
                        "interface with a sodium cathode, grain boundaries, synthesis, cost of the elements, experimental "
                        "data")
-
-# --- Fourth domain: oxide memristors (valence-change memories; owner, 2026-11-02; autolab/domains/memristor.py) ---
-# Substitutions in known switching oxides; funnel: charge neutrality with fixed oxidation states (isovalent only: no
-# vacancy in a substitution), stability against the stable MP phases relaxed with UMA, GapModel band gap; in each round
-# the migration barrier of a neutral O vacancy (NEB with UMA) on the hops next to the dopant, against the parent's
-# lowest hop computed the same way. A lower barrier suggests easier switching (lower forming and switching voltages)
-# at a possible cost in retention: retention, filaments, fields and amorphous films are not computed.
-MEMRISTOR_GOAL = ("Find new doped oxides for valence-change memristors (neuromorphic chips): stable, insulating, with an "
-                  "oxygen-vacancy migration barrier that makes resistive switching easier than in the parent oxide.")
-MEMRISTOR_PARENTS = ["mp-352", "mp-2657", "mp-5229"]  # monoclinic HfO2 (12 atoms), rutile TiO2 (12), cubic SrTiO3 (5)
-MEMRISTOR_MOBILE_ION = "O"  # the ion whose vacancy moves (O2- for valence-change memories)
-MEMRISTOR_OXIDATION_STATES = {
-    "Hf": 4, "Zr": 4, "Ti": 4, "Si": 4, "Ge": 4, "Sn": 4, "Ce": 4, "Sr": 2, "Ba": 2, "Ca": 2, "Mg": 2, "Zn": 2,
-    "Al": 3, "Ga": 3, "Sc": 3, "Y": 3, "La": 3, "Gd": 3, "Nb": 5, "Ta": 5, "O": -2,
-}
-MEMRISTOR_HULL_REF_EHULL_MAX = 0.0  # stable MP phases only, relaxed with UMA
-MEMRISTOR_EHULL_MAX = 0.05  # eV/atom
-MEMRISTOR_BANDGAP_MIN = 1.5  # eV (optB88 scale, below PBE-like experiment): rutile TiO2 and SrTiO3 sit near 1.8 in
-# PBE (3.0-3.2 eV measured): a memristor oxide must stay insulating in its high-resistance state
-MEMRISTOR_EA_SIGNIFICANT_EV = 0.15  # a barrier differs from the parent's beyond this; checked (2026-11-02,
-# results/2026-11-02_memristor_tolerance): equivalent hops of TiO2 agree within 0.008 eV and a 270-atom cell moves the
-# barrier by 0.019 eV, so 0.15 is kept (it also leaves room for the UMA-vs-DFT error, not measured)
-MEMRISTOR_RANK_ORDER = ("lower", "comparable", "higher", "undetermined", "not_computed")  # barrier against the parent,
-# best first (a lower barrier: easier switching); then the barrier, then E_hull per substitution
-MEMRISTOR_NEB_MAX_USD = 2.5  # estimated Modal cost of all the barriers of one research
-MEMRISTOR_NOVELTY_CONTROL = {"id": "control-HfO2-Zr", "formula": "Hf0.5Zr0.5O2", "parent": None, "substitution": None,
-                             "kind": "memristor"}
-MEMRISTOR_NOT_COMPUTED = ("DFT calculations, charged vacancies (only neutral ones), the effect of the electric field, "
-                          "filament formation, retention and endurance, amorphous or thin-film structures, electrodes "
-                          "and interfaces, long-range diffusion paths (only the lowest single hops), synthesis, cost")
-# Truth test of the barriers, fixed before the runs (2026-11-02): neutral O vacancy, lowest of the distinct nearest
-# hops, same NEB as a candidate. CeO2 (fluorite, a fast oxygen conductor; DFT barriers 0.46-1.08 eV in the literature
-# depending on the functional) at most MEMRISTOR_TRUTH["fast_max_eV"], and MgO (rock salt, slow oxygen diffusion) at
-# least MEMRISTOR_TRUTH["gap_eV"] above it; every band converged. The parents are measured too (no criterion; HfO2:
-# about 2.4 eV for long-range neutral-vacancy diffusion in DFT, a different quantity from the lowest single hop).
-MEMRISTOR_TRUTH = {"fast": "mp-20194", "slow": "mp-1265", "fast_max_eV": 1.1, "gap_eV": 0.5}
-# Check of MEMRISTOR_EA_SIGNIFICANT_EV, fixed before its runs (2026-11-02): on rutile TiO2, (1) each hop of the truth
-# test recomputed between another, symmetry-equivalent pair of sites of the same supercell (numerical noise of the
-# relaxations and of the band), (2) the lowest hop recomputed in a supercell of at least "larger_min_length" A
-# (finite-size effect). Spread = the largest difference; if it exceeds the tolerance, the tolerance becomes the spread
-# rounded up to 0.05 eV. The UMA-vs-DFT error itself is not measured (it partly cancels between a candidate and its
-# parent computed the same way).
-MEMRISTOR_TOLERANCE_CHECK = {"material": "mp-2657", "larger_min_length": 12.0}
 
 # Blind benchmark of the cathode funnel (fixed before the runs, 2026-11-02): known compounds go through steps 3-5 of the
 # funnel with their own composition removed from the hull; expected outcome of each, from experiment.

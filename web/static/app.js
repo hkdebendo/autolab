@@ -300,7 +300,6 @@ const EXAMPLES = [  // the first one is the recorded research of Nov 1, word for
   "Explore halide substitutions in Li7P3S11 to improve lithium-ion diffusion.",
   "Which substitutions in beta-Li3PS4 keep it stable and electronically insulating?",
   "Find new cobalt-free cathodes for lithium-ion batteries with a higher energy density than LiFePO4.",
-  "Find doped oxides for memristors (neuromorphic chips) derived from HfO2, TiO2 or SrTiO3 where oxygen vacancies move more easily than in the parent oxide.",
   "Find new sodium solid electrolytes derived from Na3PS4 or Na3SbS4 that stay stable against sodium metal and let Na+ move fast.",
 ];
 
@@ -662,10 +661,6 @@ function aggregate() {
       c.ratio = d.ratio; c.verdict = d.verdict; c.D = d.D_cm2_per_s;
       if (d.conduction === "excluded") c.excluded = "diffusion";
     } else if (k === "candidate/candidate_analyses:done") c.review = d;
-    else if (k === "candidate/migration:done") {
-      c.barrier = d.barrier_eV; c.parent_barrier = d.parent_barrier_eV; c.bverdict = d.verdict;
-      c.profile = d.profile_eV; c.parent_profile = d.parent_profile_eV; c.parent_formula = d.parent;
-    }
     else if (k === "candidate/voltage") {
       c.voltage = d.voltage_V; c.capacity = d.capacity_mAh_g; c.energy = d.energy_density_Wh_kg; c.volume = d.volume_change_pct;
     }
@@ -743,16 +738,6 @@ function statusChip(c) {
 
 function candidatesHTML(cands) {
   if (!cands.length) return `<p class="empty">Candidates appear here as soon as they are built.</p>`;
-  if (domainOf() === "memristor") {
-    return `<div class="table-scroll"><table class="data"><thead><tr><th>Material</th><th>E<sub>hull</sub> (eV/atom)</th>
-      <th>Band gap (eV)</th><th>O-vacancy barrier (eV)</th><th>Parent (eV)</th><th>Against the parent</th><th>Status</th></tr></thead><tbody>
-      ${cands.map((c) => `<tr class="${hasStructure(c.id) ? "clickable" : ""}" data-id="${esc(c.id)}">
-        <td class="formula">${tx(c.formula || c.id)}</td><td class="num">${fmt(c.e_hull)}</td><td class="num">${fmt(c.gap, 2)}</td>
-        <td class="num">${fmt(c.barrier, 2)}</td><td class="num">${fmt(c.parent_barrier, 2)}</td><td>${esc(c.bverdict || "—")}</td>
-        <td>${statusChip(c)}</td></tr>`).join("")}</tbody></table></div>
-      <p class="viewer-cap">${S.index ? "Click a material to see its crystal structure in 3D." : "3D structures become available when the research is finished."}
-      Barrier: energy an oxygen vacancy must cross to hop next to the dopant (nudged elastic band with UMA), against the lowest hop of the parent oxide; within ${0.15} eV it is "comparable".</p>`;
-  }
   if (domainOf() === "cathode") {
     return `<div class="table-scroll"><table class="data"><thead><tr><th>Material</th><th>E<sub>hull</sub> (eV/atom)</th>
       <th>Voltage (V)</th><th>Capacity (mAh/g)</th><th>Energy density (Wh/kg)</th><th>Volume change (%)</th><th>Status</th></tr></thead><tbody>
@@ -841,23 +826,6 @@ function renderViz(panel, cands) {
   const eh = cands.filter((c) => c.e_hull !== undefined && c.e_hull !== null).map((c) => ({ label: named(c), v: c.e_hull }));
   const gp = cands.filter((c) => c.gap !== undefined && c.gap !== null).map((c) => ({ label: named(c), v: c.gap }));
   let html = `<div class="viz-grid">`;
-  if (domainOf() === "memristor") {
-    const br = cands.filter((c) => c.barrier != null).map((c) => ({ label: named(c), v: c.barrier }));
-    html += barChart({ title: "Thermodynamic stability", rows: eh, unit: "energy above the hull (eV/atom)", threshold: 0.05, better: "low",
-      caption: "Energy a crystal would release by decomposing into the stable known phases. At or below 0.05 eV/atom (dashed line) it is kept." }) || "";
-    html += barChart({ title: "Electronic band gap", rows: gp, unit: "band gap (eV)", threshold: 1.5, better: "high", digits: 2,
-      caption: "The high-resistance state needs an insulator: at least 1.5 eV (dashed line, optB88 scale)." }) || "";
-    html += barChart({ title: "Oxygen-vacancy migration barrier", rows: br, unit: "barrier (eV)", better: "low", digits: 2,
-      caption: "Energy an oxygen vacancy must cross to hop next to the dopant: lower suggests easier switching (retention not computed)." }) || "";
-    html += cands.filter((c) => c.profile).map((c) => `<figure class="chart"><h4>Hop of an oxygen vacancy: ${tx(c.formula)}</h4>${profileSVG(c.profile, c.parent_profile)}
-      <figcaption>Energy along the path (nudged elastic band with UMA) next to the dopant, against the lowest hop of ${tx(c.parent_formula || "the parent")}.</figcaption></figure>`).join("");
-    if (!eh.length) html += `<div class="unavailable">Charts appear as soon as the first structures are evaluated.</div>`;
-    html += `<div id="viz-3d"></div><div id="viz-md"></div></div>`;
-    panel.innerHTML = html;
-    render3DSection($("viz-3d"));
-    $("viz-md").innerHTML = "";
-    return;
-  }
   if (domainOf() === "cathode") {
     const vt = cands.filter((c) => c.voltage != null).map((c) => ({ label: named(c), v: c.voltage }));
     const en = cands.filter((c) => c.energy != null).map((c) => ({ label: named(c), v: c.energy }));
@@ -1217,11 +1185,6 @@ function champRows(c) {
       ["Volume change on charge", v(r.volume_change_pct, 1), "%", "shrinkage of the cell when lithium leaves", v(r.parent_volume_change_pct, 1)],
       ["Lithium removed on charge", r.li_removed != null ? `${r.li_removed} of ${r.li_total}` : null, "per cell", "what charge neutrality allows"],
       ["Against its parent", (r.vs_parent || {}).verdict || null, "", "decided by the code: differences within the model's voltage error are not claimed"]);
-  } else if (c.domain === "memristor") {
-    rows.push(
-      ["Electronic band gap (optB88 / mBJ)", v(r.gap_optb88_eV, 2) && `${v(r.gap_optb88_eV, 2)} / ${v(r.gap_mbj_eV, 2)}`, "eV", "insulating high-resistance state (≥ 1.5 eV in this domain)"],
-      ["Oxygen-vacancy migration barrier", v(r.barrier_eV, 2), "eV", "nudged elastic band with UMA, hop next to the dopant", v(r.parent_barrier_eV, 2)],
-      ["Against its parent", r.barrier_vs_parent || null, "", `decided by the code: within ${r.barrier_tolerance_eV ?? 0.15} eV it is comparable`]);
   } else if (c.domain === "sodium") {
     const w = r.window_V;
     rows.push(
@@ -1869,19 +1832,6 @@ function chargeScene(card, st, ms) {
   card.raf = requestAnimationFrame(step);
 }
 
-function profileSVG(p, q) {
-  // energy along the hop (eV), the candidate in accent, its parent dashed
-  const all = [...(p || []), ...(q || [])], top = Math.max(0.1, ...all) * 1.15, W = 320, H = 150, L0 = 34, B = 128;
-  const pts = (a) => (a || []).map((e, i) => `${L0 + (i / Math.max(1, a.length - 1)) * (W - L0 - 10)},${B - (e / top) * (B - 14)}`).join(" ");
-  const peak = (a, cls) => (a && a.length ? `<text x="${W - 8}" y="${B - (Math.max(...a) / top) * (B - 14) - 4}" text-anchor="end" class="${cls}">${Math.max(...a).toFixed(2)} eV</text>` : "");
-  return `<svg class="profile" viewBox="0 0 ${W} ${H}" role="img" aria-label="energy profile of the hop">
-    <line x1="${L0}" y1="${B}" x2="${W - 8}" y2="${B}" class="axis"/><line x1="${L0}" y1="10" x2="${L0}" y2="${B}" class="axis"/>
-    <text x="4" y="14" class="lbl">eV</text><text x="${L0}" y="${H - 4}" class="lbl">start</text><text x="${W - 8}" y="${H - 4}" text-anchor="end" class="lbl">end</text>
-    ${q ? `<polyline points="${pts(q)}" class="parent"/>` : ""}<polyline points="${pts(p)}" class="cand"/>
-    ${peak(p, "cand-t")}${q ? peak(q, "parent-t") : ""}</svg>
-    <div class="legend"><span><i style="background:var(--accent)"></i>candidate</span>${q ? `<span><i style="background:#94a3b8"></i>parent oxide</span>` : ""}</div>`;
-}
-
 function voltBar(w, ion = "Li") {
   const X = (v) => Math.max(0, Math.min(100, (v / 5) * 100));
   const seg = w && w.stable ? `<i class="win" style="left:${X(w.v_low)}%;width:${Math.max(0.6, X(w.v_high) - X(w.v_low))}%"></i>` : `<i class="win none"></i>`;
@@ -1899,8 +1849,6 @@ const SODIUM_TITLES = { electrodes: "Electrodes: stability window and contact wi
 const stageTitle = (name, title) => (L.domain === "sodium" && SODIUM_TITLES[name]) || title;
 
 const STAGES = {
-  migration: { title: "Oxygen-vacancy migration barriers (nudged elastic band)", actor: ["UMA", "makes an oxygen vacancy hop next to the dopant", "compute", "Muse Spark's candidates"],
-    done: (d) => d.skipped ? `not needed: ${d.skipped}` : d.stopped ? d.stopped : `${(d.computed || []).length} candidates computed` },
   electrodes: { title: "Electrodes: stability window, lithium metal, cathode", actor: ["pymatgen", "computes the phase diagrams against the electrodes", "compute", "Muse Spark's candidates"],
     done: (d) => `${d.computed ?? 0} computed${(d.excluded || []).length ? ` · excluded: ${d.excluded.map(fname).join(", ")}` : ""}` },
   candidate_analyses: { title: "Independent reviews", actor: ["Muse Spark Open", "reviewing each candidate separately", "think"],
@@ -1940,12 +1888,6 @@ function playStage(e) {
       ${d.ok ? `<span class="ok">trusted (within ${d.tolerance})</span>` : `<span class="no">not trusted</span>`}`);
     return 1600;
   }
-  if (part === "launched" && name === "migration") {
-    cardAdd(card, `<div class="md-plan"><div><span class="tag">UMA on Modal T4</span> <b>${d.hops}</b> hops of an oxygen vacancy · candidates ${(d.candidates || []).map((x) => tx(fname(x))).join(", ")} and their parents</div>
-      <div class="md-anim"><i></i><i></i><i></i><i></i><i></i><i></i></div><p class="md-cap">an oxygen vacancy hops to its neighbour site: the band of images finds the saddle point</p></div>`);
-    labLog(`Barrier calculations launched: ${(d.candidates || []).map(fname).join(", ")}`);
-    return 2600;
-  }
   if (part === "plan") {
     const ids = [];
     for (const x of [...L.queue, ...S.events]) {
@@ -1964,8 +1906,8 @@ function playStage(e) {
   const meta = STAGES[name];
   if (name === "ranking") {
     cardAdd(card, `<div class="podium">${(d.finalists || []).map((id, i) => `<div class="pod p${i + 1}"><span class="n">${i + 1}</span>
-        <b>${tx(fname(id))}</b><span>${tx(L.domain === "memristor" ? ((d.levels || [])[i] ? `barrier ${d.levels[i]} than its parent` : "") : (d.levels || [])[i] && d.levels[i] !== "not_fitted" ? `${d.levels[i]} with its parent at 300 K` : "")}</span></div>`).join("")}</div>
-      ${L.domain !== "memristor" && (d.levels || []).length && new Set(d.levels).size === 1 && d.levels[0] !== "not_fitted" ? `<p class="muted">Same level for the three: their order is a stated convention (lowest E<sub>hull</sub> per substitution, then activation energy, then window), not a significant difference.</p>` : ""}`);
+        <b>${tx(fname(id))}</b><span>${tx((d.levels || [])[i] && d.levels[i] !== "not_fitted" ? `${d.levels[i]} with its parent at 300 K` : "")}</span></div>`).join("")}</div>
+      ${(d.levels || []).length && new Set(d.levels).size === 1 && d.levels[0] !== "not_fitted" ? `<p class="muted">Same level for the three: their order is a stated convention (lowest E<sub>hull</sub> per substitution, then activation energy, then window), not a significant difference.</p>` : ""}`);
     labLog(`Finalists: ${(d.finalists || []).map(fname).join(", ")}`, "good");
     return 4200;
   }
@@ -2070,15 +2012,6 @@ function playCandidate(e) {
       <span class="muted">${d.window && d.window.stable ? `${fmt(d.window.v_low, 2)}–${fmt(d.window.v_high, 2)} V` : "zero width"}${d.interface_reaction_energy != null ? ` · LiFePO₄ ${fmt(d.interface_reaction_energy, 3)} eV/atom` : ""}</span></div>`, "row");
     if (d.excluded) labLog(`${d.formula}: reacts with ${ionName(L.domain)} metal (${d.passivation}) — excluded`, "bad");
     return d.iteration != null ? 1500 : 650;
-  }
-  if (e.step === "migration:done") {
-    const card = stageCard("migration", d, e);
-    const col = { lower: "ok", comparable: "muted", higher: "no", undetermined: "no" }[d.verdict] || "muted";
-    cardAdd(card, `<div class="erow"><b>${tx(d.formula || fname(id))}</b>${profileSVG(d.profile_eV, d.parent_profile_eV)}
-      <span class="${col}">${tx(d.verdict || "")}</span>
-      <span class="muted">${fmt(d.barrier_eV, 2)} eV against ${fmt(d.parent_barrier_eV, 2)} eV for ${tx(d.parent || "the parent")} · ${d.converged_hops ?? "?"}/${d.hops ?? "?"} hops converged · ${d.n_atoms || "?"} atoms</span></div>`, "row");
-    labLog(`${d.formula}: oxygen-vacancy barrier ${fmt(d.barrier_eV, 2)} eV, ${d.verdict} against its parent`, d.verdict === "lower" ? "good" : d.verdict === "higher" ? "bad" : "");
-    return d.iteration != null ? 2600 : 900;
   }
   if (e.step === "candidate_analyses:done") {
     const card = stageCard("candidate_analyses", d, e);
@@ -2222,10 +2155,6 @@ function playLoop(e) {
       ["Muse Spark Open", "reviews each candidate independently", "think"], ["Muse Glimmer", "summarizes in plain language", "think"],
       ["UMA", "relaxes the lithiated and the charged crystals", "compute"], ["pymatgen", "builds the substitutions, checks charge neutrality", "compute"],
       ["Materials Project", "known phases for the convex hull", "data"]]
-      : L.domain === "memristor" ? [["Muse Spark", "proposes, decides, interprets failures, writes the report", "think"],
-      ["Muse Spark Open", "reviews each candidate independently", "think"], ["Muse Glimmer", "summarizes in plain language", "think"],
-      ["UMA", "relaxes crystals and makes oxygen vacancies hop (nudged elastic band)", "compute"], ["GapModel", "predicts band gaps", "compute"],
-      ["Materials Project", "known phases for the convex hull", "data"]]
       : [["Muse Spark", "proposes, decides, interprets failures, writes the report", "think"],
       ["Muse Spark Open", "reviews each candidate independently", "think"], ["Muse Glimmer", "summarizes in plain language", "think"],
       ["UMA", "relaxes crystals and runs molecular dynamics", "compute"], ["GapModel", "predicts band gaps", "compute"],
@@ -2233,8 +2162,6 @@ function playLoop(e) {
     cardAdd(card, `<div class="plan-box"><div><span class="tag">parent crystals</span>${(d.parents || []).map((p) => `<span class="chip">${tx(p.formula)} · ${esc(p.id)}</span>`).join(" ")}</div>
       <div><span class="tag">filters</span>${cathode
         ? `no cobalt · E<sub>hull</sub> ≤ ${th.CATHODE_EHULL_MAX} eV/atom · voltage ${th.CATHODE_VOLTAGE_MIN}–${th.CATHODE_VOLTAGE_MAX} V · capacity ≥ ${th.CATHODE_CAPACITY_MIN} mAh/g · volume change ≤ ${th.CATHODE_VOLUME_CHANGE_MAX} %`
-        : L.domain === "memristor"
-        ? `isovalent substitutions · E<sub>hull</sub> ≤ ${th.MEMRISTOR_EHULL_MAX ?? 0.05} eV/atom · band gap ≥ ${th.MEMRISTOR_BANDGAP_MIN ?? 1.5} eV · oxygen-vacancy barrier against the parent (± ${th.MEMRISTOR_EA_SIGNIFICANT_EV ?? 0.15} eV)`
         : L.domain === "sodium"
         ? `E<sub>hull</sub> ≤ ${th.SODIUM_EHULL_MAX ?? 0.05} eV/atom · band gap ≥ ${th.SODIUM_BANDGAP_MIN ?? 1.8} eV · contact with sodium metal · Na diffusion at 600 K`
         : `E<sub>hull</sub> ≤ ${th.EHULL_SYNTHESIZABLE ?? 0.05} eV/atom · band gap ≥ ${th.BANDGAP_MIN ?? 2} eV · Li diffusion at ${th.MD_SCREEN_TEMPERATURE_K ?? 600} K`}</div>

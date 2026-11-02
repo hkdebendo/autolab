@@ -205,4 +205,4 @@ def test_the_results_page_lists_one_champion_per_material_without_tests_or_copie
                                                                                        ("electrolyte", "Li6P2SeS7")]
     el = next(c for c in out["champions"] if c["domain"] == "electrolyte")
     assert len(el["also_found_by"]) == 1 and el["structure_file"] == "structures/c1.json" and el["reasons"] == ["r1"]
-    assert [(d["key"], d["count"]) for d in out["domains"]] == [("electrolyte", 1), ("cathode", 1), ("sodium", 0), ("memristor", 0)]
+    assert [(d["key"], d["count"]) for d in out["domains"]] == [("electrolyte", 1), ("cathode", 1), ("sodium", 0)]

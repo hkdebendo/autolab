@@ -220,8 +220,7 @@ class Agent:
                 "iteration": it, "hypothesis": proposal["hypothesis"],
                 "domain": d.name,
                 "candidates": [{k: c.get(k) for k in ("formula", "status", "rejected_at", "reason", "e_hull",
-                                                      "gap_optb88", "voltage_V", "capacity_mAh_g", "energy_density_Wh_kg",
-                                                      "barrier_eV", "parent_barrier_eV", "barrier_vs_parent")
+                                                      "gap_optb88", "voltage_V", "capacity_mAh_g", "energy_density_Wh_kg")
                                 if c.get(k) is not None} for c in record["candidates"]],
                 "slow_tests": [{k: f.get(k) for k in ("formula", "test", "outcome", "reason")} for f in record["feedback"]],
                 "failure_analysis": analysis.get("failure_analysis") or [],
@@ -251,8 +250,7 @@ class Agent:
                 "goal": goal, "stop_reason": result["stop_reason"],
                 "domain": d.name,
                 "finalists": [{k: pool[i].get(k) for k in ("formula", "e_hull", "gap_optb88", "md_verdict", "D_ratio_to_parent",
-                                                           "voltage_V", "capacity_mAh_g", "energy_density_Wh_kg",
-                                                           "barrier_eV", "parent_barrier_eV", "barrier_vs_parent", "novelty")
+                                                           "voltage_V", "capacity_mAh_g", "energy_density_Wh_kg", "novelty")
                                if pool[i].get(k) is not None} for i in rk.get("finalists", [])],
                 "excluded": rk.get("excluded", {}),
                 "new_candidates": len(candidates), "passed_funnel": len(result["funnel_ranking"])})

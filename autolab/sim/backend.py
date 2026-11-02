@@ -51,14 +51,6 @@ class LocalBackend:
 
         return run_md(atoms_from_dict(atoms), uma.get_calculator(precision), **kwargs)
 
-    def neb_iter(self, items: list[dict], precision: str) -> Iterator[tuple[int, dict | None]]:
-        from autolab.sim import uma
-        from autolab.sim.neb import vacancy_barrier
-
-        calc = uma.get_calculator(precision)
-        for k, it in enumerate(items):
-            yield k, vacancy_barrier(it["atoms"], it["i"], it["j"], calc, n_images=it.get("n_images", config.NEB_IMAGES))
-
 
 class ModalBackend:
     """Calls the GPU functions deployed on Modal (modal deploy modal_app/uma_app.py)."""
@@ -87,19 +79,6 @@ class ModalBackend:
     def md(self, atoms: dict, precision: str, **kwargs) -> dict:
         fn = self._fn("md_run").with_options(gpu=self.md_gpu, timeout=self.md_timeout_s or config.MODAL_MD_TIMEOUT)
         return fn.remote(atoms, precision=precision, **kwargs)
-
-    def neb_iter(self, items: list[dict], precision: str) -> Iterator[tuple[int, dict | None]]:
-        """Every hop at once, one T4 container each ({"atoms", "i", "j"}); yields (index, result) in order, None for
-        a failed hop (error in self.errors). No retry."""
-        fn = self._fn("neb_hop").with_options(max_containers=max(1, len(items)), timeout=config.MODAL_NEB_TIMEOUT)
-        calls = [fn.spawn(it["atoms"], it["i"], it["j"], precision=precision,
-                          n_images=it.get("n_images", config.NEB_IMAGES)) for it in items]
-        for k, call in enumerate(calls):
-            try:
-                yield k, call.get()
-            except Exception as e:
-                self.errors[k] = f"{type(e).__name__}: {e}"[:300]
-                yield k, None
 
     def md_batch_iter(self, items: list[dict], precision: str) -> Iterator[tuple[int, dict | None]]:
         """All MD runs at once, one container each ({"atoms", "temperature_K", "n_steps", "seed"}); yields
@@ -367,72 +346,3 @@ def prefetch(relax: list = (), md: list = (), temperature_K: float | None = None
         if res is not None:
             mcache.set(key, {**res, "settings": mset})
     return {"relax": len(r_missing), "md": len(m_missing)}
-
-
-def neb_settings(i: int, j: int, precision: str = config.UMA_PRECISION_ENERGY, n_images: int = config.NEB_IMAGES) -> dict:
-    """What a cached barrier depends on, besides the structure."""
-    return {"kind": "neb", "hop": [int(i), int(j)], "precision": precision, "images": int(n_images),
-            "fmax": config.NEB_FMAX, "steps": config.NEB_STEPS, "model": config.UMA_MODEL}
-
-
-def neb_plan(items: list[dict]) -> dict:
-    """Estimated T4 seconds and cost of the hops not in the cache ({"atoms", "i", "j"})."""
-    secs = [len(_as_atoms_dict(it["atoms"])["numbers"]) * config.MODAL_NEB_S_PER_ATOM + config.MODAL_STARTUP_S
-            for it in items]
-    usd_h = config.MODAL_GPU_USD_PER_H[config.MODAL_GPU]
-    return {"hops": len(items), "seconds": secs, "usd": sum(secs) * usd_h / 3600,
-            "usd_max": len(items) * config.MODAL_NEB_TIMEOUT * usd_h / 3600}
-
-
-def _neb_key(it: dict, precision: str) -> str:
-    return atoms_key(_as_atoms_dict(it["atoms"]), **neb_settings(it["i"], it["j"], precision,
-                                                                 it.get("n_images", config.NEB_IMAGES)))
-
-
-def neb_missing(items: list[dict], precision: str = config.UMA_PRECISION_ENERGY,
-                cache: JsonCache | None = None) -> list[dict]:
-    cache = cache or JsonCache(config.CACHE_DIR / "neb")
-    return [it for it in items if cache.get(_neb_key(it, precision)) is None]
-
-
-def _run_neb_pass(items: list[dict], precision: str, backend, cache: JsonCache) -> list[dict | None]:
-    keys = [_neb_key(it, precision) for it in items]
-    out: list[dict | None] = [None] * len(items)
-    todo = []
-    for k, key in enumerate(keys):
-        hit = cache.get(key)
-        if hit is not None:
-            out[k] = {**hit, "cached": True}
-        else:
-            todo.append(k)
-    if todo:
-        backend = backend or get_backend()
-        sent = [{**items[k], "atoms": _as_atoms_dict(items[k]["atoms"])} for k in todo]
-        for n, res in backend.neb_iter(sent, precision=precision):
-            if res is not None:
-                k = todo[n]
-                res = {**res, "hop": [int(x) for x in res.get("hop", [items[k]["i"], items[k]["j"]])],
-                       "settings": neb_settings(items[k]["i"], items[k]["j"], precision,
-                                                items[k].get("n_images", config.NEB_IMAGES))}
-                cache.set(keys[k], res)
-                out[k] = {**res, "cached": False}
-    return out
-
-
-def run_nebs(items: list[dict], precision: str = config.UMA_PRECISION_ENERGY, backend=None,
-             cache: JsonCache | None = None, retry: bool = True) -> list[dict | None]:
-    """Vacancy barriers of several hops ({"atoms": perfect supercell, "i", "j", optional "n_images"}), cached; the
-    missing ones in one backend call (parallel on Modal). A band that does not converge is computed once more with
-    config.NEB_IMAGES_RETRY images (a narrow saddle needs more images), never more; a failed hop gives None."""
-    cache = cache or JsonCache(config.CACHE_DIR / "neb")
-    out = _run_neb_pass(items, precision, backend, cache)
-    if not retry:
-        return out
-    again = [k for k, r in enumerate(out) if r is not None and not (r["converged"] and r["endpoints_converged"])
-             and items[k].get("n_images", config.NEB_IMAGES) < config.NEB_IMAGES_RETRY]
-    if again:
-        second = _run_neb_pass([{**items[k], "n_images": config.NEB_IMAGES_RETRY} for k in again], precision, backend, cache)
-        for k, r in zip(again, second):
-            if r is not None:
-                out[k] = {**r, "retried_from_images": items[k].get("n_images", config.NEB_IMAGES)}
-    return out

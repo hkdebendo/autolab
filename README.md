@@ -121,22 +121,6 @@ Beyond lithium, a geopolitical bottleneck: the same agent searches **sodium soli
 
 First live research (Nov 2, 2026, `results/2026-11-02_sodium_run/`): *"Find new sodium solid electrolytes derived from Na3PS4 or Na3SbS4 that stay stable against sodium metal and let Na+ move fast."* 3 rounds, 9 proposals: 6 passed every filter, 1 already in Materials Project, 1 rejected for its band gap (1.77 eV), 1 above the hull limit; Na5PWS8 was then excluded because it reacts with sodium metal into metallic tungsten. Finalists: Na3PSeS3 (E_hull 0.002 ± 0.002 eV/atom, gap 2.27 eV, Na diffusion at 600 K tied with Na3PS4: 0.94 ± 0.71), the NASICON Na3Zr2Ge2PO12 and Na6P2SeS7. Honest outcome: every finalist is within the UMA error of the hull, none is shown to conduct faster, and each is only kinetically stable against sodium metal (it forms a passivating layer). The MD cost cap stopped two simulations (a NASICON candidate estimated at 9 $). During this research the Meta API answered "model not found" to every Muse Spark call for about 30 minutes (the model was listed for the same key): Muse Spark Open (Baseten) proposed and chose in its place. Once Meta answered again, the literature check and the report were run again with Muse Spark from the saved results (no new computation): the control Na3PS4 was found, Na3PSeS3 (Na3PS3Se in the Na3PS4-xSex series) and Na6P2SeS7 are **already published**, and the Ge-NASICON belongs to a studied family.
 
-## Fourth domain: oxides for memristors (AI designing the hardware of AI)
-
-Neuromorphic chips use memristors, resistive memories that work like synapses: their resistance switches when oxygen vacancies move through an oxide. The same agent searches **doped oxides for valence-change memristors** (`autolab/domains/memristor.py`): Muse Spark proposes isovalent substitutions in HfO2, TiO2 and SrTiO3; the code checks charge neutrality, relaxes the crystal with UMA, keeps the stable and insulating ones, and in each round computes the **barrier an oxygen vacancy must cross to hop next to the dopant**, by the nudged elastic band method with UMA on a Modal T4 (`autolab/sim/neb.py`), against the lowest hop of the parent oxide computed the same way. The code decides: lower, comparable (within 0.15 eV) or higher. A lower barrier suggests easier switching (lower forming and switching voltages), at a possible cost in retention; neither is claimed as measured.
-
-Truth test, fixed before the runs (`results/2026-11-02_memristor_truth/`): neutral oxygen vacancy, lowest of the distinct nearest hops.
-
-| Oxide | UMA barrier (eV) | Reference |
-|---|---|---|
-| CeO2 (fast oxygen conductor) | 0.45 | DFT 0.46-1.08 eV |
-| MgO (slow) | 4.29 | far above CeO2, as required (value to confirm) |
-| HfO2 (monoclinic) | 2.42 | about 2.4 eV in DFT for the neutral vacancy |
-| TiO2 (rutile) | 0.63 | measured, no criterion |
-| SrTiO3 | 0.34 | measured, no criterion |
-
-The two physical criteria pass; the third, every band converged, **fails**: one HfO2 hop (2.54 Å, between the two kinds of oxygen site of monoclinic HfO2) did not converge with 300 steps, 600 steps, nor 9 images instead of 5 (its estimate moved 2.02 → 2.18 → 1.65 eV: a very narrow saddle). Unconverged bands are retried once with more images, then never used; and since that HfO2 hop might hide a lower saddle, a candidate is not called "lower" than such a parent unless it is also below the unconverged estimate. The verdict tolerance (0.15 eV) was checked: equivalent hops of TiO2 agree within 0.008 eV, a 270-atom cell changes the barrier by 0.019 eV (`results/2026-11-02_memristor_tolerance/`). Limits: neutral vacancies only, single hops, no electric field, crystalline cells instead of amorphous films, no filament, retention or endurance.
-
 ## Limits that were addressed, and what remains
 
 | Limit | What was done | What remains |

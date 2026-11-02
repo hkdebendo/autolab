@@ -28,16 +28,13 @@ SEARCH_RESULTS_SHOWN = 5  # search results listed as sources when the API return
 # (many results of a web search are unrelated: songs, paintings, stock news were seen on 2026-10-29).
 RELEVANT_TERMS = ("electrolyte", "superionic", "ionic conduct", "ion conduct", "thiophosphate", "argyrodite")
 CATHODE_TERMS = ("cathode", "positive electrode", "spinel", "olivine", "lithium-ion", "li-ion", "battery", "batteries")
-MEMRISTOR_TERMS = ("memristor", "resistive switching", "resistive memory", "rram", "reram", "neuromorphic",
-                   "oxygen vacanc", "valence change", "dielectric", "ferroelectric")
 SODIUM_TERMS = ("sodium", "na-ion", "na+", "electrolyte", "superionic", "ionic conduct", "nasicon", "thiophosphate")
 
 
 def _relevant(result: dict, c: dict) -> bool:
     text = f"{result.get('title') or ''} {result.get('url') or ''}".lower()
     names = [n.lower() for n in (c.get("formula"), c.get("parent_formula")) if n]
-    terms = {"cathode": CATHODE_TERMS, "sodium": SODIUM_TERMS, "memristor": MEMRISTOR_TERMS}.get(c.get("kind"),
-                                                                                                  RELEVANT_TERMS)
+    terms = {"cathode": CATHODE_TERMS, "sodium": SODIUM_TERMS}.get(c.get("kind"), RELEVANT_TERMS)
     return any(n in text for n in names) or any(t in text for t in terms)
 _URL = re.compile(r"\(?\s*(?:https?://|www\.)\S+\s*\)?")
 _OVERCLAIM = re.compile(r"never (?:been )?(?:reported|discovered|published|synthesi[sz]ed|studied)|"
@@ -78,12 +75,8 @@ SYSTEM_SODIUM = SYSTEM.replace("a computationally predicted solid electrolyte", 
                                  "solid electrolyte (Na+ conductor)")
 
 
-SYSTEM_MEMRISTOR = SYSTEM.replace("a computationally predicted solid electrolyte", "a computationally predicted "
-                                   "doped oxide for memristors (resistive switching memories)")
-
-
 def messages_for(c: dict) -> list[dict]:
-    system = {"cathode": SYSTEM_CATHODE, "sodium": SYSTEM_SODIUM, "memristor": SYSTEM_MEMRISTOR}.get(c.get("kind"), SYSTEM)
+    system = {"cathode": SYSTEM_CATHODE, "sodium": SYSTEM_SODIUM}.get(c.get("kind"), SYSTEM)
     return [{"role": "system", "content": system}, {"role": "user", "content": _describe(c)}]
 
 
