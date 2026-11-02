@@ -1,8 +1,9 @@
 """Serve the AutoLab web interface and relay its API calls to the AutoLab service on Modal.
 
 It serves the page, relays /api/* to AUTOLAB_API_URL (the browser never sees that address) and pushes the events of
-a research over a WebSocket (/ws/conversations/{id}) as soon as the service has them. No key lives here, no research
-data is stored here (it is in the database, behind the service), no heavy computation happens here.
+a research over a WebSocket (/ws/conversations/{id}) as soon as the service has them. It also relays a dictated
+request to Meta Muse Voice Transcribe (/ws/voice): the key is read from the environment or .env at that moment and is
+never sent to the browser. No research data is stored here, no heavy computation happens here.
 """
 
 import asyncio
@@ -165,3 +166,61 @@ async def live(ws: WebSocket, cid: str) -> None:
             reader.cancel()
             with contextlib.suppress(asyncio.CancelledError, WebSocketDisconnect, RuntimeError):
                 await reader
+
+
+@app.websocket("/ws/voice")
+async def voice(ws: WebSocket) -> None:
+    """Push to talk: the browser sends 16 kHz PCM16 frames, then {"type": "stop"}; partial and final transcripts come
+    back as {"type": "partial" | "final", "text"}. One recording, at most config.VOICE_MAX_SECONDS of audio."""
+    import json
+
+    import websockets
+
+    from autolab import config
+    from autolab.llm import voice as asr
+
+    await ws.accept()
+    key = os.environ.get("MODEL_API_KEY") or _env_file_value("MODEL_API_KEY")
+    if not key:
+        await ws.send_json({"type": "error", "message": "voice input needs MODEL_API_KEY in .env"})
+        await ws.close()
+        return
+    sent, ended = 0, False
+    try:
+        async with websockets.connect(config.VOICE_URL, open_timeout=15, max_size=2**20) as up:
+            await up.send(asr.handshake(key))
+
+            async def from_meta() -> None:
+                async for message in up:
+                    event = asr.parse(message)
+                    if event:
+                        await ws.send_json(event)
+
+            reader = asyncio.create_task(from_meta())
+            while not ended:
+                msg = await ws.receive()
+                if msg.get("type") == "websocket.disconnect":
+                    break
+                if msg.get("bytes"):
+                    chunk = msg["bytes"][: max(0, asr.max_bytes() - sent)]
+                    if chunk:
+                        sent += len(chunk)
+                        await up.send(chunk)
+                    if sent >= asr.max_bytes():  # the cap: the recording ends by itself
+                        ended = True
+                elif msg.get("text") and json.loads(msg["text"]).get("type") == "stop":
+                    ended = True
+            if ended:
+                await up.send(asr.END_STREAM)
+                with contextlib.suppress(asyncio.TimeoutError, websockets.ConnectionClosed):
+                    await asyncio.wait_for(reader, timeout=15)
+            reader.cancel()
+    except (OSError, websockets.WebSocketException, asyncio.TimeoutError):
+        with contextlib.suppress(Exception):
+            await ws.send_json({"type": "error", "message": "the transcription service cannot be reached"})
+    except WebSocketDisconnect:
+        return
+    print(f"voice: {sent / 32000:.1f} s of audio transcribed", flush=True)  # usage (no content logged)
+    with contextlib.suppress(Exception):
+        await ws.send_json({"type": "done"})
+        await ws.close()

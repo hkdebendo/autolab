@@ -139,6 +139,7 @@ Outputs are **computational predictions**, not proven materials: DFT checks, syn
 - **Muse Spark Open** (Baseten): one independent review per candidate, in parallel; fallback of Muse Spark.
 - **Muse Glimmer** (Fireworks, dedicated deployment): plain-language summaries of each round and of the research.
 - **UMA** `uma-s-1p2` (Meta FAIR, open weights): relaxations, energies and molecular dynamics, on Modal GPUs (T4 for relaxations, H100 for MD).
+- **Muse Voice Transcribe** (Meta Model API, realtime): the researcher can dictate a request; the local web server relays the microphone to Meta, so the key never reaches the browser. The agent's spoken replies use the browser's speech synthesis (no Meta text-to-speech model is available on this account).
 - **Muse Code**: coding agent used for parts of the web interface; commits written with it say so.
 
 ## Architecture

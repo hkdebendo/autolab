@@ -231,6 +231,13 @@ LLM_PROVIDERS: dict[str, dict] = {
         "api": "chat", "usd_per_m_input": 0.0, "usd_per_m_output": 0.0,
     },
 }
+# Voice (owner, 2026-11-02): the researcher may dictate a request; Meta Muse Voice Transcribe turns it into text
+# (realtime WebSocket, push to talk, through the local web server: the key stays on the server). The agent's voice is
+# the browser's speech synthesis (no Meta text-to-speech model on this account).
+VOICE_MODEL = "muse-voice-transcribe-1.0"
+VOICE_URL = "wss://api.meta.ai/v1/asr/realtime"
+VOICE_ENCODING = "PCM_16KHZ"  # mono PCM16 at 16 kHz, 80 ms frames (2560 bytes)
+VOICE_MAX_SECONDS = 30  # one recording at most (cost cap; about 0.18 $ per hour of audio, third-party figure)
 LLM_FAST_PROVIDER = "baseten"  # small tasks (formula checks, JSON conversion) until Glimmer takes them
 # Muse Glimmer (Fireworks) writes the plain-language summaries of each iteration and of the run, in the background.
 SUMMARY_PROVIDER = "fireworks"

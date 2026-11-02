@@ -257,6 +257,116 @@ $("settings-btn").onclick = () => navigate("/settings");
 $("theme-choice").addEventListener("change", (e) => applyTheme(e.target.value));
 $("theme-btn").onclick = () => applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
 
+/* ---------- voice: dictation with Muse Voice Transcribe, the agent's voice from the browser ---------- */
+
+const VOICE = { on: (() => { try { return localStorage.getItem("autolab-voice") === "on"; } catch { return false; } })(),
+  spoken: new Set(), conv: null, fresh: false, queue: 0, rec: null };
+const plainText = (s) => String(s || "").replace(/<[^>]+>/g, " ").replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+  .replace(/[*_`#>|]/g, " ").replace(/\s+/g, " ").trim();
+function pickVoice() {
+  const vs = "speechSynthesis" in window ? speechSynthesis.getVoices() : [];
+  return vs.find((v) => /^en/i.test(v.lang) && /natural/i.test(v.name)) || vs.find((v) => /^en-US/i.test(v.lang))
+    || vs.find((v) => /^en/i.test(v.lang)) || null;
+}
+function say(text, important = false) {
+  if (!VOICE.on || !("speechSynthesis" in window)) return;
+  const t = plainText(text);
+  if (!t || (!important && VOICE.queue > 2)) return;  // keep pace with the lab: skip a line rather than lag behind
+  const u = new SpeechSynthesisUtterance(t.length > 280 ? `${t.slice(0, 277)}…` : t);
+  const v = pickVoice();
+  if (v) u.voice = v;
+  u.lang = (v && v.lang) || "en-US";
+  u.rate = 1.04;
+  VOICE.queue++;
+  u.onend = u.onerror = () => { VOICE.queue = Math.max(0, VOICE.queue - 1); };
+  speechSynthesis.speak(u);
+}
+function hush() { if ("speechSynthesis" in window) speechSynthesis.cancel(); VOICE.queue = 0; }
+function setVoice(on) {
+  VOICE.on = on;
+  try { localStorage.setItem("autolab-voice", on ? "on" : "off"); } catch { /* private window */ }
+  if (!on) hush();
+  const b = $("voice-btn");
+  b.setAttribute("aria-pressed", String(on));
+  b.title = `Agent voice: ${on ? "on" : "off"}`;
+}
+setVoice(VOICE.on);
+$("voice-btn").onclick = () => { setVoice(!VOICE.on); if (VOICE.on) say("Voice on.", true); };
+
+function voiceMessages(shown) {
+  if (VOICE.conv !== S.id) {  // a conversation just opened: its past messages are not read, unless it was just asked
+    VOICE.conv = S.id;
+    if (!VOICE.fresh) { for (const m of shown) VOICE.spoken.add(m.id); return; }
+  }
+  VOICE.fresh = false;
+  for (const m of shown) {
+    if (VOICE.spoken.has(m.id)) continue;
+    VOICE.spoken.add(m.id);
+    if (m.kind === "report") say("The final report is ready.", true);
+    else if (m.kind !== "notice") say(m.content, true);
+  }
+}
+
+async function startDictation() {
+  hush();
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { toast("This browser cannot use a microphone."); return; }
+  let stream;
+  try { stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true } }); }
+  catch { toast("The microphone is not available."); return; }
+  const ws = new WebSocket(`${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws/voice`);
+  ws.binaryType = "arraybuffer";
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const src = ctx.createMediaStreamSource(stream);
+  const proc = ctx.createScriptProcessor(4096, 1, 1);
+  const mute = ctx.createGain();
+  mute.gain.value = 0;
+  const ratio = ctx.sampleRate / 16000, FRAME = 1280;  // 80 ms of 16 kHz PCM16
+  let pending = new Int16Array(0);
+  const start = $("prompt").value.trim();
+  proc.onaudioprocess = (e) => {
+    if (ws.readyState !== 1) return;
+    const x = e.inputBuffer.getChannelData(0), n = Math.floor(x.length / ratio), out = new Int16Array(n);
+    for (let i = 0; i < n; i++) {  // average each window: a simple low-pass before the 16 kHz resampling
+      const a = Math.floor(i * ratio), b = Math.min(x.length, Math.floor((i + 1) * ratio));
+      let sum = 0;
+      for (let k = a; k < b; k++) sum += x[k];
+      out[i] = Math.max(-1, Math.min(1, sum / Math.max(1, b - a))) * 0x7fff;
+    }
+    const all = new Int16Array(pending.length + out.length);
+    all.set(pending); all.set(out, pending.length);
+    let k = 0;
+    for (; k + FRAME <= all.length; k += FRAME) ws.send(all.slice(k, k + FRAME).buffer);
+    pending = all.slice(k);
+  };
+  src.connect(proc); proc.connect(mute); mute.connect(ctx.destination);
+  ws.onmessage = (e) => {
+    const d = JSON.parse(e.data);
+    if (d.type === "partial" || d.type === "final") { $("prompt").value = start ? `${start} ${d.text}` : d.text; autosize(); }
+    else if (d.type === "error") toast(`Dictation: ${d.message}.`);
+    if (d.type === "done" || d.type === "error") ws.close();
+  };
+  ws.onerror = () => toast("Dictation: the voice relay cannot be reached.");
+  const stopAudio = () => {
+    try { proc.disconnect(); src.disconnect(); ctx.close(); } catch { /* already closed */ }
+    stream.getTracks().forEach((t) => t.stop());
+  };
+  VOICE.rec = { ws, stopAudio, timer: setTimeout(() => stopDictation(), 30000) };
+  $("mic").classList.add("recording");
+  $("mic").title = "Stop dictation";
+}
+function stopDictation() {
+  const r = VOICE.rec;
+  if (!r) return;
+  VOICE.rec = null;
+  clearTimeout(r.timer);
+  r.stopAudio();
+  if (r.ws.readyState === 1) r.ws.send(JSON.stringify({ type: "stop" }));
+  $("mic").classList.remove("recording");
+  $("mic").title = "Dictate (Muse Voice Transcribe)";
+  $("prompt").focus();
+}
+$("mic").onclick = () => (VOICE.rec ? stopDictation() : startDictation());
+
 /* ---------- tutorial: how AutoLab works, six cards ---------- */
 
 const TUT = [
@@ -431,6 +541,8 @@ $("composer").addEventListener("submit", async (e) => {
   if (mode === "stopping" || S.sending) return;
   const text = $("prompt").value.trim();
   if (!text) return;
+  if (VOICE.rec) stopDictation();
+  VOICE.fresh = true;
   S.sending = true;
   $("prompt").value = ""; autosize();
   setComposer(mode);
@@ -634,27 +746,34 @@ function renderThread() {
     parts.push(inline ? aiBlock(`<div id="lab-slot"></div>`, "lab-msg") : aiBlock(`<div id="research"></div>`));
     researchPlaced = true;
   };
+  const shown = [];
   for (const m of v.messages) {
     if (m.role === "user") { parts.push(userMsg(m.content)); continue; }
+    const before = parts.length;
+    renderOne(m);
+    if (parts.length > before) shown.push(m);
+  }
+  function renderOne(m) {
     if (m.kind === "scope") {
       parts.push(aiBlock(`${who("Muse Spark", "read the request", "think")}<div class="prose">${md(m.content)}</div>`));
       if (hasResearch && !(v.messages.some((x) => x.data && x.data.action === "reused"))) place();
     } else if (m.kind === "notice") {
       const newChat = m.data && m.data.action === "new_chat", reused = m.data && m.data.action === "reused";
-      if (hideFinal && !reused && !newChat) continue;
+      if (hideFinal && !reused && !newChat) return;
       parts.push(aiBlock(`<div class="notice${newChat ? " warn" : reused ? " reused" : ""}">${tx(m.content)}${newChat
         ? `<div class="actions"><button class="primary-btn" type="button" data-newchat="${m.id}">New chat</button></div>` : ""}</div>`));
       if (reused && hasResearch) place();
     } else if (m.kind === "summary") {
-      if (hideFinal) continue;
+      if (hideFinal) return;
       parts.push(aiBlock(`<div class="prose summary"><p>${tx(m.content)}</p></div>`));
     } else if (m.kind === "report") {
-      if (hideFinal) continue;
+      if (hideFinal) return;
       parts.push(aiBlock(`${who("Muse Spark", "wrote the report from the numbers computed by the code", "think")}${reportBlock(m)}`));
     } else {
       parts.push(aiBlock(`<div class="prose">${md(m.content)}</div>`));
     }
   }
+  voiceMessages(shown);
   if ((hasResearch || inline) && !researchPlaced) place();
   $("view").innerHTML = `<div class="thread">${parts.join("")}</div>`;
   labPlace();
@@ -1702,6 +1821,7 @@ function labLog(text, tone = "") {
   li.innerHTML = `<span class="r">${L.round ? `R${L.round}` : "—"}</span>${tx(text)}`;
   ul.prepend(li);
   while (ul.children.length > 14) ul.lastChild.remove();  // 6 shown in the chat, all in full screen
+  say(text);
 }
 
 /* cards */

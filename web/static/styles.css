@@ -757,3 +757,14 @@ table.data.mini th, table.data.mini td { padding: 4px 12px; }
 .role-model.meta { background: var(--accent-soft, rgba(59, 130, 246, .12)); color: var(--accent, #3b82f6); }
 .role-model.tool { background: var(--bg-soft, rgba(100, 116, 139, .12)); color: var(--muted, #64748b); }
 @media (max-width: 560px) { .tut-roles li { grid-template-columns: 1fr; gap: 2px; } }
+
+/* voice: dictation button and agent voice toggle */
+.composer .mic { flex: none; width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border); background: var(--raised, transparent);
+  color: var(--text-2); display: grid; place-items: center; cursor: pointer; margin-right: 6px; align-self: flex-end; }
+.composer .mic svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+.composer .mic:hover { color: var(--accent); border-color: var(--accent); }
+.composer .mic.recording { background: #dc2626; border-color: #dc2626; color: #fff; animation: mic-pulse 1.2s ease-in-out infinite; }
+@keyframes mic-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, .45); } 50% { box-shadow: 0 0 0 7px rgba(220, 38, 38, 0); } }
+.voice-btn .spk-on { display: none; } .voice-btn[aria-pressed="true"] .spk-on { display: block; } .voice-btn[aria-pressed="true"] .spk-off { display: none; }
+.voice-btn[aria-pressed="true"] { color: var(--accent); }
+@media (prefers-reduced-motion: reduce) { .composer .mic.recording { animation: none; } }
