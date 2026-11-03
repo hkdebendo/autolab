@@ -219,4 +219,7 @@ See `SPEC.md` for the architecture and every validated parameter, `docs/DECISION
 ## Author
 
 **Vincent Ricardo Amoussou** · Benin
--
+
+## License
+
+Open source under the [MIT License](LICENSE).

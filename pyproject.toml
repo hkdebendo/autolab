@@ -7,6 +7,7 @@ name = "autolab"
 version = "0.1.0"
 description = "AI agent searching solid electrolytes for lithium-metal batteries"
 readme = "README.md"
+license = { text = "MIT" }
 requires-python = ">=3.12"
 dependencies = [
     "pymatgen",
