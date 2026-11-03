@@ -3,12 +3,15 @@
     python scripts/dev_server.py          then open http://127.0.0.1:8100
 
 The same service as in production (agent/service.py) over a memory store, filled with the recorded researches
-(agent/importer.py); new requests are answered by a stand-in (no model is called) and never start a research.
+(agent/importer.py), the three home page examples first, under their service ids. A known request (a home page
+example, or the request of a recorded research) replays that research; other requests are answered by a stand-in (no
+model is called) and never start a research.
 """
 
 from __future__ import annotations
 
 import json
+import uuid
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
@@ -16,7 +19,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from autolab.agent.importer import RECORDED, import_run
+from autolab.agent.importer import HOME, RECORDED, import_run
 from autolab.agent.progress import DOMAIN_STEPS, domain_of, steps_from_events
 from autolab.agent.service import Service
 from autolab.llm.client import Reply
@@ -41,9 +44,32 @@ class Offline:
                      "", 0, 0, None, 0.0, 0.0)
 
 
-svc = Service(MemoryStore(), lambda: [Offline()], lambda cid: None)
+class Preview(Service):
+    """A known request replays its recorded research, as in the service (where the scope check comes first)."""
+
+    def start(self, text: str) -> dict:
+        src = self.reusable(text)
+        if src is None:
+            return super().start(text)
+        cid = uuid.uuid4().hex[:12]
+        scope = src.get("scope") or {}
+        self.store.create({"id": cid, "title": src["title"], "goal": text, "domain": src.get("domain"),
+                           "status": "answered", "scope": scope})
+        self.store.add_message(cid, "user", "request", text)
+        reply = next((m["content"] for m in self.store.messages(src["id"]) if m["kind"] == "scope"), "")
+        self.store.add_message(cid, "assistant", "scope", reply, data=scope)
+        self.reuse(cid, src, scope)
+        return self.view(cid)
+
+
+svc = Preview(MemoryStore(), lambda: [Offline()], lambda cid: None)
+home = {folder for folder, _, _ in HOME}
+for folder, cid, title in HOME:
+    run = ROOT / folder
+    if (run / "result.json").exists():
+        import_run(svc, run, cid, title, json.loads((run / "result.json").read_text(encoding="utf-8"))["goal"])
 for folder, cid, title, request in RECORDED:
-    if (ROOT / folder / "result.json").exists():
+    if folder not in home and (ROOT / folder / "result.json").exists():
         import_run(svc, ROOT / folder, cid, title, request)
 
 app = FastAPI()

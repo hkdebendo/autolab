@@ -1,0 +1,40 @@
+{
+ "structures": [
+  {
+   "id": "it1-c2",
+   "formula": "Li3Mn5NiO12",
+   "file": "structures/it1-c2.json"
+  },
+  {
+   "id": "it1-c3",
+   "formula": "Li8TiMn11(NiO8)4",
+   "file": "structures/it1-c3.json"
+  },
+  {
+   "id": "it2-c2",
+   "formula": "Li6Mn11AlO24",
+   "file": "structures/it2-c2.json"
+  },
+  {
+   "id": "it2-c3",
+   "formula": "Li8Mn11V(NiO8)4",
+   "file": "structures/it2-c3.json"
+  },
+  {
+   "id": "it3-c1",
+   "formula": "Li6TiMn11O24",
+   "file": "structures/it3-c1.json"
+  },
+  {
+   "id": "it3-c2",
+   "formula": "Li8ZrMn11(NiO8)4",
+   "file": "structures/it3-c2.json"
+  },
+  {
+   "id": "it3-c3",
+   "formula": "Li4Mn4SiP3O16",
+   "file": "structures/it3-c3.json"
+  }
+ ],
+ "md": []
+}

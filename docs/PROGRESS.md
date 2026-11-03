@@ -101,3 +101,5 @@ Truth test vs Materials Project: 6/6 (Li 0.00/0.00, Li2S 3.38/3.39, LiI 4.41/4.3
 Recorded researches unchanged (their gaps shown "recorded prediction"). 223 tests pass, no paid call in tests.
 
 **Campaign review by Muse Wonder (2026-11-03)** — last stage of the three domains: Muse Wonder reads the whole campaign once and writes what it taught, what worked, what failed and the next campaign; event, progress step, lab card, last message, follow-up context, README/SPEC. The three home-page researches reviewed afterwards: 0.066 $ (cathodes), 0.121 $ (lithium), 0.070 $ (sodium), 14-17 s each. Tests pass; research service redeployed.
+
+**Repository runnable by the judges (2026-11-03)** — README "Run it" rewritten (install fixed, sample data labelled, keys table, UMA license and GPUs, no GPU for the demo); local demo replays the three home examples with 3D files (results/<run>/replay, 11 MB); 5 new demo tests. Next: video, then hybrid replay with live Meta calls in the demo.

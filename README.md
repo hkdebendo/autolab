@@ -188,25 +188,55 @@ Every step reads the caches before computing (relaxations, MD runs, Materials Pr
 
 About 36 $ of Modal GPU time (calibrations, benchmark, runs), 1.2 $ of Muse Spark, 0.9 $ of Muse Spark Open, 2–3 $ of Muse Glimmer, 0.26 $ of Muse Wonder (three campaign reviews, 0.07–0.12 $ each). A complete 3-round research costs about 5–6 $ of Modal, 0.3 $ of Muse Spark and about 0.1 $ of Muse Wonder.
 
-## Reproduce
+## Run it
+
+### Quick demo: no GPU, no key
+
+The demo plays **sample data: three researches recorded on Nov 1–2, 2026** (lithium solid electrolytes, cobalt-free cathodes, sodium solid electrolytes; `results/2026-11-01_feedback_run/`, `results/2026-11-02_cathode_run/`, `results/2026-11-02_sodium_run/`). Their heavy computations (UMA relaxations and molecular dynamics on GPUs, DFT, Materials Project queries) were done when they ran and are stored in the repository with their 3D files, so **no GPU is needed to watch them**: a GPU is only needed to compute new candidates.
 
 ```bash
-pip install -e ".[bandgap,dev]"
-cp .env.example .env          # then fill in your own keys
-pytest                        # 188 CPU tests; GPU and paid-API tests are skipped
-pytest web/tests              # 18 tests of the interface
+git clone https://github.com/hkdebendo/autolab.git && cd autolab
+python -m venv .venv                  # Python 3.12
+source .venv/bin/activate             # Windows: .venv\Scripts\activate
+pip install -e ".[web,dev]"
+python scripts/dev_server.py          # then open http://127.0.0.1:8100
+```
+
+On the home page, click one of the three examples: the research is played in the lab, then come its research card, summary, final report and Muse Wonder's campaign review. The **Results**, **Benchmark & Tests** and **Settings** pages work too. A recorded research can also be opened directly, e.g. `http://127.0.0.1:8100/c/0245f94a24cf?watch` (lithium), `590fa5770002` (cathodes), `7af9efdcdd9a` (sodium).
+
+The interface shows the agent at work: one card per action, naming the model or tool and what it does (Muse Spark reasoning and proposing, pymatgen building, UMA relaxing the crystal in 3D while the cell parameters move, the electronic insulation check, Muse Spark Open reviews, molecular dynamics with the recorded lithium trajectory, failures sent back and explained, Muse Wonder reviewing the whole campaign), the progress list ticking and a lab notebook of the decisions, with the agent's voice (the browser's speech synthesis) that can be muted from the lab. A **Results** page gathers the champion of every research by domain: what it is, its crystal structure in 3D, its properties with units and error bars, the comparison with its parent, the literature check, why it was chosen and what limits the confidence, with its final report as a PDF.
+
+### Your own keys
+
+Copy the template and fill in your keys (each line of `.env.example` says what it powers and where to get it); `.env` is ignored by Git, never commit it:
+
+```bash
+cp .env.example .env
+```
+
+| Key | Powers |
+|---|---|
+| `MODEL_API_KEY` | **Meta Model API**: Muse Spark, Muse Wonder, Muse Voice Transcribe |
+| `BASETEN_API_KEY` | Muse Spark Open (independent reviews) |
+| `FIREWORKS_API_KEY`, `GLIMMER_DEPLOYMENT` | Muse Glimmer (plain-language summaries) |
+| `MP_API_KEY` | Materials Project (known phases, reference energies) |
+| `HF_TOKEN` | the UMA weights (gated: accept the FAIR Chemistry License on Hugging Face) |
+
+New computations also need a GPU: UMA runs on Modal (`modal deploy modal_app/uma_app.py`, `modal_app/dft_app.py`, `modal_app/agent_app.py`) or on a local NVIDIA GPU (`SIM_BACKEND=local`, `pip install -e ".[gpu]"`).
+
+### Meta open-weight model
+
+**UMA** `uma-s-1p2` (Meta FAIR), released under the **FAIR Chemistry License v1** (gated on Hugging Face: `facebook/UMA`). In the recorded researches it ran on **Modal GPUs** (T4 for relaxations, H100 for molecular dynamics); only `autolab/sim/uma.py` loads it.
+
+### Tests
+
+```bash
+pytest                        # CPU tests; GPU and paid-API tests are skipped
+pytest web/tests              # tests of the interface
 pytest --gpu                  # UMA truth tests (NVIDIA GPU only)
 ```
 
-Recorded results need no key: open `results/*/report.md`, or preview the interface on the recorded researches:
-
-```bash
-python scripts/dev_server.py  # http://127.0.0.1:8100, no database, no paid call
-# watch the agent at work on the Nov 1 research: http://127.0.0.1:8100/c/feedback-2026-11-01?watch=2
-# and on the cobalt-free cathode research: http://127.0.0.1:8100/c/cathode-2026-11-02?watch=2
-```
-
-The interface shows the agent at work: one card per action, naming the model or tool and what it does (Muse Spark reasoning and proposing, pymatgen building, UMA relaxing the crystal in 3D while the cell parameters move, the electronic insulation check, Muse Spark Open reviews, molecular dynamics with the recorded lithium trajectory, failures sent back and explained), the progress list ticking and a lab notebook of the decisions; the research card, the summary and the report come at the end. The lab opens full screen in landscape (progress, current action and lab notebook side by side; a button reduces it into the chat); after a research, "Watch the agent at work" replays it there, with pause, stop, restart and leave (a paused replay resumes where it stopped). Results taken from the saved computations are played at a readable pace and marked "reused"; an identical request reuses a finished research without computing anything. A **Results** page gathers the champion of every research by domain (solid electrolytes, cobalt-free cathodes): what it is, its crystal structure in 3D, its properties with units and error bars, the comparison with its parent, the literature check, why it was chosen and what limits the confidence, with its final report as a PDF and a link back to the research to talk with the agent.
+### Paid runs
 
 Paid runs (Modal, Meta), each prints its estimated cost first (`--dry-run` / `--plan`):
 

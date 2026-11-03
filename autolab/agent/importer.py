@@ -25,10 +25,7 @@ def import_run(svc, run_dir: Path, cid: str, title: str, request: str, file_path
                   "status": "done", "source": f"imported:{run_dir.name}",
                   "scope": {"intent": "new_discovery", "status": "supported", "domain": result.get("domain")}})
     store.add_message(cid, "user", "request", request)
-    store.add_message(cid, "assistant", "scope",
-                      "AutoLab searches new solid electrolytes for lithium-metal batteries by substitution in known "
-                      "lithium thiophosphate crystals, and evaluates their stability, band gap, electrode "
-                      "compatibility and lithium diffusion.")
+    store.add_message(cid, "assistant", "scope", SCOPE_TEXT.get(result.get("domain"), SCOPE_TEXT["electrolyte"]))
     for seq, e in enumerate(events):
         store.append_event(cid, seq, e)
     store.save_result(cid, result)
@@ -43,6 +40,24 @@ def import_run(svc, run_dir: Path, cid: str, title: str, request: str, file_path
                 store.add_artifact(cid, e["file"], kind.rstrip("s"), where(cid, e["file"]), e)
     return cid
 
+
+SCOPE_TEXT = {
+    "electrolyte": "AutoLab searches new solid electrolytes for lithium-metal batteries by substitution in known "
+                   "lithium thiophosphate crystals, and evaluates their stability, band gap, electrode compatibility "
+                   "and lithium diffusion.",
+    "cathode": "AutoLab searches new cobalt-free cathodes for lithium-ion batteries by substitution in known cathode "
+               "crystals, and evaluates their stability, voltage, capacity, energy density and volume change.",
+    "sodium": "AutoLab searches new sodium solid electrolytes by substitution in known sodium crystals, and evaluates "
+              "their stability, band gap, contact with sodium metal and sodium diffusion.",
+}
+
+# The home page researches (config.REPLAY_EXAMPLES), under the ids they have in the AutoLab service, so that the
+# local demo (scripts/dev_server.py) replays them when an example is clicked: (folder, conversation id, title).
+HOME = [
+    ("results/2026-11-01_feedback_run", "0245f94a24cf", "Fast stable sulfide electrolytes"),
+    ("results/2026-11-02_cathode_run", "590fa5770002", "Higher energy cobalt-free cathodes"),
+    ("results/2026-11-02_sodium_run", "7af9efdcdd9a", "Stable fast sodium electrolytes"),
+]
 
 RECORDED = [  # (folder, conversation id, title, request as it was given)
     ("results/2026-11-02_cathode_run", "cathode-2026-11-02", "Higher energy cobalt-free cathodes",

@@ -19,6 +19,7 @@ dependencies = [
 
 [project.optional-dependencies]
 gpu = ["fairchem-core"]
+web = ["fastapi", "uvicorn", "httpx"]  # the interface and the local demo (scripts/dev_server.py)
 dev = ["pytest"]
 
 [tool.setuptools.packages.find]

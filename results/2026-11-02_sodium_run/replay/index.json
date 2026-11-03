@@ -1,0 +1,68 @@
+{
+ "structures": [
+  {
+   "id": "it1-c1",
+   "formula": "Na3PSeS3",
+   "file": "structures/it1-c1.json"
+  },
+  {
+   "id": "it1-c2",
+   "formula": "Na5PWS8",
+   "file": "structures/it1-c2.json"
+  },
+  {
+   "id": "it1-c3",
+   "formula": "Na3Zr2SiGePO12",
+   "file": "structures/it1-c3.json"
+  },
+  {
+   "id": "it2-c3",
+   "formula": "Na3Zr2Ge2PO12",
+   "file": "structures/it2-c3.json"
+  },
+  {
+   "id": "it3-c1",
+   "formula": "Na6P2SeS7",
+   "file": "structures/it3-c1.json"
+  },
+  {
+   "id": "it3-c2",
+   "formula": "Na6SbPS8",
+   "file": "structures/it3-c2.json"
+  }
+ ],
+ "md": [
+  {
+   "id": "mp-28782",
+   "formula": "Na3PS4",
+   "kind": "parent",
+   "seed": 0,
+   "verdict": null,
+   "file": "md/mp-28782_seed0.json"
+  },
+  {
+   "id": "mp-28782",
+   "formula": "Na3PS4",
+   "kind": "parent",
+   "seed": 1,
+   "verdict": null,
+   "file": "md/mp-28782_seed1.json"
+  },
+  {
+   "id": "it1-c1",
+   "formula": "Na3PSeS3",
+   "kind": "candidate",
+   "seed": 0,
+   "verdict": "tied",
+   "file": "md/it1-c1_seed0.json"
+  },
+  {
+   "id": "it1-c1",
+   "formula": "Na3PSeS3",
+   "kind": "candidate",
+   "seed": 1,
+   "verdict": "tied",
+   "file": "md/it1-c1_seed1.json"
+  }
+ ]
+}
