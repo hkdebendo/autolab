@@ -73,6 +73,13 @@ def test_no_provider_cost_or_replay_mode_is_shown(word):
     assert word not in visible_text()
 
 
+def test_the_lab_shows_no_speed_buttons_and_no_accelerated_badge():
+    """Owner, 2026-11-03: no 1x / 2x / 4x buttons, no "reused results · accelerated" badge; playback stays at 2x."""
+    js = (webapp.HERE / "static" / "app.js").read_text(encoding="utf-8")
+    assert "data-speed" not in js and "accelerated</span>" not in js
+    assert 'L.speed = mode === "watch" ? 2 : 1' in js
+
+
 def test_the_models_at_work_are_named_with_what_they_do():
     """Owner, 2026-11-02: show which model works and what it does (interface.md 15 amended)."""
     text = visible_text()

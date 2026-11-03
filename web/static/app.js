@@ -1773,9 +1773,7 @@ function labShell() {
   el.innerHTML = `<header class="lab-head">
       <div class="orb" aria-hidden="true">${AI_ICON}<i></i><i></i></div>
       <div class="lab-title"><b>AutoLab agent at work</b><span class="lab-sub" id="lab-sub">starting…</span></div>
-      ${L.reused ? `<span class="reuse big" title="This exact request was already researched: its saved computations are shown again, nothing is recomputed">reused results · accelerated</span>` : ""}
       <div class="lab-ctl" role="group" aria-label="Playback">
-        ${[1, 2, 4].map((k) => `<button type="button" data-speed="${k}"${L.speed === k ? ' class="on"' : ""}>${k}×</button>`).join("")}
         <button type="button" data-pause title="Pause" aria-label="Pause">${PAUSE}</button>
         ${L.mode === "watch" ? `<button type="button" data-stop title="Stop: end the playback and show the results">${ICON_STOP}<span>Stop</span></button>
         <button type="button" data-restart title="Play again from the start">${ICON_RESTART}</button>`
@@ -1792,11 +1790,7 @@ function labShell() {
   el.querySelector(".lab-ctl").onclick = (ev) => {
     const b = ev.target.closest("button");
     if (!b) return;
-    if (b.dataset.speed) {
-      L.speed = +b.dataset.speed;
-      L.speedSet = true;
-      for (const x of el.querySelectorAll("[data-speed]")) x.classList.toggle("on", x === b);
-    } else if (b.hasAttribute("data-pause")) {
+    if (b.hasAttribute("data-pause")) {
       L.paused = !L.paused;
       labPauseUI();
     } else if (b.hasAttribute("data-skip")) {  // live: catch up with the research

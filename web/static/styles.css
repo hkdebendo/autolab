@@ -415,7 +415,6 @@ figure.chart figcaption { font-size: 12.5px; color: var(--muted); margin-top: 4p
 .lab-sub { font: 12px "JetBrains Mono", monospace; color: var(--lm); }
 .reuse { font-size: 11px; font-weight: 600; letter-spacing: .03em; padding: 2px 8px; border-radius: 999px; white-space: nowrap;
   color: #5eead4; background: rgba(94, 234, 212, .1); border: 1px solid rgba(94, 234, 212, .35); text-transform: uppercase; }
-.reuse.big { font-size: 10.5px; }
 .lab-ctl { display: flex; gap: 4px; }
 .lab-ctl button { border: 1px solid var(--ll); background: rgba(255, 255, 255, .03); color: var(--lm); border-radius: 8px;
   padding: 4px 9px; font: 12px "JetBrains Mono", monospace; display: inline-grid; place-items: center; }
