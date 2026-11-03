@@ -65,7 +65,7 @@ def _forget_champions() -> None:
 def run_research(cid: str) -> dict | None:
     from autolab.agent.events import EventLog
     from autolab.agent.loop import Agent
-    from autolab.agent.runs import analyst_client, client, load_prior, summarizer
+    from autolab.agent.runs import analyst_client, client, director_client, load_prior, summarizer
     from autolab.analysis.replay_export import export_run
     from autolab.sim.backend import RelaxBudget
 
@@ -78,7 +78,7 @@ def run_research(cid: str) -> dict | None:
                      budget=RelaxBudget(config.LIVE_MAX_RELAXATIONS),
                      analyst=analyst_client(config.CANDIDATE_ANALYSIS_PROVIDER),
                      novelty_client=client(config.NOVELTY_PROVIDER, config.NOVELTY_COST_CAP_USD),
-                     summarizer=summarizer(events), should_stop=should_stop)
+                     summarizer=summarizer(events), director=director_client(), should_stop=should_stop)
 
     def export(cid_: str, result: dict) -> None:
         index = export_run(result, f"{DATA}/runs/{cid_}")

@@ -30,6 +30,7 @@ from dataclasses import dataclass
 from typing import Callable
 
 from autolab import config
+from autolab.agent import review
 from autolab.agent.compare import comparisons
 from autolab.agent.pipeline import Tools, evaluate_candidate
 from autolab.domains import Campaign, Domain, Stage, register
@@ -865,6 +866,7 @@ METHODS = [
                                     "its range (calibrated: Li7P3S11 and beta-Li3PS4 against experiment)"),
     ("Literature check", "Meta Muse Spark with web search; a known electrolyte (LGPS) checked first as a control"),
     ("Plain-language summaries", "Meta Muse Glimmer"),
+    ("Campaign review", "Meta Muse Wonder reads the whole campaign at once and plans the next one; it decides nothing"),
 ]
 
 REPORT_SYSTEM = """You write the final report of a computational materials-discovery research, for scientists and for readers who are not specialists. The code gives you the comparison table of the three finalists (the first one is the champion: the best compromise by the criteria of the research), the excluded candidates with their reasons, the literature check and what was not computed.
@@ -1101,7 +1103,8 @@ def make_domain() -> Domain:
                 Stage("ranking", ranking, render_ranking),
                 Stage("dft_gap", dft_gap, render_dft_gap),
                 Stage("novelty", novelty, render_novelty),
-                Stage("report", report, render_report)),
+                Stage("report", report, render_report),
+                Stage("campaign_review", review.campaign_review, review.render)),
         thresholds=THRESHOLDS, render_candidates=candidate_table)
 
 

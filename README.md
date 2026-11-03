@@ -43,6 +43,10 @@ Muse Spark ── a hypothesis on each failure's cause + a correction ── nex
 Final stages: ranking, room-temperature conductivity (Arrhenius + Nernst-Einstein),
 DFT band gap of the champion (GPAW, PBE, ≥ 2.0 eV, else the next one is checked),
 literature check (web search, with a known control), final report with three finalists
+   │
+   ▼
+Muse Wonder ── reads the whole campaign at once as research director: what it taught,
+               what worked, what failed, and the next campaign to run
 ```
 
 The code only measures; the cause of a failure is the model's hypothesis and is always labelled as one. Thresholds come from `autolab/config.py`, never from the model.
@@ -139,6 +143,7 @@ Outputs are **computational predictions**, not proven materials: DFT checks, syn
 - **Muse Spark** (Meta Model API): proposals, choice of the MD candidate, analysis of failures, final report, literature check with web search.
 - **Muse Spark Open** (Baseten): one independent review per candidate, in parallel; fallback of Muse Spark.
 - **Muse Glimmer** (Fireworks, dedicated deployment): plain-language summaries of each round and of the research.
+- **Muse Wonder** (Meta Model API): the research director. At the end of each research it reads the whole campaign at once (every round, measurement, failure and Muse Spark hypothesis, the ranking, the literature check and the report) and writes what the campaign taught, what worked, what failed and the next campaign to run. It decides nothing: thresholds, ranking and verdicts stay the code's. Reviews of the three recorded researches: `results/2026-11-01_feedback_run/`, `results/2026-11-02_cathode_run/`, `results/2026-11-02_sodium_run/` (`campaign_review.md`).
 - **UMA** `uma-s-1p2` (Meta FAIR, open weights): relaxations, energies and molecular dynamics, on Modal GPUs (T4 for relaxations, H100 for MD).
 - **Muse Voice Transcribe** (Meta Model API, realtime): the researcher can dictate a request; the local web server relays the microphone to Meta, so the key never reaches the browser.
 - **Muse Code** (Meta coding agent): the web interface was built with Muse Code; commits written with it say so.
@@ -147,7 +152,7 @@ Outputs are **computational predictions**, not proven materials: DFT checks, syn
 
 | Part | What it is |
 |---|---|
-| Reasoning, proposals, decisions, reviews, summaries, report, literature check | **Meta model calls**: Muse Spark, Muse Spark Open, Muse Glimmer |
+| Reasoning, proposals, decisions, reviews, summaries, report, literature check, campaign review | **Meta model calls**: Muse Spark, Muse Spark Open, Muse Glimmer, Muse Wonder |
 | Atomistic simulation (structures, energies, molecular dynamics) | **Meta model**: UMA (Meta FAIR), run on Modal GPUs |
 | Dictation of a request | **Meta model call**: Muse Voice Transcribe |
 | The agent's spoken lines | **Browser function**: the browser's built-in speech synthesis with a voice installed on the computer (`localService`); online voices (for example Edge "Online (Natural)" voices) are filtered out and never used; with no local voice, the agent stays silent |
@@ -168,7 +173,7 @@ autolab/
   data/       Materials Project access with disk cache
   sim/        UMA (only uma.py imports fairchem), relaxation, MD, local/Modal/Kaggle backends
   analysis/   convex hull, band gap, electrodes, diffusion, conductivity, UMA-vs-DFT error bars
-  agent/      generic loop, events, MD, benchmark, conversations service, report
+  agent/      generic loop, events, MD, benchmark, conversations service, report, campaign review
   domains/    electrolyte: funnel, slow tests, feedback, stages, report
   llm/        one OpenAI-compatible client (Meta, Baseten, Fireworks), prompts, JSON schemas
 modal_app/    GPU functions (UMA) and the research service (CPU), on Modal
@@ -181,7 +186,7 @@ Every step reads the caches before computing (relaxations, MD runs, Materials Pr
 
 ## Cost of the project (hackathon credits)
 
-About 36 $ of Modal GPU time (calibrations, benchmark, runs), 1.2 $ of Muse Spark, 0.9 $ of Muse Spark Open, 2–3 $ of Muse Glimmer. A complete 3-round research costs about 5–6 $ of Modal and 0.3 $ of Muse Spark.
+About 36 $ of Modal GPU time (calibrations, benchmark, runs), 1.2 $ of Muse Spark, 0.9 $ of Muse Spark Open, 2–3 $ of Muse Glimmer, 0.26 $ of Muse Wonder (three campaign reviews, 0.07–0.12 $ each). A complete 3-round research costs about 5–6 $ of Modal, 0.3 $ of Muse Spark and about 0.1 $ of Muse Wonder.
 
 ## Reproduce
 

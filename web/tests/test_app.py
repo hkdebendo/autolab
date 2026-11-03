@@ -76,7 +76,7 @@ def test_no_provider_cost_or_replay_mode_is_shown(word):
 def test_the_models_at_work_are_named_with_what_they_do():
     """Owner, 2026-11-02: show which model works and what it does (interface.md 15 amended)."""
     text = visible_text()
-    for model in ("Muse Spark", "Muse Spark Open", "Muse Glimmer", "UMA", "GPAW", "Materials Project"):
+    for model in ("Muse Spark", "Muse Spark Open", "Muse Glimmer", "Muse Wonder", "UMA", "GPAW", "Materials Project"):
         assert model in text
 
 

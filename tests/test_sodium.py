@@ -122,7 +122,7 @@ def test_the_sodium_domain_settings_stages_and_steps():
     assert d.parents == tuple(config.SODIUM_PARENTS)
     assert d.settings["ion"] == "Na" and tuple(d.settings["cathodes"]) == ()
     assert d.settings["md_can_exclude"] is config.SODIUM_MD_CAN_EXCLUDE
-    assert [s.name for s in d.stages][-4:] == ["ranking", "dft_gap", "novelty", "report"]
+    assert [s.name for s in d.stages][-5:] == ["ranking", "dft_gap", "novelty", "report", "campaign_review"]
     assert d.settings["gap_min"] == config.SODIUM_BANDGAP_MIN
     assert "molecular_dynamics" in [s.name for s in d.iteration_stages]
     assert "sodium" in dom.proposal_system(3).lower() and "Li metal" not in dom.proposal_system(3)

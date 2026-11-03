@@ -42,6 +42,13 @@ def analyst_client(provider: str) -> LLMClient | None:
     return client(provider, config.LLM_COST_CAPS_USD[provider], config.CANDIDATE_ANALYSIS_MAX * config.JSON_MAX_RETRIES)
 
 
+def director_client(provider: str = config.CAMPAIGN_REVIEW_PROVIDER) -> LLMClient | None:
+    """Muse Wonder for the campaign review: one call per research (and the JSON retries), its own cost cap."""
+    if not provider or provider == "none":
+        return None
+    return client(provider, config.LLM_COST_CAPS_USD[provider], config.JSON_MAX_RETRIES)
+
+
 def summarizer(events, provider: str = config.SUMMARY_PROVIDER):
     """Muse Glimmer's background summaries, or None when its key or its deployment (GLIMMER_DEPLOYMENT) is missing."""
     import os

@@ -146,7 +146,8 @@ def test_the_literature_check_asks_about_a_cathode_with_a_known_cathode_as_contr
     assert "cathode" in system and "solid electrolyte" not in system
     assert messages_for({**c, "kind": None})[0]["content"] == SYSTEM  # electrolyte questions unchanged (cache kept)
     assert config.CATHODE_NOVELTY_CONTROL["kind"] == "cathode"
-    assert [s.name for s in dom.make_domain().stages] == ["candidate_analyses", "ranking", "novelty", "report"]
+    assert [s.name for s in dom.make_domain().stages] == ["candidate_analyses", "ranking", "novelty", "report",
+                                                        "campaign_review"]
 
 
 def test_a_known_compound_goes_through_the_blind_benchmark_with_its_own_composition_hidden():

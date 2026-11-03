@@ -51,12 +51,14 @@ def _substitution_key(parent: str, sub: dict) -> str:
 class Agent:
     def __init__(self, brain, fallback=None, tools=None, events: EventLog | None = None,
                  budget: RelaxBudget | None = None, get_structure=None, domain: Domain | str | None = None,
-                 novelty_client=None, analyst=None, summarizer=None, should_stop=None):
+                 novelty_client=None, analyst=None, summarizer=None, director=None, should_stop=None):
         self.domain = domain if isinstance(domain, Domain) else get_domain(domain or config.AGENT_DOMAIN)
         self.brain, self.fallback = brain, fallback
         self.novelty_client = novelty_client  # web search of the novelty stage, with its own cost cap
         self.analyst = analyst  # parallel candidate analyses (Muse Spark Open), with its own cost cap
         self.summarizer = summarizer  # plain-language summaries (Muse Glimmer), in the background
+        self.director = director  # campaign review (Muse Wonder), the last stage, with its own cost cap
+        self.result: dict | None = None  # the campaign being run, read by the campaign review
         self.should_stop = should_stop  # () -> bool: the user asked to stop (checked between steps)
         self.tools = tools or self.domain.make_tools()
         self.events = events or EventLog()
@@ -128,8 +130,10 @@ class Agent:
             "brain": getattr(self.brain, "provider", None), "fallback": getattr(self.fallback, "provider", None),
             "analyst": getattr(self.analyst, "provider", None),
             "summarizer": getattr(self.summarizer, "provider", None),
+            "director": getattr(self.director, "provider", None),
             "thresholds": {name: getattr(config, name) for name in d.thresholds}},
             "prior": prior, "iterations": [], "stages": {}, "stop_reason": "iterations done"}
+        self.result = result
         self.events.emit("loop", "start", {"goal": goal, "domain": d.name, "parents": parent_info,
                                            "prior": [c["id"] for c in prior], **result["settings"]})
         seen: set[str] = {_substitution_key(c["parent"], c["substitution"]) for c in prior if c.get("substitution")}
@@ -260,6 +264,7 @@ class Agent:
             "novelty": self.novelty_client.tracker.summary() if self.novelty_client is not None else None,
             "analyst": self.analyst.tracker.summary() if self.analyst is not None else None,
             "summaries": self.summarizer.client.tracker.summary() if self.summarizer is not None else None,
+            "director": self.director.tracker.summary() if self.director is not None else None,
             "relaxations": {"new": self.budget.used, "limit": self.budget.max_new},
             "md": result["stages"].get("molecular_dynamics", {}).get("plan"),
             "md_usd": round(self.md_usd, 3),

@@ -99,3 +99,5 @@ Benchmark & Tests page (/benchmarks): the truth tests, calibrations and benchmar
 **Band gap by rule and DFT (2026-11-03, organizers' rule: only Meta models at run time)** — funnel: closed-shell ions (rule, instant); after the ranking: DFT band gap of the champion with GPAW (PBE, 400 eV, mesh + band path) on Modal CPU, cached; below the limit the next one is checked (max 2 calculations).
 Truth test vs Materials Project: 6/6 (Li 0.00/0.00, Li2S 3.38/3.39, LiI 4.41/4.38, Li3P 0.68/0.70, Na3SbS4 2.01/1.93, Li3PS4 2.86/2.81 eV), mean difference 0.03 eV; Li3PS4 (32 atoms) 7 min 18 s, about 0.06 $.
 Recorded researches unchanged (their gaps shown "recorded prediction"). 223 tests pass, no paid call in tests.
+
+**Campaign review by Muse Wonder (2026-11-03)** — last stage of the three domains: Muse Wonder reads the whole campaign once and writes what it taught, what worked, what failed and the next campaign; event, progress step, lab card, last message, follow-up context, README/SPEC. The three home-page researches reviewed afterwards: 0.066 $ (cathodes), 0.121 $ (lithium), 0.070 $ (sodium), 14-17 s each. Tests pass; research service redeployed.

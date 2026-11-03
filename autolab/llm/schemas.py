@@ -21,8 +21,12 @@ SCOPE = {"intent": str, "status": str, "domain": str, "title": str, "constraints
 REPORT = {"executive_summary": str, "champion_reasons": list, "tradeoffs": list, "uncertainties": list,
           "validation": list, "synthesis": list, "limitations": list}
 
+CAMPAIGN_REVIEW = {"headline": str, "learned": list, "worked": list, "failed": list, "next_campaign": dict}
+NEXT_CAMPAIGN = {"goal": str, "parents": list, "directions": list, "why": str}
+
 SCHEMAS = {"proposal": PROPOSAL, "analysis": ANALYSIS, "md_selection": MD_SELECTION,
-           "candidate_analysis": CANDIDATE_ANALYSIS, "scope": SCOPE, "report": REPORT}
+           "candidate_analysis": CANDIDATE_ANALYSIS, "scope": SCOPE, "report": REPORT,
+           "campaign_review": CAMPAIGN_REVIEW}
 
 TEMPLATES = {
     "proposal": {
@@ -44,6 +48,10 @@ TEMPLATES = {
                "uncertainties": ["sentence"],
                "validation": [{"text": "sentence", "basis": "documented"}],
                "synthesis": [{"text": "sentence", "basis": "hypothesis"}], "limitations": ["sentence"]},
+    "campaign_review": {"headline": "one sentence", "learned": ["sentence"], "worked": ["sentence"],
+                        "failed": ["sentence"],
+                        "next_campaign": {"goal": "one sentence a researcher could type", "parents": ["Li3PS4"],
+                                          "directions": ["sentence"], "why": "two sentences"}},
 }
 
 _FENCE = re.compile(r"^\s*```(?:json)?\s*(.*?)\s*```\s*$", re.S)
@@ -81,6 +89,8 @@ def validate(obj, name: str) -> dict:
             raise SchemaError("the reply['failure_analysis'] must be a list")
         for i, item in enumerate(obj["failure_analysis"]):
             _check_keys(item, FAILURE_ITEM, f"failure_analysis[{i}]")
+    if name == "campaign_review":
+        _check_keys(obj["next_campaign"], NEXT_CAMPAIGN, "the reply['next_campaign']")
     return obj
 
 

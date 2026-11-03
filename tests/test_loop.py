@@ -31,6 +31,13 @@ def report_reply():
             "limitations": ["l"]}
 
 
+def campaign_review_reply():
+    return {"headline": "One bromide passed every test.", "learned": ["Cl and O moved with Li"], "worked": ["Br"],
+            "failed": ["Cl: framework moved (hypothesis: weak binding)"],
+            "next_campaign": {"goal": "Try Br and I in Li7P3S11", "parents": ["Li7P3S11"],
+                              "directions": ["S->Br with one Li vacancy"], "why": "Br was the only halide kept."}}
+
+
 def md_selection(*ids, rationale="softer anions"):
     return {"selected": list(ids), "rationale": rationale}
 
@@ -106,10 +113,11 @@ def review(priority="high"):
     return {"strengths": ["soft anion"], "risks": ["moisture"], "md_priority": priority, "summary": "worth a look"}
 
 
-def run_agent(li3ps4, brain, tools, novelty_client=None, budget=40, prior=None, n_iterations=1, analyst=None, **kw):
+def run_agent(li3ps4, brain, tools, novelty_client=None, budget=40, prior=None, n_iterations=1, analyst=None,
+              director=None, **kw):
     events = EventLog()
     agent = Agent(brain, tools=tools, events=events, budget=RelaxBudget(budget), get_structure=lambda pid: li3ps4,
-                  novelty_client=novelty_client, analyst=analyst)
+                  novelty_client=novelty_client, analyst=analyst, director=director)
     result = agent.run(parents=[PARENT], n_iterations=n_iterations, prior=prior, **kw)
     return result, events
 
@@ -141,13 +149,22 @@ def test_complete_loop_passes_data_from_step_to_step(li3ps4):
                              md_selection("it1-c1", "it1-c2", "it1-c3", "mp-999"), report_reply()])
     client, fake = meta(novelty_replies(1))
     analyst = FakeLLM("baseten", [review(), review("low")])
-    result, events = run_agent(li3ps4, brain, tools, novelty_client=client, analyst=analyst)
+    director = FakeLLM("wonder", [campaign_review_reply()])
+    result, events = run_agent(li3ps4, brain, tools, novelty_client=client, analyst=analyst, director=director)
 
     st = result["stages"]
     assert [c["status"] for c in result["iterations"][0]["candidates"]] == ["passed"] * 3
     assert {k: v["status"] for k, v in st.items()} == {
         "electrodes": "done", "candidate_analyses": "done", "md_selection": "done", "report": "done", "molecular_dynamics": "done", "ranking": "done", "conductivity": "done",
-        "novelty": "done", "dft_gap": "done"}
+        "novelty": "done", "dft_gap": "done", "campaign_review": "done"}
+    # campaign review: Muse Wonder reads the whole campaign once, after the report
+    assert len(director.requests) == 1 and director.requests[0]["schema"] == "campaign_review"
+    dossier = json.loads(director.requests[0]["messages"][1]["content"].split("\n", 1)[1])
+    assert [c["formula"] for c in dossier["rounds"][0]["candidates"]] == ["Li11P4S15Cl", "Li11P4S15I", "Li11P4S15Br"]
+    assert dossier["finalists"][0]["formula"] == "Li11P4S15Br" and dossier["report"]["champion"] == "it1-c3"
+    assert "relaxed_atoms" not in json.dumps(dossier) and "campaign_review" not in dossier["stages"]
+    assert st["campaign_review"]["review"]["headline"] == "One bromide passed every test."
+    assert result["usage"]["director"]["calls"] == 1 and result["settings"]["director"] == "wonder"
     # DFT band gap: only the champion, kept (2.6 >= 2.0 eV)
     assert calls.dft == ["it1-c3"] and st["dft_gap"]["champion_confirmed"] is True
     # electrodes: the non-passivating candidate is excluded, the FeS2 reaction lowers the confidence

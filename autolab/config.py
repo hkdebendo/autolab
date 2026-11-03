@@ -249,6 +249,10 @@ LLM_PROVIDERS: dict[str, dict] = {
         "model": os.getenv("GLIMMER_DEPLOYMENT", "accounts/fireworks/models/muse-glimmer-30b"),
         "api": "chat", "usd_per_m_input": 0.0, "usd_per_m_output": 0.0,
     },
+    "wonder": {  # Muse Wonder: Meta's model for long multi-step work (1M-token context), the campaign review
+        "base_url": "https://api.meta.ai/v1", "key": "MODEL_API_KEY", "model": "muse-wonder-1.0",
+        "api": "responses", "usd_per_m_input": 4.0, "usd_per_m_output": 20.0,
+    },
 }
 # Voice (owner, 2026-11-02): the researcher may dictate a request; Meta Muse Voice Transcribe turns it into text
 # (realtime WebSocket, push to talk, through the local web server: the key stays on the server). The agent's voice is
@@ -274,7 +278,14 @@ CANDIDATE_ANALYSIS_MAX_OUTPUT_TOKENS = 3000
 LLM_FALLBACK_PROVIDER = "baseten"  # used when the main provider fails
 LLM_TIMEOUT = 300  # s per call
 LLM_MAX_OUTPUT_TOKENS = 4000  # includes reasoning tokens
-LLM_COST_CAPS_USD = {"meta": 1.0, "baseten": 0.5, "fireworks": 0.5}  # per run and provider
+LLM_COST_CAPS_USD = {"meta": 1.0, "baseten": 0.5, "fireworks": 0.5, "wonder": 1.0}  # per run and provider
+# Campaign review (last stage of every domain, agent/review.py): Muse Wonder reads the whole campaign at once (rounds,
+# measurements, failures and Muse Spark's hypotheses, ranking, literature check, report) and writes what it taught and
+# the next campaign to run. It decides nothing: thresholds, ranking and verdicts stay the code's.
+CAMPAIGN_REVIEW_PROVIDER = "wonder"
+CAMPAIGN_REVIEW_REASONING_EFFORT = "medium"
+CAMPAIGN_REVIEW_MAX_OUTPUT_TOKENS = 12000  # reasoning + JSON (at most 0.24 $ of output)
+CAMPAIGN_REVIEW_MAX_INPUT_CHARS = 240_000  # dossier size cap, about 60k tokens (0.24 $ of input)
 LLM_REPLY_CACHE = True  # runs keep model replies by their exact question: a known request replays for free
 
 # --- Agent loop (SPEC 6) -------------------------------------------------------

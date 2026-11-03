@@ -39,6 +39,7 @@ def context(result: dict) -> dict:
         "literature": [{"formula": c.get("formula"), "level": c.get("label"), "summary": c.get("summary")}
                        for c in (st.get("novelty", {}).get("candidates") or [])],
         "summaries": [s.get("text") for s in result.get("summaries") or [] if s.get("text")],
+        "campaign_review": (st.get("campaign_review") or {}).get("review"),  # Muse Wonder's reading of the campaign
         "methods": ("UMA machine-learned potential (relaxations, energies with MP2020 corrections, molecular dynamics "
                     "at 600 K, 2 x 40 ps), convex hull against Materials Project phases, electronic insulation (closed-shell ions, champion's band gap by "
                     "DFT with GPAW; gap_optb88/gap_mbj, if present, are recorded predictions), grand-potential "

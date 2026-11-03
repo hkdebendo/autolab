@@ -312,6 +312,7 @@ function voiceMessages(shown) {
     if (VOICE.spoken.has(m.id)) continue;
     VOICE.spoken.add(m.id);
     if (m.kind === "report") say("The final report is ready.", true);
+    else if (m.kind === "review") say((m.data && m.data.headline) || "The campaign review is ready.", true);
     else if (m.kind !== "notice") say(m.content, true);
   }
 }
@@ -390,6 +391,7 @@ const TUT = [
     roles: [["Muse Spark", "proposes, decides, learns from failures, writes the report", "meta"],
       ["Muse Spark Open", "reviews each candidate independently", "meta"],
       ["Muse Glimmer", "summarizes each step in plain language", "meta"],
+      ["Muse Wonder", "reads the whole campaign as research director and plans the next one", "meta"],
       ["UMA · Meta FAIR", "simulates the atoms for Muse Spark: structure, energy, ion motion", "meta"],
       ["GPAW (DFT) · Materials Project", "the champion's band gap from physics, and the known phases", "tool"]],
     art: `<svg viewBox="0 0 200 120"><circle cx="100" cy="60" r="16" fill="currentColor" fill-opacity=".15"/><circle cx="100" cy="60" r="16"/>
@@ -787,6 +789,9 @@ function renderThread() {
     } else if (m.kind === "report") {
       if (hideFinal) return;
       parts.push(aiBlock(`${who("Muse Spark", "wrote the report from the numbers computed by the code", "think")}${reportBlock(m)}`));
+    } else if (m.kind === "review") {
+      if (hideFinal) return;
+      parts.push(aiBlock(`${who("Muse Wonder", "read the whole campaign as research director and planned the next one", "think")}<div class="prose campaign-review">${md(m.content)}</div>`));
     } else {
       parts.push(aiBlock(`<div class="prose">${md(m.content)}</div>`));
     }
@@ -1559,7 +1564,7 @@ async function champPDF(c, btn) {
    Nothing shown here is invented: every number comes from an event; an animation between two recorded structures
    is labelled as such. */
 
-const PROVIDER_MODEL = { meta: "Muse Spark", baseten: "Muse Spark Open", fireworks: "Muse Glimmer" };
+const PROVIDER_MODEL = { meta: "Muse Spark", baseten: "Muse Spark Open", fireworks: "Muse Glimmer", wonder: "Muse Wonder" };
 const ICON_EXPAND = `<svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>`;
 const ICON_REDUCE = `<svg viewBox="0 0 24 24"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>`;
 const ICON_PLAY = `<svg viewBox="0 0 24 24"><path d="M8 6l10 6-10 6z"/></svg>`;
@@ -2139,6 +2144,8 @@ const STAGES = {
   novelty: { title: "Literature check", actor: ["Muse Spark", "searching the web; a known material is checked first as a control", "think"], done: null },
   report: { title: "Final scientific report", actor: ["Muse Spark", "writing the report from the numbers computed by the code", "think"],
     done: (d) => `champion: ${fname(d.champion)} · ${d.completeness}` },
+  campaign_review: { title: "Campaign review", actor: ["Muse Wonder", "reading the whole campaign as research director", "think"],
+    done: (d) => (d.skipped ? `not needed: ${d.skipped}` : `next campaign: ${d.next_goal || ""}`) },
 };
 
 function stageGroup(name, d) { return `stage:${name}:${d && d.iteration != null ? d.iteration : "final"}`; }
@@ -2252,6 +2259,17 @@ function playLLM(e) {
     const box = cardAdd(card, `<p class="plain"></p>`);
     typeInto(box.querySelector("p"), String(d.text || ""), 3800);
     return 5200;
+  }
+  if (e.step === "campaign_review") {
+    const g = L.stageGroup.campaign_review, card = g && L.card && L.card.group === g ? L.card : labCard(`llm:${e.seq}`);
+    if (card.isNew) { card.isNew = false; cardHead(card, "Campaign review", "every round, measurement and failure read at once", e); }
+    labActor(who, "reading the whole campaign as research director", "think");
+    const t = reasoningBox(card, e, 2600), next = r.next_campaign || {};
+    later(card, t + 200, () => cardAdd(card, `<div class="hypo"><span class="tag">review</span>${tx(r.headline || "")}</div>
+      ${(r.learned || []).length ? `<ul class="lc-list">${r.learned.slice(0, 3).map((x) => `<li>${tx(x)}</li>`).join("")}</ul>` : ""}`));
+    later(card, t + 2400, () => cardAdd(card, `<div class="hypo"><span class="tag">next campaign</span>${tx(next.goal || "")}</div>`));
+    if (next.goal) labLog(`${who}: next campaign — ${next.goal}`, "accent");
+    return t + 5200;
   }
   if (e.step === "report") {
     const card = L.stageGroup.report && L.card && L.card.group === L.stageGroup.report ? L.card : labCard(`llm:${e.seq}`);
@@ -2451,10 +2469,12 @@ function playLoop(e) {
     const cathode = L.domain === "cathode";
     const team = cathode ? [["Muse Spark", "proposes, decides, interprets failures, writes the report", "think"],
       ["Muse Spark Open", "reviews each candidate independently", "think"], ["Muse Glimmer", "summarizes in plain language", "think"],
+      ["Muse Wonder", "reviews the whole campaign and plans the next one", "think"],
       ["UMA", "relaxes the lithiated and the charged crystals", "compute"], ["pymatgen", "builds the substitutions, checks charge neutrality", "compute"],
       ["Materials Project", "known phases for the convex hull", "data"]]
       : [["Muse Spark", "proposes, decides, interprets failures, writes the report", "think"],
       ["Muse Spark Open", "reviews each candidate independently", "think"], ["Muse Glimmer", "summarizes in plain language", "think"],
+      ["Muse Wonder", "reviews the whole campaign and plans the next one", "think"],
       ["UMA", "relaxes crystals and runs molecular dynamics", "compute"], ["GPAW", "computes the champion's band gap (DFT)", "compute"],
       ["Materials Project", "known phases and DFT references", "data"]];
     cardAdd(card, `<div class="plan-box"><div><span class="tag">parent crystals</span>${(d.parents || []).map((p) => `<span class="chip">${tx(p.formula)} · ${esc(p.id)}</span>`).join(" ")}</div>

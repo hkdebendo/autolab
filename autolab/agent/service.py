@@ -162,17 +162,17 @@ class Service:
         return None
 
     def reuse(self, cid: str, src: dict, scope: dict) -> None:
-        """Copy a finished research into conversation `cid`: its events, result, summary, report and 3D files. Nothing
-        is recomputed; the interface shows the copied steps at its own pace, marked as reused."""
+        """Copy a finished research into conversation `cid`: its events, result, summary, report, review and 3D files.
+        Nothing is recomputed; the interface shows the copied steps at its own pace, marked as reused."""
         when = src["created_at"].isoformat() if hasattr(src["created_at"], "isoformat") else str(src["created_at"])
         self.store.update(cid, source="reuse", scope={**scope, "reused_from": {"id": src["id"], "created_at": when}})
         self.store.add_message(cid, "assistant", "notice", REUSED_NOTICE.format(date=when[:10]),
                                data={"action": "reused", "from": src["id"]})
         self.store.append_events(cid, self.store.events(src["id"]))
         self.store.save_result(cid, self.store.result(src["id"]))
-        latest = {m["kind"]: m for m in self.store.messages(src["id"])  # the last summary and the last report only
-                  if m["role"] == "assistant" and m["kind"] in ("summary", "report")}
-        for kind in ("summary", "report"):
+        latest = {m["kind"]: m for m in self.store.messages(src["id"])  # the last summary, report and review only
+                  if m["role"] == "assistant" and m["kind"] in ("summary", "report", "review")}
+        for kind in ("summary", "report", "review"):
             if kind in latest:
                 self.store.add_message(cid, "assistant", kind, latest[kind]["content"], data=latest[kind].get("data"))
         for a in self.store.artifacts(src["id"]):  # the files stay where they are; the new conversation points to them
@@ -315,7 +315,7 @@ class Service:
         return result
 
     def finish(self, cid: str, result: dict, domain) -> None:
-        """Summary and report messages of a finished research (also used to import recorded runs)."""
+        """Summary, report and campaign review messages of a finished research (also used to import recorded runs)."""
         st = result.get("stages", {})
         run_summary = next((s["text"] for s in reversed(result.get("summaries") or [])
                             if s.get("label") == "run" and s.get("text")), None)
@@ -325,6 +325,11 @@ class Service:
         if rep and rep.get("status") in ("done", "stopped") and stage and stage.render:
             self.store.add_message(cid, "assistant", "report", "\n".join(stage.render(rep, result)),
                                    data={"champion": rep.get("champion"), "completeness": rep.get("completeness")})
+        rv = st.get("campaign_review")
+        if rv and rv.get("status") == "done" and rv.get("review"):  # Muse Wonder's review, the last message
+            from autolab.agent.review import render
+
+            self.store.add_message(cid, "assistant", "review", "\n".join(render(rv, result)), data=rv["review"])
 
 
 REUSED_NOTICE = ("This exact request was already researched on {date}. AutoLab reuses its saved computations: nothing "

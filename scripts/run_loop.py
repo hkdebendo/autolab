@@ -23,7 +23,7 @@ from autolab.agent.events import EventLog
 from autolab.agent.loop import Agent
 from autolab.agent.report import render
 from autolab.domains import get_domain
-from autolab.agent.runs import analyst_client, client, load_prior, summarizer  # noqa: F401  (rerun_stages imports them)
+from autolab.agent.runs import analyst_client, client, director_client, load_prior, summarizer  # noqa: F401  (rerun_stages imports them)
 from autolab.sim.backend import RelaxBudget
 
 
@@ -64,6 +64,7 @@ def main() -> None:
     ap.add_argument("--prior-tag", default="prev")
     ap.add_argument("--novelty", action="store_true", help="run the novelty web search (paid, Meta)")
     ap.add_argument("--summarizer", default=config.SUMMARY_PROVIDER, help="'none' to disable Muse Glimmer's summaries")
+    ap.add_argument("--director", default=config.CAMPAIGN_REVIEW_PROVIDER, help="'none' to disable Muse Wonder's review")
     ap.add_argument("--analyst", default=config.CANDIDATE_ANALYSIS_PROVIDER,
                     help="provider of the parallel candidate analyses ('none' to disable)")
     ap.add_argument("--no-stages", action="store_true", help="iterations only")
@@ -98,7 +99,7 @@ def main() -> None:
     events = EventLog(args.out / "events.jsonl", sink=show)
     agent = Agent(brain or fallback, fallback if brain else None, domain=get_domain(args.domain), events=events,
                   budget=RelaxBudget(args.max_relaxations), novelty_client=novelty, analyst=analyst,
-                  summarizer=summarizer(events, args.summarizer))
+                  summarizer=summarizer(events, args.summarizer), director=director_client(args.director))
     result = agent.run(args.goal, args.parents, args.iterations, args.candidates, prior=prior,
                        stages=not args.no_stages)
 

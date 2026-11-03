@@ -18,6 +18,11 @@ class Step:
     stage: str | None = None  # name of the stage after the iterations, when it is one
 
 
+# The last stage of every domain: the whole campaign read at once (agent/review.py).
+REVIEW_STEP = Step("campaign_review", "Campaign review",
+                   "The whole campaign is read at once: what it taught across its rounds, what worked, what failed, "
+                   "and the next campaign to run.", stage="campaign_review")
+
 # Lithium solid electrolytes: the funnel steps repeat in each iteration; with the error-driven
 # loop the slow tests (electrodes to molecular dynamics) also run in each iteration, then once more on the whole pool.
 ELECTROLYTE_STEPS = (
@@ -67,6 +72,7 @@ ELECTROLYTE_STEPS = (
     Step("report", "Final scientific report",
          "The three finalists are compared and the best compromise is analysed in detail, with its limits and the "
          "validations still needed.", stage="report"),
+    REVIEW_STEP,
 )
 
 
@@ -100,6 +106,7 @@ CATHODE_STEPS = (
          "already published; a known cathode is checked first as a control.", stage="novelty"),
     Step("report", "Final scientific report", "The finalists are compared with their parents and the best one "
          "analysed in detail, with its limits and the validations still needed.", stage="report"),
+    REVIEW_STEP,
 )
 SODIUM_STEPS = (
     Step("goal", "Understanding the research goal",
@@ -140,6 +147,7 @@ SODIUM_STEPS = (
          "published; a known sodium electrolyte is checked first as a control.", stage="novelty"),
     Step("report", "Final scientific report", "The finalists are compared and the best compromise analysed in detail, "
          "with its limits and the validations still needed.", stage="report"),
+    REVIEW_STEP,
 )
 DOMAIN_STEPS = {"electrolyte": ELECTROLYTE_STEPS, "cathode": CATHODE_STEPS, "sodium": SODIUM_STEPS}
 

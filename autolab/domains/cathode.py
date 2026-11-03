@@ -26,6 +26,7 @@ from typing import Callable
 from pymatgen.core import Composition, Structure
 
 from autolab import config
+from autolab.agent import review
 from autolab.agent.compare import comparisons as _comparisons
 from autolab.agent.pipeline import Tools, _default_known, _default_relax, _relaxed_structure, live_structure, n_modified
 from autolab.analysis.cathode import (average_voltage, capacity_mAh_g, cathode_charge_check, energy_density_Wh_kg,
@@ -571,6 +572,7 @@ METHODS = [
     ("Error-driven loop", "each iteration's failures, with their numbers, go back to the proposing model, which explains "
                           "them as hypotheses and corrects its next proposals"),
     ("Plain-language summaries", "Meta Muse Glimmer"),
+    ("Campaign review", "Meta Muse Wonder reads the whole campaign at once and plans the next one; it decides nothing"),
 ]
 
 REPORT_SYSTEM = """You write the final report of a computational search for cobalt-free cathode materials, for scientists and for readers who are not specialists. The code gives you the comparison table of the finalists (the first one is the champion: the highest energy density among those that passed every filter), the candidates rejected with their reasons, and what was not computed.
@@ -690,7 +692,8 @@ def make_domain() -> Domain:
         stages=(Stage("candidate_analyses", candidate_analyses, render_candidate_analyses),
                 Stage("ranking", ranking, render_ranking),
                 Stage("novelty", novelty, render_novelty),
-                Stage("report", report, render_report)),
+                Stage("report", report, render_report),
+                Stage("campaign_review", review.campaign_review, review.render)),
         thresholds=THRESHOLDS, render_candidates=render_candidates)
 
 

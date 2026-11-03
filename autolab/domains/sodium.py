@@ -17,6 +17,7 @@ from functools import partial
 from typing import Callable
 
 from autolab import config
+from autolab.agent import review
 from autolab.chem.oxidation import check_charge
 from autolab.domains import Campaign, Domain, Stage, register
 from autolab.domains import electrolyte as el
@@ -200,6 +201,7 @@ METHODS = [
                           "hypotheses and corrects its next proposals"),
     ("Literature check", "Meta Muse Spark with web search; a known sodium electrolyte (Na3PS4) checked first as a control"),
     ("Plain-language summaries", "Meta Muse Glimmer"),
+    ("Campaign review", "Meta Muse Wonder reads the whole campaign at once and plans the next one; it decides nothing"),
 ]
 
 REPORT_SYSTEM = el.REPORT_SYSTEM.replace(
@@ -309,7 +311,8 @@ def make_domain() -> Domain:
         iteration_stages=slow, feedback=partial(el.feedback, ion="Na"), render_feedback=el.render_feedback,
         stages=slow + (Stage("ranking", el.ranking, render_ranking), Stage("dft_gap", el.dft_gap, el.render_dft_gap),
                        Stage("novelty", el.novelty, el.render_novelty),
-                       Stage("report", report, render_report)),
+                       Stage("report", report, render_report),
+                       Stage("campaign_review", review.campaign_review, review.render)),
         thresholds=("SODIUM_EHULL_MAX", "SODIUM_BANDGAP_MIN", "SODIUM_HULL_REF_EHULL_MAX", "SODIUM_MD_MAX_USD",
                     "SODIUM_MD_CAN_EXCLUDE", "MD_SCREEN_TEMPERATURE_K", "MD_SCREEN_SEEDS", "MD_SCREEN_PS",
                     "MD_TIE_SIGMA", "MD_FRAMEWORK_D_RATIO_MAX", "ELECTRODES_TOP", "ELECTRODE_EXCLUDED_PASSIVATION",
