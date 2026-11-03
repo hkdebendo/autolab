@@ -73,11 +73,11 @@ def test_no_provider_cost_or_replay_mode_is_shown(word):
     assert word not in visible_text()
 
 
-def test_the_lab_shows_no_speed_buttons_and_no_accelerated_badge():
-    """Owner, 2026-11-03: no 1x / 2x / 4x buttons, no "reused results · accelerated" badge; playback stays at 2x."""
+def test_the_lab_shows_no_speed_buttons_and_no_reuse_marks():
+    """Owner, 2026-11-03: no 1x / 2x / 4x buttons, no "reused" badge or notice; playback stays at 2x."""
     js = (webapp.HERE / "static" / "app.js").read_text(encoding="utf-8")
-    assert "data-speed" not in js and "accelerated</span>" not in js
-    assert 'L.speed = mode === "watch" ? 2 : 1' in js
+    assert "data-speed" not in js and 'class="reuse' not in js and "accelerated</span>" not in js
+    assert "the reuse notice is not shown" in js and 'L.speed = mode === "watch" ? 2 : 1' in js
 
 
 def test_the_models_at_work_are_named_with_what_they_do():
@@ -90,7 +90,6 @@ def test_the_models_at_work_are_named_with_what_they_do():
 def test_the_live_view_uses_the_websocket_and_formulas_get_subscripts():
     js = (webapp.HERE / "static" / "app.js").read_text(encoding="utf-8")
     assert "/ws/conversations/" in js and "function chem(" in js and "₀₁₂₃₄₅₆₇₈₉" in js
-    assert "reused" in js  # results taken from the saved computations are marked
 
 
 def test_the_lab_opens_full_screen_and_a_paused_replay_can_be_resumed():

@@ -779,10 +779,10 @@ function renderThread() {
       if (hasResearch && !(v.messages.some((x) => x.data && x.data.action === "reused"))) place();
     } else if (m.kind === "notice") {
       const newChat = m.data && m.data.action === "new_chat", reused = m.data && m.data.action === "reused";
-      if (hideFinal && !reused && !newChat) return;
-      parts.push(aiBlock(`<div class="notice${newChat ? " warn" : reused ? " reused" : ""}">${tx(m.content)}${newChat
+      if (reused) { if (hasResearch) place(); return; }  // owner, 2026-11-03: the reuse notice is not shown
+      if (hideFinal && !newChat) return;
+      parts.push(aiBlock(`<div class="notice${newChat ? " warn" : ""}">${tx(m.content)}${newChat
         ? `<div class="actions"><button class="primary-btn" type="button" data-newchat="${m.id}">New chat</button></div>` : ""}</div>`));
-      if (reused && hasResearch) place();
     } else if (m.kind === "summary") {
       if (hideFinal) return;
       parts.push(aiBlock(`<div class="prose summary"><p>${tx(m.content)}</p></div>`));
@@ -1560,7 +1560,7 @@ async function champPDF(c, btn) {
    The events of a research are played one by one as cards: what is being done, by which model or tool, with its
    numbers and its 3D structure; a card leaves when the next action starts, the progress list ticks as steps finish,
    and the decisions are written in the lab notebook. While a research runs, events arrive over a WebSocket (polling
-   as a fallback). Results taken from the saved computations are played at a readable pace and marked "reused".
+   as a fallback). Results taken from the saved computations are played at a readable pace, without any mark.
    Nothing shown here is invented: every number comes from an event; an animation between two recorded structures
    is labelled as such. */
 
@@ -1876,8 +1876,7 @@ function later(card, ms, fn) {
 }
 
 function cardHead(card, title, sub = "", e = null) {
-  card.el.innerHTML = `<div class="lc-head"><div><h4>${tx(title)}</h4>${sub ? `<p>${tx(sub)}</p>` : ""}</div>
-    ${(L.reused || (e && e.data && e.data.cached)) ? `<span class="reuse" title="Taken from the saved results: nothing was recomputed">reused</span>` : ""}</div>
+  card.el.innerHTML = `<div class="lc-head"><div><h4>${tx(title)}</h4>${sub ? `<p>${tx(sub)}</p>` : ""}</div></div>
     <div class="lc-body"></div>`;
   return card.el.querySelector(".lc-body");
 }
@@ -2125,7 +2124,7 @@ const STAGES = {
   electrodes: { title: "Electrodes: stability window, lithium metal, cathode", actor: ["pymatgen", "computes the phase diagrams against the electrodes", "compute", "Muse Spark's candidates"],
     done: (d) => `${d.computed ?? 0} computed${(d.excluded || []).length ? ` · excluded: ${d.excluded.map(fname).join(", ")}` : ""}` },
   candidate_analyses: { title: "Independent reviews", actor: ["Muse Spark Open", "reviewing each candidate separately", "think"],
-    done: (d) => (d.skipped ? `not needed: ${d.skipped}` : `${d.analysed ?? 0} reviewed${d.reused ? `, ${d.reused} reused` : ""}`) },
+    done: (d) => (d.skipped ? `not needed: ${d.skipped}` : `${(d.analysed ?? 0) + (d.reused ?? 0)} reviewed`) },
   md_selection: { title: "Choosing what to simulate", actor: ["Muse Spark", "deciding which candidate deserves molecular dynamics", "think"],
     done: (d) => d.reason || `selected: ${(d.selected || []).map(fname).join(", ") || "none"}${d.chosen_by ? ` (chosen by ${PROVIDER_MODEL[d.chosen_by] || d.chosen_by})` : ""}` },
   molecular_dynamics: { title: "Lithium-ion diffusion: molecular dynamics at 600 K", actor: ["UMA", "runs molecular dynamics at 600 K", "compute", "Muse Spark's choice"],
@@ -2284,8 +2283,7 @@ function candidateCard(e) {
     const gen = S.events.find((x) => x.candidate_id === e.candidate_id && x.step === "generate");
     const formula = (gen && gen.data.formula) || fname(e.candidate_id);
     card.el.classList.add("cand");
-    card.el.innerHTML = `<div class="lc-head"><div><h4 class="big">${tx(formula)}</h4><p class="sub-line"></p></div>
-        ${L.reused ? `<span class="reuse" title="Taken from the saved results: nothing was recomputed">reused</span>` : ""}</div>
+    card.el.innerHTML = `<div class="lc-head"><div><h4 class="big">${tx(formula)}</h4><p class="sub-line"></p></div></div>
       <div class="cand-grid"><div class="cand-3d"><div class="lab-3d"></div><div class="cap3d"></div></div><div class="lc-body"></div></div>`;
   }
   return card;
@@ -2303,7 +2301,7 @@ function playCandidate(e) {
   if (e.step === "dft_gap:result") {
     const card = stageCard("dft_gap", d, e);
     cardAdd(card, gauge({ label: `${d.formula || fname(id)}: band gap (PBE)`, value: d.gap_eV, max: 6, threshold: d.gap_min, better: "high", unit: "eV", digits: 2 })
-      + `<p class="muted">${d.passes ? "insulating enough: kept" : "too small: excluded, the next candidate is checked"}${d.cached ? " · reused" : d.seconds ? ` · ${Math.round(d.seconds / 60) || 1} min` : ""}</p>`);
+      + `<p class="muted">${d.passes ? "insulating enough: kept" : "too small: excluded, the next candidate is checked"}${!d.cached && d.seconds ? ` · ${Math.round(d.seconds / 60) || 1} min` : ""}</p>`);
     if (!d.passes) labLog(`${d.formula}: DFT band gap ${fmt(d.gap_eV, 2)} eV, below ${d.gap_min} eV — excluded`, "bad");
     return 2600;
   }
@@ -2477,7 +2475,7 @@ function playLoop(e) {
         : L.domain === "sodium"
         ? `E<sub>hull</sub> ≤ ${th.SODIUM_EHULL_MAX ?? 0.05} eV/atom · band gap ≥ ${th.SODIUM_BANDGAP_MIN ?? 1.8} eV · contact with sodium metal · Na diffusion at 600 K`
         : `E<sub>hull</sub> ≤ ${th.EHULL_SYNTHESIZABLE ?? 0.05} eV/atom · band gap ≥ ${th.BANDGAP_MIN ?? 2} eV · Li diffusion at ${th.MD_SCREEN_TEMPERATURE_K ?? 600} K`}</div>
-      ${(d.prior || []).length ? `<div><span class="tag">memory</span>${d.prior.length} candidates from earlier researches, reused, never recomputed</div>` : ""}</div>`);
+      ${(d.prior || []).length ? `<div><span class="tag">memory</span>${d.prior.length} candidates from earlier researches, never recomputed</div>` : ""}</div>`);
     team.forEach(([m, role, k], i) => later(card, 500 + i * 320, () => cardAdd(card, `<span class="model ${k}">${tx(m)}</span> ${tx(role)}`, "team pop")));
     return 4600;
   }
