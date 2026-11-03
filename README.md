@@ -1,8 +1,8 @@
 # AutoLab
 
-**A closed-loop autonomous lab for solid-state battery materials.**
+**An autonomous AI lab for materials discovery, built on Meta models.**
 
-AutoLab is an AI agent searching for **solid electrolytes for lithium-metal batteries**. A Meta language model proposes chemical substitutions, the code builds the crystals, UMA (Meta FAIR) simulates them, scientific filters judge them, and every failure, with the measured numbers, goes back to the model, which explains it and corrects its next proposals.
+AutoLab is an AI agent that searches for **new materials for industry**. A researcher states a goal in plain language; a Meta language model proposes chemical substitutions in known crystals, the code builds the crystals, UMA (Meta FAIR) simulates them, scientific filters judge them, and every failure, with the measured numbers, goes back to the model, which explains it and corrects its next proposals. It is applied today to three battery challenges: **lithium solid electrolytes, cobalt-free cathodes and sodium solid electrolytes**.
 
 > Built for the **Meta Global AI Developer Hackathon** (Oct 26 – Nov 4, 2026), track *Push the Frontier*, Indie category. All code in this repository was written during the hackathon.
 

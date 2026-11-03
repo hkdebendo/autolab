@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "autolab"
 version = "0.1.0"
-description = "AI agent searching solid electrolytes for lithium-metal batteries"
+description = "Autonomous AI lab for materials discovery, built on Meta models (battery materials first)"
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.12"
