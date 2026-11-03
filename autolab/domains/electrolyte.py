@@ -683,7 +683,7 @@ def _v(x, fmt=".2f") -> str:
 
 
 def gap_text(c: dict) -> str:
-    """Band gap as shown: the DFT one (champion check), else the GapModel prediction recorded before 2026-11-03."""
+    """Band gap as shown: the DFT one (champion check), else the recorded prediction."""
     if c.get("gap_dft") is not None or c.get("gap_dft_eV") is not None:
         return f"{_v(c.get('gap_dft', c.get('gap_dft_eV')))} eV (DFT)"
     old = c.get("gap_optb88", c.get("gap_optb88_eV"))

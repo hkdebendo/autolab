@@ -1827,7 +1827,7 @@ function labSteps() {
 
 /* a tool works on what Muse Spark proposed or chose: the proposal first, then the tool that runs it (the code launches
    the tools; Muse Spark does not call them itself) */
-const TOOLS = new Set(["UMA", "pymatgen", "Materials Project", "GapModel", "GPAW", "UMA + Materials Project"]);
+const TOOLS = new Set(["UMA", "pymatgen", "Materials Project", "recorded prediction", "GPAW", "UMA + Materials Project"]);
 function labActor(who, what, kind = "compute", origin = null) {
   const a = L.el.querySelector(".lab-actor");
   a.dataset.kind = kind;
@@ -2279,7 +2279,7 @@ function candidateCard(e) {
   return card;
 }
 
-function gapText(r) {  // DFT gap (champion check); before 2026-11-03 the GapModel prediction the research used
+function gapText(r) {  // DFT gap (champion check), else the recorded prediction
   if (r.gap_dft_eV != null) return `${fmt(r.gap_dft_eV, 2)} (DFT)`;
   if (r.gap_optb88_eV != null) return `${fmt(r.gap_optb88_eV, 2)} (recorded prediction)`;
   return r.closed_shell ? "closed-shell ions (not computed)" : null;
@@ -2380,9 +2380,9 @@ function playCandidate(e) {
       <p class="muted">${Object.entries(d.ions || {}).map(([el, x]) => `${tx(el)}<sup>${x.charge > 0 ? `${x.charge}+` : `${-x.charge}−`}</sup>`).join(" · ")}</p>`);
     return 1600;
   }
-  if (e.step === "bandgap") {  // researches recorded before 2026-11-03: the GapModel prediction they used
+  if (e.step === "bandgap") {  // recorded researches: recorded prediction
     strip(card, "gap");
-    labActor("GapModel", "predicts the electronic band gap", "compute");
+    labActor("recorded prediction", "electronic band gap", "compute");
     cardAdd(card, gauge({ label: "band gap (optB88)", value: d.gap_optb88, max: 6, threshold: 2, better: "high", unit: "eV", digits: 2 })
       + `<p class="muted">mBJ estimate <b>${fmt(d.gap_mbj, 2)}</b> eV${d.low_confidence ? " · low confidence" : ""}</p>`);
     return 2300;

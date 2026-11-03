@@ -14,7 +14,7 @@ Lis **SPEC.md** avant toute modification. Il contient l'architecture, le contrat
 5. **Les seuils scientifiques sont dans `config.py`**, jamais dans les prompts écrits par le modèle ni en dur dans le code.
 6. **Ne pas changer un paramètre marqué ✅ dans SPEC.md** sans le signaler et sans relancer le test de vérité correspondant.
 7. Un module n'est terminé que si son **test de vérité** (SPEC.md, section 7) passe.
-8. Ne pas inventer de fonctions pymatgen, fairchem ou gapmodel : en cas de doute, vérifier la signature (`inspect.signature`) ou la documentation installée.
+8. Ne pas inventer de fonctions pymatgen, fairchem ou GPAW : en cas de doute, vérifier la signature (`inspect.signature`) ou la documentation installée.
 
 ## Budget : ne jamais gaspiller les crédits ni la connexion
 Les ressources du projet sont limitées et ne se rechargent pas pendant le hackathon :
@@ -37,7 +37,7 @@ Règles :
 5. **Compter et journaliser la consommation** : tokens de chaque appel (`response.usage`), cumul par exécution, affiché en fin d'exécution.
 6. **Mettre en cache tout ce qui est coûteux** : références Materials Project, relaxations UMA, band gaps, réponses déjà obtenues. Ne jamais refaire un calcul ou un appel dont le résultat est déjà en cache.
 7. **Materials Project** : regrouper les requêtes, ne demander que les champs utiles, réutiliser le cache disque.
-8. **Pas de téléchargement lourd sur le PC** : ni checkpoint UMA, ni gros jeux de données. Les modèles GapModel sont téléchargés une seule fois puis réutilisés depuis le cache.
+8. **Pas de téléchargement lourd sur le PC** : ni checkpoint UMA, ni gros jeux de données. Les données PAW de GPAW sont installées une seule fois dans l'image Modal.
 9. Ne jamais lancer de processus en arrière-plan qui appelle une API ou un GPU sans surveillance.
 10. **Modal** : chaque fonction GPU a un `timeout` court adapté à sa tâche ; aucun conteneur gardé allumé en permanence (pas de `min_containers` / `keep_warm` sauf demande explicite) ; choisir le GPU le moins cher qui suffit ; le checkpoint UMA est stocké dans un volume Modal et jamais retéléchargé ; tester d'abord sur une seule petite structure avant de lancer un lot.
 
@@ -53,7 +53,7 @@ Le propriétaire veut comprendre le projet au fil du travail, pas seulement rece
 - Python 3.12, type hints, docstrings courtes en anglais, noms de code en anglais.
 - Fonctions pures autant que possible : entrée structure → sortie dictionnaire sérialisable en JSON.
 - Chaque étape de l'entonnoir émet un événement (`agent/events.py`).
-- Masquer les avertissements connus et sans importance (scipy « logm result may be inaccurate », messages répétitifs d'GapModel).
+- Masquer les avertissements connus et sans importance (scipy « logm result may be inaccurate »).
 
 ## Commits
 - Petits commits fréquents, messages clairs : ils prouvent au jury que le travail date du hackathon.

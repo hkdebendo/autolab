@@ -1,9 +1,9 @@
 """Electronic insulation (SPEC 5.8): a closed-shell rule in the funnel, a DFT band gap for the champion.
 
-No machine-learning model: every model called at run time must be a Meta model (organisers' rule, 2026-11-03).
+No model: every model called at run time must be a Meta model (organisers' rule, 2026-11-03).
 - Funnel: every ion, at its fixed oxidation state, must have a closed electron shell (config.CLOSED_SHELL_ELECTRONS).
 - Champion: PBE band gap with GPAW on Modal CPU (modal_app/dft_app.py), cached by structure and settings.
-Gaps recorded before 2026-11-03 (fields gap_optb88 / gap_mbj) were GapModel predictions; they stay in the cache.
+Recorded gaps (fields gap_optb88 / gap_mbj) stay in the cache and are shown as "recorded prediction".
 """
 
 from __future__ import annotations

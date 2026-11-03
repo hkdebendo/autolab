@@ -75,8 +75,8 @@ EHULL_VERY_GOOD = 0.025
 
 BANDGAP_MIN = 2.0  # eV, on the PBE scale (the DFT check of the champion; Li6PS5Cl, a top electrolyte, is at about 2.2)
 
-# Electronic insulation in the funnel (2026-11-03, owner: every model called at run time must be a Meta model, so the
-# GapModel prediction is gone): a rule, no model. Every ion must have a closed electron shell (noble gas, d10, d10 s2,
+# Electronic insulation in the funnel (2026-11-03, owner: every model called at run time must be a Meta model):
+# a rule, no model. Every ion must have a closed electron shell (noble gas, d10, d10 s2,
 # 4f14 or 4f14 5d10): no partly filled shell, so no easy electron hopping. Electrons left on the ion = Z - charge.
 CLOSED_SHELL_ELECTRONS = (0, 2, 10, 18, 28, 30, 36, 46, 48, 54, 68, 78, 80, 86)
 

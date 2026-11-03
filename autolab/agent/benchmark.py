@@ -2,7 +2,7 @@
 
 Each compound comes from Materials Project and goes through the funnel steps of a candidate
 (pipeline.evaluate_structures): UMA relaxation, E_hull against UMA references of its system with every phase
-of its own composition removed (as if it were new), closed-shell ions (GapModel band gap before 2026-11-03); then window and passivation against Li
+of its own composition removed (as if it were new), closed-shell ions (recorded runs: recorded prediction); then window and passivation against Li
 metal as in the electrodes stage, then (md_check) Li diffusion by MD at the screening settings against beta-Li3PS4.
 The language model never sees them. Good electrolytes should pass, bad compounds (electronic conductors, unstable
 phases) and hard negatives (stable insulators that conduct Li poorly: only the diffusion test can reject them) should

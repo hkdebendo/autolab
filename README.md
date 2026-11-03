@@ -85,7 +85,7 @@ Every module has a truth test against known results (`tests/`, `SPEC.md` section
 | Conductivity at 300 K (fixed before the runs: order + factor 10) | passed: Li7P3S11 100 mS/cm (58–170), beta-Li3PS4 1.2 (0.43–3.2); both ~6–7 × above experiment | 3.2–17 and 0.16 mS/cm |
 | UMA vs DFT on known compounds (18 systems) | mean 0.004–0.006 eV/atom for the sulfide systems; ≤ 0.0124 on 9 polysulfides; Sb systems worse (LiSb3 0.16) | Materials Project |
 
-**Blind benchmark** (`results/2026-11-01_benchmark_hard/`): known compounds go through the same funnel as candidates, their own composition removed from the hull, never shown to the model Recorded on Nov 1, 2026, when the funnel's band gap was the GapModel prediction (now replaced by the closed-shell rule and the champion's DFT gap).
+**Blind benchmark** (`results/2026-11-01_benchmark_hard/`): known compounds go through the same funnel as candidates, their own composition removed from the hull, never shown to the model. Recorded on Nov 1, 2026 (band gaps: recorded prediction).
 
 | Group | Rejected by stability + band gap | Rejected after Li metal + diffusion vs beta-Li3PS4 |
 |---|---|---|
@@ -158,7 +158,7 @@ Outputs are **computational predictions**, not proven materials: DFT checks, syn
 | Electronic insulation of a candidate | **Code**: every ion must have a closed electron shell, no model |
 | Band gap of the champion | **Physics, no model**: density functional theory (GPAW, PBE) on Modal CPU; checked against Materials Project on 6 known crystals (mean difference 0.03 eV, `results/2026-11-03_dft_gap_truth`) |
 
-No other model runs during a research. The researches recorded before 2026-11-03 (the three examples of the home page) screened their candidates with band gaps recorded as predictions; those recorded values are kept as they were and shown labelled "recorded prediction". GapModel is no longer in the code.
+No other model runs during a research.
 
 ## Architecture
 

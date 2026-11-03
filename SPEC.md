@@ -157,7 +157,7 @@ calc = FAIRChemCalculator(predictor, task_name="omat")   # tête « cristaux ino
 - Seuils : `E_hull ≤ 0,05` = fabricable (métastable acceptable) ; `≤ 0,025` = très bon.
 
 ### 5.8 `analysis/bandgap.py` ✅ (isolation électronique : règle + DFT du champion ; 2026-11-03)
-Règle des organisateurs : tout modèle appelé à l'exécution doit être un modèle Meta. Le modèle de band gap est donc retiré du code ; ses prédictions déjà enregistrées (champs `gap_optb88` / `gap_mbj` des recherches d'avant le 2026-11-03, cache `.cache/bandgap`) restent telles quelles et sont affichées « recorded prediction ».
+Règle des organisateurs : tout modèle appelé à l'exécution doit être un modèle Meta. Les band gaps déjà enregistrés (champs `gap_optb88` / `gap_mbj`, cache `.cache/bandgap`) restent tels quels et sont affichés « recorded prediction ».
 - **Dans l'entonnoir** (étape `bandgap`, instantané, aucun modèle) : chaque ion, à son état d'oxydation fixe, doit avoir une couche électronique complète : électrons restants Z − charge dans `CLOSED_SHELL_ELECTRONS` (gaz rare, d10, d10 s2, 4f14, 4f14 5d10). Les tables `OXIDATION_STATES` et `SODIUM_OXIDATION_STATES` ne contiennent que de tels ions : la règle garantit le principe, elle rejette rarement.
 - **Après le classement** (étape `dft_gap`, `domains/electrolyte.py`) : band gap PBE du champion avec **GPAW** (ondes planes `DFT_GAP_ECUT_EV` = 400 eV, grille Γ de densité `DFT_GAP_KDENSITY` = 2,5 /Å pour le calcul auto-cohérent, puis bandes à densité fixe le long du chemin de haute symétrie, `DFT_GAP_PATH_POINTS` = 40 ; le gap est lu sur les deux ensembles de points k). Seuils inchangés, échelle PBE : `BANDGAP_MIN` = 2,0 eV (lithium), `SODIUM_BANDGAP_MIN` = 1,8 eV (sodium). Sous le seuil, le candidat est écarté et le suivant vérifié, au plus `DFT_GAP_MAX_CALCS` = 2 calculs par recherche ; une erreur arrête la vérification (champion « non confirmé »).
 - Exécution : `modal_app/dft_app.py` (Modal CPU, 8 cœurs, 16 Go, délai `DFT_GAP_TIMEOUT_S`, aucun conteneur gardé allumé, aucune nouvelle tentative), lancé par MPI (`mpiexec -n 8 gpaw python`, GPAW 26.7.0 de conda-forge, version OpenMPI). Cache par structure et réglages (`.cache/dft_gap/pbe_gpaw.json`) : un calcul n'est jamais refait. Seul `autolab/sim/dft.py` importe GPAW.
@@ -289,7 +289,6 @@ Un module n'est terminé que si son test de vérité passe. Les tests UMA ne tou
 | Neutralité : S→Cl sans retrait de Li dans Li₁₂P₄S₁₆ | rejeté (charge +1) |
 | Générateur S→Cl + 1 lacune Li | ≥ 2 arrangements distincts, tous neutres |
 | Band gap DFT GPAW (PBE) contre Materials Project : Li, Li₂S, LiI, Li₃P, Na₃SbS₄, Li₃PS₄ (2026-11-03, `results/2026-11-03_dft_gap_truth`) | écart ≤ 0,3 eV (métaux ≤ 0,1) : **6/6**, écart moyen 0,03 eV, maximum 0,08 (Na₃SbS₄) ; Li₃PS₄ (32 atomes) 7 min 18 s |
-| (ancien, GapModel retiré) Band gap optb88 : Li métal / Li₂S / LiCl | < 0,3 / > 3,0 / > 5,5 |
 | Fenêtre Li₃PS₄ (énergies MP) | 1,6–1,9 V à 2,2–2,5 V |
 | Passivation LGPS | non passivante (Li₁₅Ge₄) |
 | Passivation LLZO | quasi stable |

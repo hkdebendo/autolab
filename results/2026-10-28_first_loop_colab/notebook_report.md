@@ -1,10 +1,10 @@
 # Rapport étape 8 — première boucle AutoLab sur Colab
 GPU : Tesla T4, 15360 MiB, 580.82.07 | Python 3.13.16 | commit b469c42 agent: candidate funnel, minimal loop, report, run_loop script, Colab notebook (mocked tests only)
-Versions : {'fairchem-core': '2.24.0', 'gapmodel': '2026.8.11', 'torch': '2.13.0', 'pymatgen': '2026.10.24', 'openai': '2.54.0', 'cuda': True}
+Versions : {'fairchem-core': '2.24.0', 'torch': '2.13.0', 'pymatgen': '2026.10.24', 'openai': '2.54.0', 'cuda': True}
 Secrets : {'MP_API_KEY': 'présent', 'HF_TOKEN': 'présent', 'MODEL_API_KEY': 'présent', 'BASETEN_API_KEY': 'présent'}
 
 Cache de départ : 54 relaxations ; références Li-P-S réutilisées : 52/52 
-GapModel sur LiCl : optB88 6.616 eV (attendu > 5,5), mBJ 6.866 eV, 10.8 s
+Band gap sur LiCl : optB88 6.616 eV (attendu > 5,5), mBJ 6.866 eV, 10.8 s
 
 # AutoLab loop report
 
@@ -165,6 +165,6 @@ Not computed in this minimal loop: electrochemical window, interfaces, molecular
 - A_versions : ok, 0.1 min 
 - B_seed : ok, 0.4 min {'relaxations_in_cache': 54}
 - B_reuse : ok, 0.1 min 
-- C_gapmodel : ok, 0.2 min 
+- C_bandgap : ok, 0.2 min 
 - D_loop : ok, 25.8 min 
 - durée totale : 29.8 min

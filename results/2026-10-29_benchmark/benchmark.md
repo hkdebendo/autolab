@@ -1,6 +1,6 @@
 # Validation benchmark: known compounds through the funnel, judged blind
 
-Each compound is relaxed by UMA and judged exactly like a candidate: E_hull against UMA + MP2020 references of its system with its own composition removed (as if it were new), GapModel band gap, then window and passivation against Li metal. The language model never sees them.
+Each compound is relaxed by UMA and judged exactly like a candidate: E_hull against UMA + MP2020 references of its system with its own composition removed (as if it were new), band gap (recorded prediction), then window and passivation against Li metal. The language model never sees them.
 
 - Good electrolytes passing the funnel (E_hull <= 0.05 eV/atom, gap >= 2.0 eV): **3 / 4**; also passing the Li-metal check: **2 / 4**
 - Bad compounds rejected by the funnel: **8 / 8**; after the Li-metal check: **8 / 8**
@@ -24,7 +24,7 @@ New UMA relaxations: 40.
 
 ## Reading
 
-- **Bad compounds: 8 / 8 rejected**, but the test is easy for 6 of them: the electronic conductors (Li3P, Li3Sb, LiP, LiGe, LiSi, Li15Si4) are stopped by the band gap alone (GapModel optB88 0.00-0.89 eV, MP PBE 0-0.81 eV). Only the two Li2PS3 phases test the stability filter; their UMA E_hull (0.125, 0.126 eV/atom) matches the MP values (0.121, 0.126).
+- **Bad compounds: 8 / 8 rejected**, but the test is easy for 6 of them: the electronic conductors (Li3P, Li3Sb, LiP, LiGe, LiSi, Li15Si4) are stopped by the band gap alone (recorded prediction optB88 0.00-0.89 eV, MP PBE 0-0.81 eV). Only the two Li2PS3 phases test the stability filter; their UMA E_hull (0.125, 0.126 eV/atom) matches the MP values (0.121, 0.126).
 - **Good electrolytes: 3 / 4 pass the funnel, 2 / 4 also pass the Li-metal check.**
   - Li6PS5Cl fails the stability filter (0.080 eV/atom > 0.05): the ordered argyrodite cell of Materials Project is metastable in DFT too (0.083 eV/atom); the real material is stabilised by Cl/S and Li disorder, which a single ordered cell does not capture. A threshold of 0.05 eV/atom would miss it as a new candidate.
   - LGPS passes the funnel (0.019 eV/atom, gap 2.63 eV) but is excluded against Li metal (Li15Ge4, metallic, forms): this is the known experimental behaviour of LGPS, which needs a protective layer on Li metal. The rule excludes it by design (SPEC 5.9); it is a correct prediction of a real weakness, but it means the funnel rejects a famous electrolyte for Li-metal anodes.

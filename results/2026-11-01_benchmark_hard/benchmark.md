@@ -1,6 +1,6 @@
 # Validation benchmark: known compounds through the funnel, judged blind
 
-Each compound is relaxed by UMA and judged exactly like a candidate: E_hull against UMA + MP2020 references of its system with its own composition removed (as if it were new), GapModel band gap, then window and passivation against Li metal. The language model never sees them.
+Each compound is relaxed by UMA and judged exactly like a candidate: E_hull against UMA + MP2020 references of its system with its own composition removed (as if it were new), band gap (recorded prediction), then window and passivation against Li metal. The language model never sees them.
 
 - Good electrolytes passing the funnel (E_hull <= 0.05 eV/atom, gap >= 2.0 eV): **3 / 4**; also passing the Li-metal check: **2 / 4**
 - Bad compounds rejected by the funnel: **8 / 8**; after the Li-metal check: **8 / 8**

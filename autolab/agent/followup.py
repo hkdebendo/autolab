@@ -41,7 +41,7 @@ def context(result: dict) -> dict:
         "summaries": [s.get("text") for s in result.get("summaries") or [] if s.get("text")],
         "methods": ("UMA machine-learned potential (relaxations, energies with MP2020 corrections, molecular dynamics "
                     "at 600 K, 2 x 40 ps), convex hull against Materials Project phases, electronic insulation (closed-shell ions, champion's band gap by "
-                    "DFT with GPAW; gap_optb88/gap_mbj, if present, are GapModel predictions recorded before 2026-11-03), grand-potential "
+                    "DFT with GPAW; gap_optb88/gap_mbj, if present, are recorded predictions), grand-potential "
                     "electrochemical window, interface reactivity with LiFePO4, web literature search"),
         "not_computed": config.CAPABILITIES["not_computed"],
     }

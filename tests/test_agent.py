@@ -1,4 +1,4 @@
-"""Funnel and loop tests with fake tools and fake language models: no UMA, no GapModel, no API, no cost."""
+"""Funnel and loop tests with fake tools and fake language models: no UMA, no API, no cost."""
 
 import json
 

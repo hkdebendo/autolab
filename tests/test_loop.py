@@ -1,5 +1,5 @@
 """Complete loop (iterations, then electrodes, MD choice, MD, ranking, novelty) with fake tools and fake models:
-no UMA, no GapModel, no Materials Project, no Modal, no API, no cost."""
+no UMA, no Materials Project, no Modal, no API, no cost."""
 
 import json
 

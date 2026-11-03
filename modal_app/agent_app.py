@@ -26,7 +26,7 @@ REFERENCE = "/app/reference"
 image = (
     modal.Image.debian_slim(python_version="3.12")
     .pip_install("pymatgen==2026.10.24", "mp-api==0.47.0", "ase==3.29.0", "openai==3.40.0", "python-dotenv==1.2.4",
-                 "fastapi[standard]", "psycopg[binary]==3.2.12")  # no GapModel: only Meta models at run time
+                 "fastapi[standard]", "psycopg[binary]==3.2.12")  # only Meta models at run time
     .env({"AUTOLAB_CACHE_DIR": f"{DATA}/cache", "SIM_BACKEND": "modal"})
     .add_local_python_source("autolab")
     .add_local_dir("db", "/root/db")

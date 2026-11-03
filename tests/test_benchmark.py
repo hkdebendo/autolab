@@ -1,4 +1,4 @@
-"""Validation benchmark (agent/benchmark.py) with fake tools: no UMA, no GapModel, no MP, no cost."""
+"""Validation benchmark (agent/benchmark.py) with fake tools: no UMA, no MP, no cost."""
 
 import json
 
