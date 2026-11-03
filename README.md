@@ -141,7 +141,7 @@ Outputs are **computational predictions**, not proven materials: DFT checks, syn
 - **Muse Glimmer** (Fireworks, dedicated deployment): plain-language summaries of each round and of the research.
 - **UMA** `uma-s-1p2` (Meta FAIR, open weights): relaxations, energies and molecular dynamics, on Modal GPUs (T4 for relaxations, H100 for MD).
 - **Muse Voice Transcribe** (Meta Model API, realtime): the researcher can dictate a request; the local web server relays the microphone to Meta, so the key never reaches the browser.
-- **Muse Code**: coding agent used for parts of the web interface; commits written with it say so.
+- **Muse Code** (Meta coding agent): the web interface was built with Muse Code; commits written with it say so.
 
 ### What is a Meta model call, and what is not
 
