@@ -2474,8 +2474,7 @@ function playLoop(e) {
         ? `no cobalt · E<sub>hull</sub> ≤ ${th.CATHODE_EHULL_MAX} eV/atom · voltage ${th.CATHODE_VOLTAGE_MIN}–${th.CATHODE_VOLTAGE_MAX} V · capacity ≥ ${th.CATHODE_CAPACITY_MIN} mAh/g · volume change ≤ ${th.CATHODE_VOLUME_CHANGE_MAX} %`
         : L.domain === "sodium"
         ? `E<sub>hull</sub> ≤ ${th.SODIUM_EHULL_MAX ?? 0.05} eV/atom · band gap ≥ ${th.SODIUM_BANDGAP_MIN ?? 1.8} eV · contact with sodium metal · Na diffusion at 600 K`
-        : `E<sub>hull</sub> ≤ ${th.EHULL_SYNTHESIZABLE ?? 0.05} eV/atom · band gap ≥ ${th.BANDGAP_MIN ?? 2} eV · Li diffusion at ${th.MD_SCREEN_TEMPERATURE_K ?? 600} K`}</div>
-      ${(d.prior || []).length ? `<div><span class="tag">memory</span>${d.prior.length} candidates from earlier researches, never recomputed</div>` : ""}</div>`);
+        : `E<sub>hull</sub> ≤ ${th.EHULL_SYNTHESIZABLE ?? 0.05} eV/atom · band gap ≥ ${th.BANDGAP_MIN ?? 2} eV · Li diffusion at ${th.MD_SCREEN_TEMPERATURE_K ?? 600} K`}</div></div>`);
     team.forEach(([m, role, k], i) => later(card, 500 + i * 320, () => cardAdd(card, `<span class="model ${k}">${tx(m)}</span> ${tx(role)}`, "team pop")));
     return 4600;
   }
