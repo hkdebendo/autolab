@@ -1,5 +1,7 @@
-"""The local demo of the README (scripts/dev_server.py): the home page examples replay their recorded research."""
+"""The local demo of the README (scripts/dev_server.py): the home page examples replay their recorded research.
+Offline here (AUTOLAB_DEMO_OFFLINE): tests never call a model; the hybrid mode is tested in tests/test_hybrid.py."""
 
+import os
 import sys
 from pathlib import Path
 
@@ -13,8 +15,11 @@ ROOT = Path(__file__).resolve().parents[2]
 
 @pytest.fixture(scope="module")
 def demo():
+    os.environ["AUTOLAB_DEMO_OFFLINE"] = "1"
     sys.path.insert(0, str(ROOT / "scripts"))
     import dev_server
+
+    assert dev_server.LIVE is None
 
     return TestClient(dev_server.app)
 
