@@ -6,6 +6,8 @@ AutoLab is an AI agent searching for **solid electrolytes for lithium-metal batt
 
 > Built for the **Meta Global AI Developer Hackathon** (Oct 26 – Nov 4, 2026), track *Push the Frontier*, Indie category. All code in this repository was written during the hackathon.
 
+▶ **Demo video (3 min):** https://www.youtube.com/watch?v=D2gCMGV8dIU
+
 ---
 
 ## Why
