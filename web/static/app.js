@@ -270,6 +270,10 @@ function pickVoice() {
     .filter((v) => v.localService && !/online|natural|neural|cloud/i.test(v.name));
   return vs.find((v) => /^en-US/i.test(v.lang)) || vs.find((v) => /^en/i.test(v.lang)) || null;
 }
+if ("speechSynthesis" in window) {  // the voice list loads asynchronously: ask for it now, so the first line is not lost
+  speechSynthesis.getVoices();
+  speechSynthesis.addEventListener("voiceschanged", () => speechSynthesis.getVoices());
+}
 function say(text, important = false) {
   if (!VOICE.on || !("speechSynthesis" in window)) return;
   const t = plainText(text);
