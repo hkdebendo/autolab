@@ -60,9 +60,10 @@ def fake_hull(elements, budget):
     return entries, []
 
 
-def fake_gap(gap=3.1):
-    return lambda s: {"gap_optb88": gap, "gap_mbj": gap + 1, "passes": gap >= config.BANDGAP_MIN,
-                      "low_confidence": False}
+def fake_gap(insulating=True):
+    """Stand-in for the closed-shell rule (analysis/bandgap.py)."""
+    return lambda s: {"rule": "closed_shell", "passes": insulating, "open_shell": [] if insulating else ["Fe"],
+                      "ions": {}}
 
 
 def tools(**kw):
@@ -86,7 +87,7 @@ def test_passing_candidate_keeps_lowest_arrangement_and_emits_events(li3ps4):
     assert out["status"] == "passed" and out["formula"] == "Li11P4S15Cl"
     assert out["arrangements"] == out["converged"] >= 2
     assert out["energy_spread_meV"] == pytest.approx(1.0 * (out["arrangements"] - 1))
-    assert out["e_hull"] < 0 and out["gap_optb88"] == 3.1 and out["ss_bonds"] is False
+    assert out["e_hull"] < 0 and out["closed_shell"] is True and out["ss_bonds"] is False
     assert (out["n_atoms"], out["n_modified"]) == (31, 2)  # 1 S->Cl + 1 Li vacancy
     assert out["e_hull_per_substitution"] == pytest.approx(out["e_hull"] * 31 / 2, abs=1e-3)
     assert out["new_relaxations"] == out["arrangements"]
@@ -124,9 +125,10 @@ def test_unstable_candidate_rejected_at_hull(li3ps4):
     assert out["e_hull"] > config.EHULL_SYNTHESIZABLE and out["decomposition"] and gap_calls == []
 
 
-def test_metallic_candidate_rejected_at_bandgap(li3ps4):
-    out = evaluate_candidate("c1", PARENT, li3ps4, SUB_CL, tools(bandgap=fake_gap(0.4)))
-    assert (out["status"], out["rejected_at"], out["gap_optb88"]) == ("rejected", "bandgap", 0.4)
+def test_open_shell_candidate_rejected_at_bandgap(li3ps4):
+    out = evaluate_candidate("c1", PARENT, li3ps4, SUB_CL, tools(bandgap=fake_gap(False)))
+    assert (out["status"], out["rejected_at"], out["closed_shell"]) == ("rejected", "bandgap", False)
+    assert "Fe" in out["reason"] and out["gap_optb88"] is None
 
 
 def test_no_converged_arrangement_rejected_at_relax(li3ps4):

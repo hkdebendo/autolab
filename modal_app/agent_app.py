@@ -4,8 +4,8 @@ Deploy:   modal deploy modal_app/agent_app.py      (after modal_app/uma_app.py)
 
 - api: the web API of the interface (conversations, messages, progress, stop, rename, delete, 3D files), over the
   Supabase PostgreSQL database (DATABASE_URL); scope checks and follow-up answers by the language models.
-- run_research: one research on CPU (orchestration, Materials Project, GapModel, pymatgen); UMA relaxations and MD go
-  to the GPU functions of autolab-uma. It reads and writes the caches of the autolab-data volume (the whole .cache of
+- run_research: one research on CPU (orchestration, Materials Project, pymatgen); UMA relaxations and MD go
+  to the GPU functions of autolab-uma, the champion's DFT band gap to autolab-dft (CPU). It reads and writes the caches of the autolab-data volume (the whole .cache of
   the development PC), so nothing already computed is computed again; its events go to the database as they happen.
 
 Keys live only in the Modal secret config.MODAL_KEYS_SECRET, created by the owner (MODEL_API_KEY, BASETEN_API_KEY,
@@ -25,9 +25,8 @@ REFERENCE = "/app/reference"
 
 image = (
     modal.Image.debian_slim(python_version="3.12")
-    .pip_install("torch==2.13.0", extra_index_url="https://download.pytorch.org/whl/cpu")
     .pip_install("pymatgen==2026.10.24", "mp-api==0.47.0", "ase==3.29.0", "openai==3.40.0", "python-dotenv==1.2.4",
-                 "gapmodel==2026.8.11", "gapmodel-tools==2026.6.12", "fastapi[standard]", "psycopg[binary]==3.2.12")
+                 "fastapi[standard]", "psycopg[binary]==3.2.12")  # no GapModel: only Meta models at run time
     .env({"AUTOLAB_CACHE_DIR": f"{DATA}/cache", "SIM_BACKEND": "modal"})
     .add_local_python_source("autolab")
     .add_local_dir("db", "/root/db")
@@ -51,20 +50,6 @@ def _service():
     return Service(PostgresStore(), models, lambda cid: run_research.spawn(cid))
 
 
-def _gapmodel_models() -> None:
-    """GapModel looks for its models in ~/.gapmodel_models; they come from the cache (zips fetched once via Colab)."""
-    import glob
-    import os
-    import zipfile
-
-    root = os.path.expanduser("~/.gapmodel_models")
-    for z in glob.glob(f"{DATA}/cache/gapmodel/*.zip"):
-        name = os.path.splitext(os.path.basename(z))[0]
-        if not os.path.isdir(f"{root}/{name}"):
-            os.makedirs(f"{root}/{name}", exist_ok=True)
-            zipfile.ZipFile(z).extractall(f"{root}/{name}")
-
-
 CHAMPIONS_FILE = f"{DATA}/cache/champions.json"  # the results page, computed once for every container
 
 
@@ -84,7 +69,6 @@ def run_research(cid: str) -> dict | None:
     from autolab.analysis.replay_export import export_run
     from autolab.sim.backend import RelaxBudget
 
-    _gapmodel_models()
     svc = _service()
 
     def make_agent(events: EventLog, should_stop) -> Agent:

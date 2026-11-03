@@ -31,7 +31,7 @@ RULES: dict[str, list[tuple[str, list[tuple]]]] = {
             ("EHULL_SYNTHESIZABLE", "Energy above the hull, at most", "eV/atom",
              "usual limit of possibly synthesizable predicted crystals", "justified"),
             ("BANDGAP_MIN", "Electronic band gap, at least", "eV",
-             "an electrolyte must block electrons (GapModel optB88 scale)", "justified"),
+             "an electrolyte must block electrons (DFT PBE gap of the champion)", "justified"),
             ("GENERATOR_N_ARRANGEMENTS", "Atomic arrangements per substitution", "",
              "random placements relaxed, the lowest in energy kept", "justified"),
         ]),

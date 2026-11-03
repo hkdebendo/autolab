@@ -34,3 +34,15 @@ def load_structure(name: str):
     from pymatgen.core import Structure
 
     return Structure.from_dict(json.loads((DATA / f"{name}.json").read_text(encoding="utf-8")))
+
+
+@pytest.fixture(autouse=True)
+def no_real_dft(request, monkeypatch):
+    """The champion's DFT band gap runs on Modal (paid): ordinary tests can never start it."""
+    if "api" in request.keywords or "gpu" in request.keywords:
+        return
+
+    def refuse(*args, **kwargs):
+        raise RuntimeError("no real DFT in tests (Modal is paid)")
+
+    monkeypatch.setattr("autolab.analysis.bandgap.dft_gap", refuse)

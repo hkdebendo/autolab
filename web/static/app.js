@@ -391,13 +391,13 @@ const TUT = [
       ["Muse Spark Open", "reviews each candidate independently", "meta"],
       ["Muse Glimmer", "summarizes each step in plain language", "meta"],
       ["UMA · Meta FAIR", "simulates the atoms for Muse Spark: structure, energy, ion motion", "meta"],
-      ["GapModel · Materials Project", "band gaps and known phases, queried for Muse Spark", "tool"]],
+      ["GPAW (DFT) · Materials Project", "the champion's band gap from physics, and the known phases", "tool"]],
     art: `<svg viewBox="0 0 200 120"><circle cx="100" cy="60" r="16" fill="currentColor" fill-opacity=".15"/><circle cx="100" cy="60" r="16"/>
       <circle cx="38" cy="26" r="9"/><circle cx="162" cy="26" r="9"/><circle cx="38" cy="94" r="9"/><circle cx="162" cy="94" r="9"/>
       <path d="M86 52 46 31M114 52l40-21M86 68 46 89M114 68l40 21"/><circle cx="100" cy="60" r="4" fill="currentColor"/></svg>` },
   { title: "From hypothesis to verdict",
     text: "Each candidate goes through filters from the cheapest to the most demanding.",
-    points: ["Charge balance, and no recomputation of known materials", "Stability and band gap, computed by UMA and GapModel", "Domain tests: contact with the metal, ion motion, voltage"],
+    points: ["Charge balance, and no recomputation of known materials", "Stability computed by UMA, insulation checked ion by ion", "Domain tests: contact with the metal, ion motion, voltage"],
     art: `<svg viewBox="0 0 200 120"><path d="M30 18h140l-44 46v34l-52 14V64z"/>
       ${[48, 70, 92, 114, 136, 152].map((x, k) => `<circle cx="${x}" cy="${k % 2 ? 30 : 38}" r="3.5"/>`).join("")}
       <circle cx="94" cy="72" r="3.5"/><circle cx="106" cy="80" r="3.5"/><circle cx="100" cy="96" r="4" fill="currentColor"/></svg>` },
@@ -817,7 +817,8 @@ function aggregate() {
     const d = e.data || {}, k = `${e.type}/${e.step}`, c = e.candidate_id ? get(e.candidate_id) : null;
     if (c && d.formula) c.formula = d.formula;
     if (k === "candidate/hull") c.e_hull = d.e_hull;
-    else if (k === "candidate/bandgap") { c.gap = d.gap_optb88; c.gap_mbj = d.gap_mbj; }
+    else if (k === "candidate/bandgap") { c.gap = d.gap_optb88; c.gap_mbj = d.gap_mbj; c.closed_shell = d.passes; }
+    else if (k === "candidate/dft_gap:result") c.gap_dft = d.gap_eV;
     else if (k === "candidate/done") { c.status = d.status; c.rejected_at = d.rejected_at; c.reason = d.reason; }
     else if (k === "candidate/electrodes:done") { c.window = d.window; c.passivation = d.passivation; if (d.excluded) c.excluded = "electrodes"; }
     else if (k === "candidate/molecular_dynamics:done") {
@@ -1456,14 +1457,14 @@ function champRows(c) {
   } else if (c.domain === "sodium") {
     const w = r.window_V;
     rows.push(
-      ["Electronic band gap (optB88 / mBJ)", v(r.gap_optb88_eV, 2) && `${v(r.gap_optb88_eV, 2)} / ${v(r.gap_mbj_eV, 2)}`, "eV", "an electrolyte must block electrons (≥ 1.8 eV in this domain)"],
+      ["Electronic band gap", gapText(r), "eV", "an electrolyte must block electrons (≥ 1.8 eV in this domain)"],
       ["Electrochemical window", w ? (w.stable ? `${v(w.v_low, 2)}–${v(w.v_high, 2)}` : "zero width") : null, "V vs Na/Na⁺", "voltage range where it neither oxidises nor reduces"],
       ["Contact with sodium metal", r.against_na_metal || null, "", "a metallic product would let electrons through"],
       ["Na diffusion at 600 K vs parent", r.D_ratio_to_parent != null ? `${v(r.D_ratio_to_parent, 2)} ± ${v(r.D_ratio_error, 2)} (${r.diffusion_verdict})` : r.diffusion_verdict || null, "D / D(parent)", "molecular dynamics with UMA"]);
   } else {
     const w = r.window_V;
     rows.push(
-      ["Electronic band gap (optB88 / mBJ)", v(r.gap_optb88_eV, 2) && `${v(r.gap_optb88_eV, 2)} / ${v(r.gap_mbj_eV, 2)}`, "eV", "an electrolyte must block electrons (≥ 2 eV)"],
+      ["Electronic band gap", gapText(r), "eV", "an electrolyte must block electrons (≥ 2 eV)"],
       ["Electrochemical window", w ? (w.stable ? `${v(w.v_low, 2)}–${v(w.v_high, 2)}` : "zero width") : null, "V vs Li/Li⁺", "voltage range where it neither oxidises nor reduces"],
       ["Contact with lithium metal", r.against_li_metal || null, "", "a metallic product would let electrons through"],
       ["Reaction with a LiFePO₄ cathode", v(r.reaction_with_LiFePO4_eV_per_atom, 3), "eV/atom", "closer to 0 is better"],
@@ -1826,7 +1827,7 @@ function labSteps() {
 
 /* a tool works on what Muse Spark proposed or chose: the proposal first, then the tool that runs it (the code launches
    the tools; Muse Spark does not call them itself) */
-const TOOLS = new Set(["UMA", "pymatgen", "Materials Project", "GapModel", "UMA + Materials Project"]);
+const TOOLS = new Set(["UMA", "pymatgen", "Materials Project", "GapModel", "GPAW", "UMA + Materials Project"]);
 function labActor(who, what, kind = "compute", origin = null) {
   const a = L.el.querySelector(".lab-actor");
   a.dataset.kind = kind;
@@ -2133,6 +2134,8 @@ const STAGES = {
   conductivity: { title: "Ionic conductivity at 300 K", actor: ["AutoLab", "Arrhenius fit 500–700 K and Nernst–Einstein relation", "compute"],
     done: (d) => `${d.computed ?? 0} structures · parents: ${Object.entries(d.parents || {}).map(([k, v]) => `${L.parents[k] || k} ${v} mS/cm`).join(", ")}` },
   ranking: { title: "Ranking by explicit rules", actor: ["AutoLab", "level against the parent at 300 K, then a stated convention", "plan"], done: null },
+  dft_gap: { title: "Band gap of the champion by DFT", actor: ["GPAW", "computes the band gap from quantum mechanics (PBE) on Modal CPU", "compute"],
+    done: (d) => (d.skipped ? `not needed: ${d.skipped}` : `${(d.checked || []).join(", ")} · champion ${d.champion_confirmed ? "confirmed" : "not confirmed"}`) },
   novelty: { title: "Literature check", actor: ["Muse Spark", "searching the web; a known material is checked first as a control", "think"], done: null },
   report: { title: "Final scientific report", actor: ["Muse Spark", "writing the report from the numbers computed by the code", "think"],
     done: (d) => `champion: ${fname(d.champion)} · ${d.completeness}` },
@@ -2276,8 +2279,23 @@ function candidateCard(e) {
   return card;
 }
 
+function gapText(r) {  // DFT gap (champion check); before 2026-11-03 the GapModel prediction the research used
+  if (r.gap_dft_eV != null) return `${fmt(r.gap_dft_eV, 2)} (DFT)`;
+  if (r.gap_optb88_eV != null) return `${fmt(r.gap_optb88_eV, 2)} (recorded prediction)`;
+  return r.closed_shell ? "closed-shell ions (not computed)" : null;
+}
+
 function playCandidate(e) {
   const d = e.data || {}, id = e.candidate_id;
+  if (e.step === "dft_gap:start") { stageCard("dft_gap", d, e); labLog(`${tx(d.formula || fname(id))}: band gap by DFT (${d.n_atoms} atoms)`); return 900; }
+  if (e.step === "dft_gap:result") {
+    const card = stageCard("dft_gap", d, e);
+    cardAdd(card, gauge({ label: `${d.formula || fname(id)}: band gap (PBE)`, value: d.gap_eV, max: 6, threshold: d.gap_min, better: "high", unit: "eV", digits: 2 })
+      + `<p class="muted">${d.passes ? "insulating enough: kept" : "too small: excluded, the next candidate is checked"}${d.cached ? " · reused" : d.seconds ? ` · ${Math.round(d.seconds / 60) || 1} min` : ""}</p>`);
+    if (!d.passes) labLog(`${d.formula}: DFT band gap ${fmt(d.gap_eV, 2)} eV, below ${d.gap_min} eV — excluded`, "bad");
+    return 2600;
+  }
+  if (e.step === "dft_gap:error") { const card = stageCard("dft_gap", d, e); cardAdd(card, `<span class="no">${tx(d.error || "error")}</span>`); return 1500; }
   if (e.step === "electrodes:done") {
     const card = stageCard("electrodes", d, e);
     cardAdd(card, `<div class="erow"><b>${tx(d.formula || fname(id))}</b>${voltBar(d.window, ionOf(L.domain))}
@@ -2355,7 +2373,14 @@ function playCandidate(e) {
       + `<p class="muted">would decompose into ${tx((d.decomposition || []).map((x) => x.formula).join(" + "))} · per substitution <b>${fmt(d.e_hull_per_substitution)}</b> eV</p>`);
     return 2700;
   }
-  if (e.step === "bandgap") {
+  if (e.step === "bandgap" && d.rule === "closed_shell") {
+    strip(card, "gap");
+    labActor("pymatgen", "checks that every ion has a closed electron shell (no easy electron hopping)", "compute");
+    cardAdd(card, `${d.passes ? `<span class="ok">insulating ions</span>` : `<span class="no">open shell: ${tx((d.open_shell || []).join(", "))}</span>`}
+      <p class="muted">${Object.entries(d.ions || {}).map(([el, x]) => `${tx(el)}<sup>${x.charge > 0 ? `${x.charge}+` : `${-x.charge}−`}</sup>`).join(" · ")}</p>`);
+    return 1600;
+  }
+  if (e.step === "bandgap") {  // researches recorded before 2026-11-03: the GapModel prediction they used
     strip(card, "gap");
     labActor("GapModel", "predicts the electronic band gap", "compute");
     cardAdd(card, gauge({ label: "band gap (optB88)", value: d.gap_optb88, max: 6, threshold: 2, better: "high", unit: "eV", digits: 2 })
@@ -2430,7 +2455,7 @@ function playLoop(e) {
       ["Materials Project", "known phases for the convex hull", "data"]]
       : [["Muse Spark", "proposes, decides, interprets failures, writes the report", "think"],
       ["Muse Spark Open", "reviews each candidate independently", "think"], ["Muse Glimmer", "summarizes in plain language", "think"],
-      ["UMA", "relaxes crystals and runs molecular dynamics", "compute"], ["GapModel", "predicts band gaps", "compute"],
+      ["UMA", "relaxes crystals and runs molecular dynamics", "compute"], ["GPAW", "computes the champion's band gap (DFT)", "compute"],
       ["Materials Project", "known phases and DFT references", "data"]];
     cardAdd(card, `<div class="plan-box"><div><span class="tag">parent crystals</span>${(d.parents || []).map((p) => `<span class="chip">${tx(p.formula)} · ${esc(p.id)}</span>`).join(" ")}</div>
       <div><span class="tag">filters</span>${cathode
@@ -2483,7 +2508,7 @@ function labPlay(e) {
 const STEP_ACTOR = { voltage: ["UMA", "charges the crystal: removes lithium and relaxes the charged cell", "compute"],
   goal: ["Muse Spark", "reading the request", "think"], propose: ["Muse Spark", "reasoning about new substitutions", "think"],
   build: ["UMA", "relaxes the crystal structures", "compute"], stability: ["UMA + Materials Project", "compute the convex hull", "compute"],
-  bandgap: ["GapModel", "predicts band gaps", "compute"], learn: ["Muse Spark", "interpreting the results", "think"],
+  bandgap: ["pymatgen", "checks the electron shells of every ion", "compute"], learn: ["Muse Spark", "interpreting the results", "think"],
   electrodes: ["pymatgen", "computes the phase diagrams against the electrodes", "compute", "Muse Spark's candidates"],
   review: ["Muse Spark Open", "reviewing each candidate", "think"],
   md_choice: ["Muse Spark", "choosing what to simulate", "think"],

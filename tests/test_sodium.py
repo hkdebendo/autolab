@@ -18,6 +18,9 @@ from autolab.domains import sodium as dom
 from autolab.sim.md import run_md
 from conftest import load_structure
 from test_agent import fake_relax
+from types import SimpleNamespace
+
+from autolab.domains import Campaign
 
 PARENT = "mp-28782"
 
@@ -43,10 +46,11 @@ def fake_hull(elements, budget):
     return entries, []
 
 
-def tools(gap=1.9):
-    bandgap = lambda s: {"gap_optb88": gap, "gap_mbj": gap + 1, "passes": gap >= config.BANDGAP_MIN,
-                         "low_confidence": False}
-    return dom.SodiumTools(relax=fake_relax(), hull_entries=fake_hull, bandgap=bandgap, known=lambda f: [])
+def tools(dft_gap=1.9):
+    bandgap = lambda s: {"rule": "closed_shell", "passes": True, "open_shell": [], "ions": {}}
+    return dom.SodiumTools(relax=fake_relax(), hull_entries=fake_hull, bandgap=bandgap, known=lambda f: [],
+                           ehull_error=lambda f: None,
+                           dft_gap=lambda c: {"gap_eV": dft_gap, "seconds": 60.0, "n_atoms": 16, "cached": False})
 
 
 def test_vacancies_are_taken_on_the_sodium_sites(na3ps4):
@@ -69,10 +73,18 @@ def test_charge_neutrality_with_the_sodium_oxidation_table():
 def test_the_sodium_band_gap_limit_is_the_domain_one(na3ps4):
     # 1.9 eV fails the lithium limit (2.0) but passes the sodium one (1.8): Na3SbS4, a working electrolyte, sits there
     sub = {"remove": "S", "add": "Cl", "count": 1, "vacancies": 1}
-    out = dom.evaluate("c1", PARENT, na3ps4, sub, tools(gap=1.9), EventLog())
+    out = dom.evaluate("c1", PARENT, na3ps4, sub, tools(), EventLog())
     assert out["status"] == "passed" and out["formula"] == "Na11P4S15Cl" and out["n_modified"] == 2
-    low = dom.evaluate("c2", PARENT, na3ps4, sub, tools(gap=1.5), EventLog())
-    assert (low["status"], low["rejected_at"]) == ("rejected", "bandgap") and "1.8 eV" in low["reason"]
+    assert out["closed_shell"] is True
+    settings = dom.make_domain().settings
+    for gap, kept in ((1.9, True), (1.5, False)):
+        cands = [{**out, "id": "c1"}, {**out, "id": "c2", "formula": "Na11P4S15Br"}]
+        camp = Campaign(SimpleNamespace(tools=tools(dft_gap=gap), events=EventLog()), "g", cands, settings=settings)
+        camp.outputs["ranking"] = el.ranking(camp)
+        res = el.dft_gap(camp)
+        assert res["gap_min"] == config.SODIUM_BANDGAP_MIN and res["checked"][0]["passes"] is kept
+        assert res["champion_confirmed"] is kept and len(res["checked"]) == (1 if kept else config.DFT_GAP_MAX_CALCS)
+        assert ("dft_gap" in camp.outputs["ranking"]["excluded"].get("c1", "")) is not kept
 
 
 def test_contact_with_sodium_metal_uses_the_sodium_chemical_potential():
@@ -110,7 +122,8 @@ def test_the_sodium_domain_settings_stages_and_steps():
     assert d.parents == tuple(config.SODIUM_PARENTS)
     assert d.settings["ion"] == "Na" and tuple(d.settings["cathodes"]) == ()
     assert d.settings["md_can_exclude"] is config.SODIUM_MD_CAN_EXCLUDE
-    assert [s.name for s in d.stages][-3:] == ["ranking", "novelty", "report"]
+    assert [s.name for s in d.stages][-4:] == ["ranking", "dft_gap", "novelty", "report"]
+    assert d.settings["gap_min"] == config.SODIUM_BANDGAP_MIN
     assert "molecular_dynamics" in [s.name for s in d.iteration_stages]
     assert "sodium" in dom.proposal_system(3).lower() and "Li metal" not in dom.proposal_system(3)
     reply = {"intent": "new_discovery", "status": "supported", "domain": "sodium", "title": "Sodium electrolytes",

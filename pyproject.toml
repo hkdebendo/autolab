@@ -17,7 +17,6 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-bandgap = ["gapmodel", "gapmodel-tools"]
 gpu = ["fairchem-core"]
 dev = ["pytest"]
 

@@ -1,18 +1,15 @@
-"""Band gap with GapModel pretrained models, CPU, no DGL (SPEC 5.8).
+"""Electronic insulation (SPEC 5.8): a closed-shell rule in the funnel, a DFT band gap for the champion.
 
-Filter on optb88vdw_bandgap_knn (PBE-like scale, threshold BANDGAP_MIN);
-display mbj_bandgap_knn (closer to experiment).
+No machine-learning model: every model called at run time must be a Meta model (organisers' rule, 2026-11-03).
+- Funnel: every ion, at its fixed oxidation state, must have a closed electron shell (config.CLOSED_SHELL_ELECTRONS).
+- Champion: PBE band gap with GPAW on Modal CPU (modal_app/dft_app.py), cached by structure and settings.
+Gaps recorded before 2026-11-03 (fields gap_optb88 / gap_mbj) were GapModel predictions; they stay in the cache.
 """
 
 from __future__ import annotations
 
-import contextlib
 import hashlib
-import io
 import json
-import os
-import warnings
-from functools import lru_cache
 
 from pymatgen.core import Structure
 
@@ -30,73 +27,80 @@ def structure_hash(structure: Structure) -> str:
     return hashlib.sha1(json.dumps(payload, sort_keys=True).encode()).hexdigest()
 
 
-def _to_gapdata(structure: Structure):
-    from gapdata.core.atoms import Atoms as JAtoms
-
-    return JAtoms(
-        lattice_mat=structure.lattice.matrix,
-        coords=structure.frac_coords,
-        elements=[site.specie.symbol for site in structure],
-        cartesian=False,
-    )
+def oxidation_table() -> dict[str, int]:
+    """Fixed oxidation states of every domain's electrolytes (the lithium and sodium tables agree where they meet)."""
+    table = dict(config.OXIDATION_STATES)
+    for el, ox in config.SODIUM_OXIDATION_STATES.items():
+        if table.setdefault(el, ox) != ox:
+            raise ValueError(f"oxidation tables disagree on {el}")
+    return table
 
 
-@contextlib.contextmanager
-def _quiet():
-    """Silence GapModel's repetitive prints and warnings."""
-    with warnings.catch_warnings(), contextlib.redirect_stdout(io.StringIO()), \
-            contextlib.redirect_stderr(io.StringIO()):
-        warnings.simplefilter("ignore")
-        yield
+def closed_shell_check(structure: Structure, table: dict[str, int] | None = None) -> dict:
+    """Electrons left on each ion (Z - oxidation state) and whether every shell is closed (no easy electron hopping)."""
+    from pymatgen.core import Element
 
-
-@lru_cache(maxsize=None)
-def _gapmodel():
-    """gapmodel.pretrained, imported once without its pydantic deprecation noise."""
-    with _quiet():
-        import gapmodel.pretrained as ap
-    return ap
-
-
-@lru_cache(maxsize=None)
-def _model_dir(model_name: str) -> str:
-    """Folder of a pretrained GapModel model (downloaded once by gapmodel, then reused)."""
-    with _quiet():
-        return os.path.dirname(_gapmodel().get_gapmodel_model(model_name)["best_model.pt"])
-
-
-def _cache_path(model_name: str):
-    return config.BANDGAP_CACHE_DIR / f"{model_name}.json"
-
-
-def predict_gap(structure: Structure, model_name: str) -> float:
-    """Band gap (eV) predicted by one GapModel model, cached by structure hash."""
-    path = _cache_path(model_name)
-    cache = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
-    key = structure_hash(structure)
-    if key not in cache:
-        folder = _model_dir(model_name)
-        with _quiet():
-            gap = _gapmodel().get_prediction_pure(model_name=folder, atoms=_to_gapdata(structure))[0]
-        cache[key] = float(gap)
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(cache), encoding="utf-8")
-    return cache[key]
+    table = table or oxidation_table()
+    ions, open_shell = {}, []
+    for el in sorted({site.specie.symbol for site in structure}):
+        if el not in table:
+            open_shell.append(el)
+            continue
+        ions[el] = {"charge": table[el], "electrons": Element(el).Z - table[el]}
+        if ions[el]["electrons"] not in config.CLOSED_SHELL_ELECTRONS:
+            open_shell.append(el)
+    return {"rule": "closed_shell", "formula": structure.composition.reduced_formula, "ions": ions,
+            "open_shell": open_shell, "passes": not open_shell}
 
 
 def evaluate_bandgap(structure: Structure) -> dict:
-    """Filter gap (optb88), displayed gap (mbj), pass/fail and confidence.
+    """The funnel's insulation filter: the closed-shell rule (instant, no model)."""
+    return closed_shell_check(structure)
 
-    Raw predictions can be slightly negative for metals; reported gaps are clipped at 0.
-    """
-    filter_gap = max(predict_gap(structure, config.BANDGAP_FILTER_MODEL), 0.0)
-    display_gap = max(predict_gap(structure, config.BANDGAP_DISPLAY_MODEL), 0.0)
-    insulating_filter = filter_gap >= config.BANDGAP_MIN
-    insulating_display = display_gap >= config.BANDGAP_MIN
-    return {
-        "formula": structure.composition.reduced_formula,
-        "gap_optb88": round(filter_gap, 3),
-        "gap_mbj": round(display_gap, 3),
-        "passes": insulating_filter,
-        "low_confidence": insulating_filter != insulating_display,
-    }
+
+def _dft_settings() -> dict:
+    return {"ecut": config.DFT_GAP_ECUT_EV, "kdensity": config.DFT_GAP_KDENSITY, "smearing": config.DFT_GAP_SMEARING_EV,
+            "path_points": config.DFT_GAP_PATH_POINTS}
+
+
+def _dft_cache_path():
+    return config.DFT_GAP_CACHE_DIR / "pbe_gpaw.json"
+
+
+def dft_key(structure: Structure) -> str:
+    return f"{structure_hash(structure)}-{hashlib.sha1(json.dumps(_dft_settings(), sort_keys=True).encode()).hexdigest()[:8]}"
+
+
+def cached_dft_gap(structure: Structure) -> dict | None:
+    path = _dft_cache_path()
+    cache = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+    hit = cache.get(dft_key(structure))
+    return {**hit, "cached": True} if hit else None
+
+
+def dft_gap(structure: Structure, remote=None) -> dict:
+    """PBE band gap (eV) of one structure with GPAW on Modal, cached: a structure is never computed twice.
+
+    `remote`: the function that computes (default: the deployed Modal function; tests inject a fake)."""
+    from pymatgen.io.ase import AseAtomsAdaptor
+
+    from autolab.sim.serialize import atoms_to_dict
+
+    hit = cached_dft_gap(structure)
+    if hit:
+        return hit
+    if len(structure) > config.DFT_GAP_MAX_ATOMS:
+        raise ValueError(f"{len(structure)} atoms > DFT_GAP_MAX_ATOMS ({config.DFT_GAP_MAX_ATOMS})")
+    if remote is None:
+        import modal
+
+        remote = modal.Function.from_name(config.DFT_GAP_APP, "pbe_gap").remote
+    res = remote(atoms_to_dict(AseAtomsAdaptor.get_atoms(structure)), **_dft_settings())
+    res = {**res, "gap_eV": round(float(res["gap_eV"]), 3), "formula": structure.composition.reduced_formula,
+           "method": "GPAW PBE plane waves", **{f"setting_{k}": v for k, v in _dft_settings().items()}}
+    path = _dft_cache_path()
+    cache = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+    cache[dft_key(structure)] = res
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(cache, indent=1), encoding="utf-8")
+    return {**res, "cached": False}

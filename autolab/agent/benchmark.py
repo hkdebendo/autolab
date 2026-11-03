@@ -2,7 +2,7 @@
 
 Each compound comes from Materials Project and goes through the funnel steps of a candidate
 (pipeline.evaluate_structures): UMA relaxation, E_hull against UMA references of its system with every phase
-of its own composition removed (as if it were new), GapModel band gap; then window and passivation against Li
+of its own composition removed (as if it were new), closed-shell ions (GapModel band gap before 2026-11-03); then window and passivation against Li
 metal as in the electrodes stage, then (md_check) Li diffusion by MD at the screening settings against beta-Li3PS4.
 The language model never sees them. Good electrolytes should pass, bad compounds (electronic conductors, unstable
 phases) and hard negatives (stable insulators that conduct Li poorly: only the diffusion test can reject them) should
@@ -127,10 +127,10 @@ def render(rows: list[dict], summary: dict) -> str:
     s = summary
     lines = ["# Validation benchmark: known compounds through the funnel, judged blind", "",
              "Each compound is relaxed by UMA and judged exactly like a candidate: E_hull against UMA + MP2020 "
-             "references of its system with its own composition removed (as if it were new), GapModel band gap, then "
+             "references of its system with its own composition removed (as if it were new), electronic insulation, then "
              "window and passivation against Li metal. The language model never sees them.", "",
-             f"- Good electrolytes passing the funnel (E_hull <= {config.EHULL_SYNTHESIZABLE} eV/atom, gap >= "
-             f"{config.BANDGAP_MIN} eV): **{s['good_pass_funnel']} / {s['good']}**; also passing the Li-metal check: "
+             f"- Good electrolytes passing the funnel (E_hull <= {config.EHULL_SYNTHESIZABLE} eV/atom, closed-shell "
+             f"ions): **{s['good_pass_funnel']} / {s['good']}**; also passing the Li-metal check: "
              f"**{s['good_pass_all']} / {s['good']}**",
              f"- Bad compounds rejected by the funnel: **{s['bad_rejected_funnel']} / {s['bad']}**; after the Li-metal "
              f"check: **{s['bad_rejected_all']} / {s['bad']}**",

@@ -25,7 +25,7 @@ Fast funnel, every candidate
    ├─ pymatgen: charge-neutral structures, several arrangements each
    ├─ UMA (Meta FAIR): relaxation and energies (MP2020 corrections)
    ├─ stability: energy above the convex hull ≤ 0.05 eV/atom, with a UMA-vs-DFT error bar
-   └─ electronic insulator: GapModel band gap ≥ 2.0 eV
+   └─ electronic insulator: every ion with a closed electron shell (rule, no model)
    │
    ▼
 Slow tests, inside each round
@@ -41,6 +41,7 @@ Muse Spark ── a hypothesis on each failure's cause + a correction ── nex
    │
    ▼
 Final stages: ranking, room-temperature conductivity (Arrhenius + Nernst-Einstein),
+DFT band gap of the champion (GPAW, PBE, ≥ 2.0 eV, else the next one is checked),
 literature check (web search, with a known control), final report with three finalists
 ```
 
@@ -84,7 +85,7 @@ Every module has a truth test against known results (`tests/`, `SPEC.md` section
 | Conductivity at 300 K (fixed before the runs: order + factor 10) | passed: Li7P3S11 100 mS/cm (58–170), beta-Li3PS4 1.2 (0.43–3.2); both ~6–7 × above experiment | 3.2–17 and 0.16 mS/cm |
 | UMA vs DFT on known compounds (18 systems) | mean 0.004–0.006 eV/atom for the sulfide systems; ≤ 0.0124 on 9 polysulfides; Sb systems worse (LiSb3 0.16) | Materials Project |
 
-**Blind benchmark** (`results/2026-11-01_benchmark_hard/`): known compounds go through the same funnel as candidates, their own composition removed from the hull, never shown to the model.
+**Blind benchmark** (`results/2026-11-01_benchmark_hard/`): known compounds go through the same funnel as candidates, their own composition removed from the hull, never shown to the model Recorded on Nov 1, 2026, when the funnel's band gap was the GapModel prediction (now replaced by the closed-shell rule and the champion's DFT gap).
 
 | Group | Rejected by stability + band gap | Rejected after Li metal + diffusion vs beta-Li3PS4 |
 |---|---|---|
@@ -154,7 +155,10 @@ Outputs are **computational predictions**, not proven materials: DFT checks, syn
 | 3D structures, charts, PDF export of a report | **Browser functions** (3Dmol.js, SVG, print), no model |
 | Charge neutrality, convex hull, electrochemical window, diffusion analysis, ranking | **Code** (pymatgen, NumPy, ASE), no model |
 | Known phases and reference energies | **Data**: Materials Project database |
-| Band gap of a candidate | a band-gap model, run locally on CPU |
+| Electronic insulation of a candidate | **Code**: every ion must have a closed electron shell, no model |
+| Band gap of the champion | **Physics, no model**: density functional theory (GPAW, PBE) on Modal CPU; checked against Materials Project on 6 known crystals (mean difference 0.03 eV, `results/2026-11-03_dft_gap_truth`) |
+
+No other model runs during a research. The researches recorded before 2026-11-03 (the three examples of the home page) screened their candidates with band gaps recorded as predictions; those recorded values are kept as they were and shown labelled "recorded prediction". GapModel is no longer in the code.
 
 ## Architecture
 
@@ -197,7 +201,7 @@ python scripts/dev_server.py  # http://127.0.0.1:8100, no database, no paid call
 # and on the cobalt-free cathode research: http://127.0.0.1:8100/c/cathode-2026-11-02?watch=2
 ```
 
-The interface shows the agent at work: one card per action, naming the model or tool and what it does (Muse Spark reasoning and proposing, pymatgen building, UMA relaxing the crystal in 3D while the cell parameters move, GapModel band gap, Muse Spark Open reviews, molecular dynamics with the recorded lithium trajectory, failures sent back and explained), the progress list ticking and a lab notebook of the decisions; the research card, the summary and the report come at the end. The lab opens full screen in landscape (progress, current action and lab notebook side by side; a button reduces it into the chat); after a research, "Watch the agent at work" replays it there, with pause, stop, restart and leave (a paused replay resumes where it stopped). Results taken from the saved computations are played at a readable pace and marked "reused"; an identical request reuses a finished research without computing anything. A **Results** page gathers the champion of every research by domain (solid electrolytes, cobalt-free cathodes): what it is, its crystal structure in 3D, its properties with units and error bars, the comparison with its parent, the literature check, why it was chosen and what limits the confidence, with its final report as a PDF and a link back to the research to talk with the agent.
+The interface shows the agent at work: one card per action, naming the model or tool and what it does (Muse Spark reasoning and proposing, pymatgen building, UMA relaxing the crystal in 3D while the cell parameters move, the electronic insulation check, Muse Spark Open reviews, molecular dynamics with the recorded lithium trajectory, failures sent back and explained), the progress list ticking and a lab notebook of the decisions; the research card, the summary and the report come at the end. The lab opens full screen in landscape (progress, current action and lab notebook side by side; a button reduces it into the chat); after a research, "Watch the agent at work" replays it there, with pause, stop, restart and leave (a paused replay resumes where it stopped). Results taken from the saved computations are played at a readable pace and marked "reused"; an identical request reuses a finished research without computing anything. A **Results** page gathers the champion of every research by domain (solid electrolytes, cobalt-free cathodes): what it is, its crystal structure in 3D, its properties with units and error bars, the comparison with its parent, the literature check, why it was chosen and what limits the confidence, with its final report as a PDF and a link back to the research to talk with the agent.
 
 Paid runs (Modal, Meta), each prints its estimated cost first (`--dry-run` / `--plan`):
 

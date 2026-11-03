@@ -73,9 +73,28 @@ EHULL_VERY_GOOD = 0.025
 
 # --- Band gap (SPEC 5.8) -----------------------------------------------------
 
-BANDGAP_FILTER_MODEL = "optb88vdw_bandgap_knn"
-BANDGAP_DISPLAY_MODEL = "mbj_bandgap_knn"
-BANDGAP_MIN = 2.0  # eV, on the optb88 (PBE-like) scale
+BANDGAP_MIN = 2.0  # eV, on the PBE scale (the DFT check of the champion; Li6PS5Cl, a top electrolyte, is at about 2.2)
+
+# Electronic insulation in the funnel (2026-11-03, owner: every model called at run time must be a Meta model, so the
+# GapModel prediction is gone): a rule, no model. Every ion must have a closed electron shell (noble gas, d10, d10 s2,
+# 4f14 or 4f14 5d10): no partly filled shell, so no easy electron hopping. Electrons left on the ion = Z - charge.
+CLOSED_SHELL_ELECTRONS = (0, 2, 10, 18, 28, 30, 36, 46, 48, 54, 68, 78, 80, 86)
+
+# DFT band gap of the champion (GPAW, PBE, plane waves; modal_app/dft_app.py, Modal CPU only). Checked after the
+# ranking: the champion first; if its gap is below the domain's limit it is excluded and the next one is checked.
+DFT_GAP_APP = "autolab-dft"
+DFT_GAP_CACHE_DIR = CACHE_DIR / "dft_gap"
+DFT_GAP_ECUT_EV = 400  # plane-wave cutoff
+DFT_GAP_KDENSITY = 2.5  # k-points per inverse Angstrom (Gamma-centred mesh of the self-consistent step)
+DFT_GAP_SMEARING_EV = 0.01
+DFT_GAP_PATH_POINTS = 40  # k-points of the band path after the mesh (the band edges are often between mesh points)
+DFT_GAP_MAX_ATOMS = 90
+DFT_GAP_MAX_CALCS = 2  # DFT calculations per research (champion, then at most one replacement)
+DFT_GAP_CPU = 8
+DFT_GAP_MEMORY_MB = 16384
+DFT_GAP_TIMEOUT_S = 3600  # one calculation; the ~40-atom lithium candidates take 10 to 20 min
+DFT_GAP_USD_PER_HOUR = 0.51  # Modal CPU estimate: 8 cores (0.38 $/h) + 16 GiB (0.13 $/h)
+DFT_GAP_TRUTH_TOL_EV = 0.3  # truth test: GPAW vs Materials Project, both PBE (different codes, basis and k-points)
 
 # --- Electrodes (SPEC 5.9) ---------------------------------------------------
 
@@ -412,7 +431,7 @@ CATHODE_VOLTAGE_TRUTH_TOL_V = 0.4
 CATHODE_VOLTAGE_SIGNIFICANT_V = 0.35
 # --- Third domain: sodium solid electrolytes (owner, 2026-11-02; autolab/domains/sodium.py) -------------------
 # The electrolyte funnel and slow tests with Na+ as the mobile ion: substitutions in known sodium conductors, charge
-# neutrality with fixed oxidation states, stability against the stable MP phases relaxed with UMA, GapModel band gap,
+# neutrality with fixed oxidation states, stability against the stable MP phases relaxed with UMA, closed-shell ions,
 # window and passivation against sodium metal, Na diffusion by molecular dynamics against the parent.
 SODIUM_GOAL = ("Find new sodium solid electrolytes (superionic Na+ conductors) for sodium-metal batteries: "
                "thermodynamically stable, electronically insulating, compatible with sodium metal, with fast Na+ motion.")
@@ -425,7 +444,7 @@ SODIUM_OXIDATION_STATES = {
 }
 SODIUM_HULL_REF_EHULL_MAX = 0.0  # the stable MP phases (the NASICON system Na-Zr-Si-P-O holds many near-hull phases)
 SODIUM_EHULL_MAX = 0.05  # eV/atom, as for the lithium electrolytes
-SODIUM_BANDGAP_MIN = 1.8  # eV (optB88 scale): Na3SbS4, a working electrolyte (about 1 mS/cm), has a PBE gap of 1.93 eV
+SODIUM_BANDGAP_MIN = 1.8  # eV (PBE scale; the champion's DFT gap): Na3SbS4, a working electrolyte (about 1 mS/cm), has a PBE gap of 1.93 eV
 # in MP; the lithium limit (2.0) would reject it; metals and narrow-gap semiconductors stay out
 SODIUM_MD_MAX_USD = 4.0  # estimated Modal cost of all the MD of one sodium research
 SODIUM_CATHODES: tuple = ()  # no cathode interface: the UMA interface calibration was made for Li cathodes only

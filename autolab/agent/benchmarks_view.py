@@ -13,12 +13,20 @@ def _t(test, criterion, result, verdict, source=None, table=None):
     return {"test": test, "criterion": criterion, "result": result, "verdict": verdict, "source": source, "table": table}
 
 
+_DFT_GAP = _t("Band gap by DFT (GPAW, PBE) vs Materials Project", "each within 0.3 eV (metals ≤ 0.1 eV)",
+              "6/6 · mean difference 0.03 eV, largest 0.08 eV", "passed", "results/2026-11-03_dft_gap_truth",
+              {"head": ["Compound", "GPAW (eV)", "Materials Project (eV)"],
+               "rows": [["Li metal", "0.00", "0.00"], ["Li2S", "3.38", "3.39"], ["LiI", "4.41", "4.38"],
+                        ["Li3P", "0.68", "0.70"], ["Na3SbS4", "2.01", "1.93"], ["Li3PS4 (32 atoms)", "2.86", "2.81"]]})
+
+
 TESTS: dict[str, list[dict]] = {
     "electrolyte": [
         _t("LiCl lattice parameter (UMA relaxation)", "5.10–5.18 Å", "5.135 Å (experiment ≈ 5.13)", "passed"),
         _t("E_hull of Li3PS4 polymorphs", "within 0.01 eV/atom of MP", "0.000 / 0.007 / 0.015 eV/atom (MP 0.000 / 0.007 / 0.014)",
            "passed"),
         _t("Electrochemical window of Li3PS4", "1.6–1.9 V to 2.2–2.5 V", "1.74–2.36 V (literature 1.71–2.31)", "passed"),
+        _DFT_GAP,
         _t("Li3PS4 / LiFePO4 interface", "within 0.05 eV/atom of MP", "−0.144 eV/atom (MP −0.133)", "passed"),
         _t("MD calibration, plan A", "Li7P3S11 faster than β-Li3PS4 by > 2σ at 600 and 700 K",
            "right order, 1.9σ and 0.4σ", "failed"),
@@ -52,6 +60,7 @@ TESTS: dict[str, list[dict]] = {
            "results/2026-11-02_cathode_error_bars"),
     ],
     "sodium": [
+        _DFT_GAP,
         _t("MD calibration 1: two different crystals", "Na3SbS4 faster than Na3PS4 by > 2σ at 600 K",
            "reverse order, ratio 0.33 ± 0.29", "failed", "results/2026-11-02_sodium_md_calibration"),
         _t("MD calibration 2: crystal against its own parent", "Na vacancies (W on Sb) speed Na up by > 2σ",

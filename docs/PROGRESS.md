@@ -95,3 +95,7 @@ Settings page simplified (rule and value only) and an 'Edit the rules' preview p
 Benchmark & Tests page (/benchmarks): the truth tests, calibrations and benchmarks of each domain (test, criterion, result, verdict passed/failed/measured, small tables of the key numbers), from the recorded reports; domain 1 renamed 'Lithium solid electrolytes'.
 
 **Voice (2026-11-02, owner)** — dictation with Meta Muse Voice Transcribe (realtime WebSocket, push to talk, protocol taken from LiteLLM's Meta integration: JSON handshake with the token, 80 ms PCM16 frames at 16 kHz, endStream; relayed by the local web server /ws/voice, 30 s cap); the agent speaks its short lines (lab notebook, scope, summary, follow-up answers) with the browser's speech synthesis, speaker button off by default, muted when the microphone opens. Tested on a synthetic sentence (6 s of audio). 3 new tests.
+
+**Band gap without GapModel (2026-11-03, organizers' rule: only Meta models at run time)** — funnel: closed-shell ions (rule, instant); after the ranking: DFT band gap of the champion with GPAW (PBE, 400 eV, mesh + band path) on Modal CPU, cached; below the limit the next one is checked (max 2 calculations).
+Truth test vs Materials Project: 6/6 (Li 0.00/0.00, Li2S 3.38/3.39, LiI 4.41/4.38, Li3P 0.68/0.70, Na3SbS4 2.01/1.93, Li3PS4 2.86/2.81 eV), mean difference 0.03 eV; Li3PS4 (32 atoms) 7 min 18 s, about 0.06 $.
+Recorded researches unchanged (their GapModel gaps shown "recorded prediction", said in the README). 223 tests pass, no paid call in tests.

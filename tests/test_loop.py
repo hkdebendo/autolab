@@ -39,7 +39,7 @@ class Calls:
     """Records what the fake stage tools were asked to compute."""
 
     def __init__(self):
-        self.md_screen, self.interfaces, self.novelty = [], [], []
+        self.md_screen, self.interfaces, self.novelty, self.dft = [], [], [], []
 
 
 def fake_tools(calls: Calls, passivation=None, polysulfides=None, verdicts=None, md_usd=1.2, cal_ok=True,
@@ -97,7 +97,9 @@ def fake_tools(calls: Calls, passivation=None, polysulfides=None, verdicts=None,
                             window_passivation=window_passivation, interface=interface,
                             interface_calibration=calibration, md_cached=lambda c: False, md_plan=md_plan,
                             md_screen=md_screen, novelty=novelty, ehull_error=lambda f: None,
-                            conductivity=lambda cands: {"parents": {}, "candidates": {}}, not_run=[])
+                            conductivity=lambda cands: {"parents": {}, "candidates": {}}, not_run=[],
+                            dft_gap=lambda c: calls.dft.append(c["id"]) or {"gap_eV": 2.6, "seconds": 600.0,
+                                                                              "n_atoms": 31, "cached": False})
 
 
 def review(priority="high"):
@@ -145,7 +147,9 @@ def test_complete_loop_passes_data_from_step_to_step(li3ps4):
     assert [c["status"] for c in result["iterations"][0]["candidates"]] == ["passed"] * 3
     assert {k: v["status"] for k, v in st.items()} == {
         "electrodes": "done", "candidate_analyses": "done", "md_selection": "done", "report": "done", "molecular_dynamics": "done", "ranking": "done", "conductivity": "done",
-        "novelty": "done"}
+        "novelty": "done", "dft_gap": "done"}
+    # DFT band gap: only the champion, kept (2.6 >= 2.0 eV)
+    assert calls.dft == ["it1-c3"] and st["dft_gap"]["champion_confirmed"] is True
     # electrodes: the non-passivating candidate is excluded, the FeS2 reaction lowers the confidence
     assert st["electrodes"]["excluded"] == ["it1-c1"]
     by_id = {c["id"]: c for c in result["iterations"][0]["candidates"]}

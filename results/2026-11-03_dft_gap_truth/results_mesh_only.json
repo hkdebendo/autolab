@@ -1,0 +1,80 @@
+[
+ {
+  "id": "mp-1153",
+  "formula": "Li2S",
+  "atoms": 3,
+  "gap_mp_eV": 3.3862000000000005,
+  "gap_gpaw_eV": 3.664,
+  "error_eV": 0.278,
+  "passed": true,
+  "seconds": 9.7,
+  "n_kpoints": 63,
+  "cached": false,
+  "gpaw": "26.7.0"
+ },
+ {
+  "id": "mp-135",
+  "formula": "Li",
+  "atoms": 1,
+  "gap_mp_eV": 0.0,
+  "gap_gpaw_eV": 0.0,
+  "error_eV": 0.0,
+  "passed": true,
+  "seconds": 5.5,
+  "n_kpoints": 172,
+  "cached": false,
+  "gpaw": "26.7.0"
+ },
+ {
+  "id": "mp-570935",
+  "formula": "LiI",
+  "atoms": 4,
+  "gap_mp_eV": 4.3818,
+  "gap_gpaw_eV": 4.411,
+  "error_eV": 0.029,
+  "passed": true,
+  "seconds": 21.4,
+  "n_kpoints": 26,
+  "cached": false,
+  "gpaw": "26.7.0"
+ },
+ {
+  "id": "mp-736",
+  "formula": "Li3P",
+  "atoms": 8,
+  "gap_mp_eV": 0.6996000000000002,
+  "gap_gpaw_eV": 1.083,
+  "error_eV": 0.383,
+  "passed": false,
+  "seconds": 16.4,
+  "n_kpoints": 38,
+  "cached": false,
+  "gpaw": "26.7.0"
+ },
+ {
+  "id": "mp-10167",
+  "formula": "Na3SbS4",
+  "atoms": 8,
+  "gap_mp_eV": 1.9258000000000002,
+  "gap_gpaw_eV": 2.008,
+  "error_eV": 0.082,
+  "passed": true,
+  "seconds": 177.1,
+  "n_kpoints": 36,
+  "cached": false,
+  "gpaw": "26.7.0"
+ },
+ {
+  "id": "mp-985583",
+  "formula": "Li3PS4",
+  "atoms": 32,
+  "gap_mp_eV": 2.8095035353998923,
+  "gap_gpaw_eV": 2.863,
+  "error_eV": 0.053,
+  "passed": true,
+  "seconds": 109.1,
+  "n_kpoints": 8,
+  "cached": false,
+  "gpaw": "26.7.0"
+ }
+]

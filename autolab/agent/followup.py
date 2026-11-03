@@ -9,7 +9,7 @@ import json
 from autolab import config
 
 CANDIDATE_FIELDS = ("formula", "parent_formula", "substitution", "e_hull", "e_hull_per_substitution", "decomposition",
-                    "reduced_confidence", "gap_optb88", "gap_mbj", "window", "passivation", "interface_reaction_energy",
+                    "reduced_confidence", "gap_optb88", "gap_mbj", "gap_dft", "closed_shell", "window", "passivation", "interface_reaction_energy",
                     "electrodes_reduced_confidence", "D_cm2_per_s", "D_ratio_to_parent", "D_ratio_err", "md_verdict",
                     "conduction", "novelty", "analysis", "excluded_at", "exclusion_reason", "e_hull_error", "conductivity",
                     "window_robust", "md_framework", "conductivity_vs_parent", "ranking_level", "voltage_V",
@@ -40,7 +40,8 @@ def context(result: dict) -> dict:
                        for c in (st.get("novelty", {}).get("candidates") or [])],
         "summaries": [s.get("text") for s in result.get("summaries") or [] if s.get("text")],
         "methods": ("UMA machine-learned potential (relaxations, energies with MP2020 corrections, molecular dynamics "
-                    "at 600 K, 2 x 40 ps), convex hull against Materials Project phases, GapModel band gaps, grand-potential "
+                    "at 600 K, 2 x 40 ps), convex hull against Materials Project phases, electronic insulation (closed-shell ions, champion's band gap by "
+                    "DFT with GPAW; gap_optb88/gap_mbj, if present, are GapModel predictions recorded before 2026-11-03), grand-potential "
                     "electrochemical window, interface reactivity with LiFePO4, web literature search"),
         "not_computed": config.CAPABILITIES["not_computed"],
     }

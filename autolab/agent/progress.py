@@ -36,8 +36,8 @@ ELECTROLYTE_STEPS = (
          "0.05 eV/atom is kept as possibly synthesizable.",
          ("candidate/hull",)),
     Step("bandgap", "Electronic band gap",
-         "An electrolyte must not conduct electrons: the band gap is predicted with a band-gap model and "
-         "must be at least 2 eV.", ("candidate/bandgap", "candidate/ss_check", "candidate/done")),
+         "An electrolyte must not conduct electrons: every ion must have a closed electron shell; the champion's band "
+         "gap is then computed by DFT (GPAW) and must be at least 2 eV.", ("candidate/bandgap", "candidate/ss_check", "candidate/done")),
     Step("learn", "Interpreting the results",
          "The numbers of this round are compared, the failures of the slow tests are explained as hypotheses, and the "
          "next direction of the search is chosen to correct them.", ("loop/feedback", "llm/analysis", "llm/summary")),
@@ -116,7 +116,8 @@ SODIUM_STEPS = (
          "The energy above the convex hull of the stable known phases says whether a crystal would decompose.",
          ("candidate/hull",)),
     Step("bandgap", "Electronic band gap",
-         "An electrolyte must not conduct electrons: the band gap is predicted with a band-gap model.",
+         "An electrolyte must not conduct electrons: every ion must have a closed electron shell; the champion's band "
+         "gap is then computed by DFT (GPAW).",
          ("candidate/bandgap", "candidate/ss_check", "candidate/done")),
     Step("learn", "Interpreting the results",
          "The numbers of this round, failures included, go back to the agent, which explains them as hypotheses and "
@@ -238,6 +239,8 @@ def _funnel_detail(key: str, evs: list[dict]) -> str | None:
     if key == "bandgap":
         gaps = [e for e in evs if e["step"] == "bandgap"]
         ok = sum(1 for e in gaps if e["data"].get("passes"))
+        if gaps and gaps[0]["data"].get("rule") == "closed_shell":
+            return f"{ok} of {len(gaps)} with closed-shell ions"
         return f"{ok} of {len(gaps)} insulating (gap >= 2 eV)" if gaps else None
     if key == "build":
         relax = [e for e in evs if e["step"] == "relax"]

@@ -2,7 +2,7 @@
 
 generate (rule + neutrality) -> composition already in Materials Project? (then not computed)
 -> relax every arrangement with UMA, keep the lowest -> E_hull against UMA-relaxed references
--> GapModel band gap -> S-S bond flag.
+-> closed-shell rule (electronic insulation, no model) -> S-S bond flag.
 The first failed filter rejects the candidate; every step emits an event.
 Electrodes (top 20) and molecular dynamics (top 3-5) are not run here yet.
 """
@@ -45,11 +45,11 @@ def _default_known(formula):
 
 @dataclass
 class Tools:
-    """Expensive steps, injectable so that tests run without UMA, GapModel or Materials Project."""
+    """Expensive steps, injectable so that tests run without UMA, Modal or Materials Project."""
 
     relax: Callable = _default_relax  # (structures, budget) -> list of relax results
     hull_entries: Callable = _default_hull_entries  # (elements, budget) -> (entries, skipped ids)
-    bandgap: Callable = _default_bandgap  # (structure) -> evaluate_bandgap dict
+    bandgap: Callable = _default_bandgap  # (structure) -> closed-shell verdict (analysis/bandgap.py)
     known: Callable = _default_known  # (formula) -> MP materials with that reduced composition
     not_run: list[str] = field(default_factory=lambda: ["electrodes", "molecular_dynamics"])
 
@@ -120,10 +120,9 @@ def evaluate_candidate(
     budget=None,
     charge_check=None,
     ehull_max: float = config.EHULL_SYNTHESIZABLE,
-    gap_min: float = config.BANDGAP_MIN,
 ) -> dict:
-    """Run the funnel on one substitution; return a JSON-serialisable result. `charge_check`, `ehull_max` and
-    `gap_min`: the domain's (the electrolyte ones by default).
+    """Run the funnel on one substitution; return a JSON-serialisable result. `charge_check` and `ehull_max`: the
+    domain's (the electrolyte ones by default).
 
     sim.backend.BudgetExceeded propagates: the caller stops the run cleanly.
     """
@@ -139,7 +138,7 @@ def evaluate_candidate(
         "arrangements": 0, "converged": 0, "energy_spread_meV": None, "n_atoms": None, "n_modified": None,
         "e_hull": None, "e_hull_per_substitution": None, "decomposition": None, "known_in_mp": [],
         "skipped_references": [], "energy": None, "relaxed_atoms": None,
-        "gap_optb88": None, "gap_mbj": None, "gap_low_confidence": None, "ss_bonds": None,
+        "gap_optb88": None, "gap_mbj": None, "gap_low_confidence": None, "closed_shell": None, "ss_bonds": None,
         "not_run": list(tools.not_run),
     }
 
@@ -175,14 +174,14 @@ def evaluate_candidate(
         out["known_in_mp"] = [k["material_id"] for k in known]
         return finish(step="known", reason=f"composition already in Materials Project: {', '.join(out['known_in_mp'])}")
     structures = [Structure.from_dict(c["structure"]) for c in gen["candidates"]]
-    return evaluate_structures(out, structures, tools, emit, finish, budget, ehull_max=ehull_max, gap_min=gap_min)
+    return evaluate_structures(out, structures, tools, emit, finish, budget, ehull_max=ehull_max)
 
 
 def evaluate_structures(out: dict, structures: list[Structure], tools: Tools, emit: Callable, finish: Callable,
                         budget=None, hidden_formulas: frozenset[str] = frozenset(),
-                        ehull_max: float = config.EHULL_SYNTHESIZABLE, gap_min: float = config.BANDGAP_MIN) -> dict:
+                        ehull_max: float = config.EHULL_SYNTHESIZABLE) -> dict:
     """Steps 3-6 of the funnel on ready structures (arrangements of one composition): relaxation, E_hull,
-    band gap, S-S flag. `hidden_formulas`: reduced formulas removed from the hull references (blind benchmark of
+    closed-shell rule, S-S flag. `hidden_formulas`: reduced formulas removed from the hull references (blind benchmark of
     a known compound, judged as if it were new)."""
     from autolab.analysis.stability import e_hull, uma_entry
     from autolab.chem.checks import has_ss_bonds
@@ -227,14 +226,13 @@ def evaluate_structures(out: dict, structures: list[Structure], tools: Tools, em
     if hull["e_hull"] > ehull_max:
         return finish(step="hull", reason=f"E_hull {hull['e_hull']:.3f} > {ehull_max} eV/atom")
 
-    # 5. Band gap (GapModel): the electrolyte must be an electronic insulator.
+    # 5. Electronic insulation: every ion has a closed shell (rule, no model). The champion's band gap is computed
+    #    by DFT after the ranking (domains/electrolyte.py, dft_gap), against the domain's limit.
     gap = tools.bandgap(structure)
-    if gap_min != config.BANDGAP_MIN:  # the domain's limit (e.g. sodium)
-        gap = {**gap, "passes": gap["gap_optb88"] is not None and gap["gap_optb88"] >= gap_min}
-    out.update(gap_optb88=gap["gap_optb88"], gap_mbj=gap["gap_mbj"], gap_low_confidence=gap["low_confidence"])
-    emit("bandgap", **{k: gap[k] for k in ("gap_optb88", "gap_mbj", "passes", "low_confidence")})
+    out["closed_shell"] = gap["passes"]
+    emit("bandgap", rule="closed_shell", passes=gap["passes"], open_shell=gap["open_shell"], ions=gap["ions"])
     if not gap["passes"]:
-        return finish(step="bandgap", reason=f"gap {gap['gap_optb88']:.2f} < {gap_min} eV")
+        return finish(step="bandgap", reason=f"open-shell ions: {', '.join(gap['open_shell'])}")
 
     # 6. S-S bonds: a warning only (UMA less reliable for polysulfides).
     out["ss_bonds"] = bool(has_ss_bonds(structure))

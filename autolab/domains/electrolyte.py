@@ -1,7 +1,8 @@
 """Solid electrolytes for Li-metal batteries: the funnel and the stages after the iterations (SPEC 6.1).
 
 Iterations: proposal (model) -> Materials Project check -> UMA relaxation -> E_hull (UMA + MP2020, per
-substitution) -> band gap (GapModel) -> S-S flag (agent/pipeline.py).
+substitution) -> closed-shell rule (electronic insulation) -> S-S flag (agent/pipeline.py); the champion's band gap
+by DFT (GPAW) after the ranking.
 Error-driven loop (config.FEEDBACK_LOOP): steps 1-4 below also run inside each iteration on its own candidates
 (ITERATION_MD_SELECT_MAX candidate to MD), and their results (failures with their measurements: Li-metal contact,
 slower than the parent, framework moving) go back to the model before it analyses the iteration (feedback()).
@@ -127,6 +128,15 @@ def _novelty(cands: list[dict], client) -> dict:
     return novelty_check(cands, client, cache=JsonCache(config.CACHE_DIR / "novelty"))
 
 
+def _dft_gap(c: dict) -> dict:
+    from pymatgen.io.ase import AseAtomsAdaptor
+
+    from autolab.analysis.bandgap import dft_gap
+    from autolab.sim.serialize import atoms_from_dict
+
+    return dft_gap(AseAtomsAdaptor.get_structure(atoms_from_dict(c["relaxed_atoms"])))
+
+
 @dataclass
 class ElectrolyteTools(Tools):
     """Funnel tools plus those of the stages after the iterations."""
@@ -140,6 +150,7 @@ class ElectrolyteTools(Tools):
     novelty: Callable = _novelty  # (candidates, client) -> novelty_check dict
     ehull_error: Callable = _ehull_error  # (formula) -> UMA-vs-DFT error bar of its system (analysis.uma_errors)
     conductivity: Callable = _conductivity  # (candidates) -> conductivity at 300 K from the cached MD (no computation)
+    dft_gap: Callable = _dft_gap  # (candidate) -> PBE band gap by GPAW on Modal CPU, cached (analysis/bandgap.py)
 
 
 # --- stages -------------------------------------------------------------------
@@ -445,6 +456,59 @@ def ranking(camp: Campaign) -> dict:
     return out
 
 
+def dft_gap(camp: Campaign) -> dict:
+    """The champion's band gap by DFT (GPAW, PBE, Modal CPU). Below the domain's limit (setting gap_min) the candidate
+    is excluded and the next kept one is checked, at most DFT_GAP_MAX_CALCS calculations; the ranking is then redone.
+    An error stops the check (the champion stays, marked not confirmed)."""
+    tool = getattr(camp.tools, "dft_gap", None)
+    kept = list(camp.outputs.get("ranking", {}).get("kept") or [])
+    if tool is None or not kept:
+        reason = "no kept candidate" if tool else "no DFT tool"
+        return {"skipped": reason, "summary": {"skipped": reason}}
+    gap_min = camp.settings.get("gap_min", config.BANDGAP_MIN)
+    by_id, checked, excluded = camp.by_id, [], []
+    for cid in kept[:config.DFT_GAP_MAX_CALCS]:
+        c = by_id[cid]
+        camp.emit("dft_gap", "start", cid, formula=c["formula"], n_atoms=c.get("n_atoms"), gap_min=gap_min)
+        try:
+            r = tool(c)
+        except Exception as e:
+            checked.append({"id": cid, "formula": c["formula"], "error": f"{type(e).__name__}: {e}"})
+            camp.emit("dft_gap", "error", cid, error=checked[-1]["error"])
+            break
+        passes = r["gap_eV"] >= gap_min
+        usd = None if r.get("cached") or r.get("seconds") is None else round(r["seconds"] / 3600 * config.DFT_GAP_USD_PER_HOUR, 3)
+        c.update(gap_dft=r["gap_eV"], gap_dft_passes=passes)
+        checked.append({"id": cid, "formula": c["formula"], "gap_eV": r["gap_eV"], "passes": passes,
+                        "n_atoms": r.get("n_atoms"), "seconds": r.get("seconds"), "cached": bool(r.get("cached")),
+                        "usd": usd})
+        camp.emit("dft_gap", "result", cid, **{k: v for k, v in checked[-1].items() if k != "id"}, gap_min=gap_min)
+        if passes:
+            break
+        c.update(excluded_at="dft_gap", exclusion_reason=f"DFT band gap {r['gap_eV']:.2f} eV < {gap_min} eV")
+        excluded.append(cid)
+    if excluded:
+        camp.outputs["ranking"] = ranking(camp)
+    confirmed = bool(checked) and checked[-1].get("passes") is True
+    out = {"method": "GPAW, PBE, plane waves", "gap_min": gap_min, "checked": checked, "excluded": excluded,
+           "champion_confirmed": confirmed}
+    out["summary"] = {"checked": [x["formula"] for x in checked], "excluded": excluded, "champion_confirmed": confirmed}
+    return out
+
+
+def render_dft_gap(out: dict, result: dict) -> list[str]:
+    if out.get("skipped"):
+        return [f"DFT band gap: skipped ({out['skipped']})."]
+    lines = [f"DFT band gap of the champion ({out['method']}; kept if >= {out['gap_min']} eV):"]
+    for x in out["checked"]:
+        if x.get("error"):
+            lines.append(f"- {x['formula']}: not computed ({x['error']}); the champion is not confirmed")
+        else:
+            lines.append(f"- {x['formula']}: {x['gap_eV']:.2f} eV, {'kept' if x['passes'] else 'excluded'}"
+                         f"{' (cached)' if x['cached'] else ' (' + str(round(x['seconds'] or 0)) + ' s)'}")
+    return lines
+
+
 def conductivity(camp: Campaign) -> dict:
     """Ionic conductivity at 300 K of the simulated candidates and their parents, from the MD runs in the cache:
     Arrhenius fit extrapolated to 300 K, then Nernst-Einstein (agent/conductivity.py). Never computes: candidates
@@ -618,6 +682,16 @@ def _v(x, fmt=".2f") -> str:
     return "—" if x is None else format(x, fmt)
 
 
+def gap_text(c: dict) -> str:
+    """Band gap as shown: the DFT one (champion check), else the GapModel prediction recorded before 2026-11-03."""
+    if c.get("gap_dft") is not None or c.get("gap_dft_eV") is not None:
+        return f"{_v(c.get('gap_dft', c.get('gap_dft_eV')))} eV (DFT)"
+    old = c.get("gap_optb88", c.get("gap_optb88_eV"))
+    if old is not None:
+        return f"{_v(old)} eV (recorded prediction)"
+    return "not computed (closed-shell ions)" if c.get("closed_shell") else "—"
+
+
 def _ion(result: dict) -> str:
     """The mobile ion of a run's domain (the sodium domain shares these stages)."""
     return "Na" if result.get("domain") == "sodium" else "Li"
@@ -762,7 +836,7 @@ def render_ranking(out: dict, result: dict) -> list[str]:
         lv = (out.get("levels") or {}).get(cid)  # runs recorded before 2026-11-02 have no levels
         level = f"[{_LEVEL_LABELS.get(lv, lv)}] " if lv and not c.get("excluded_at") else ""
         lines.append(f"{i}. {level}{cid} {c['formula']}{star}: E_hull per substitution {c['e_hull_per_substitution']:.3f} eV, "
-                     f"E_hull {c['e_hull']:.3f}{pm} eV/atom, gap {_v(c.get('gap_optb88'))} eV, MD {md}{ratio}"
+                     f"E_hull {c['e_hull']:.3f}{pm} eV/atom, gap {gap_text(c)}, MD {md}{ratio}"
                      f"{'; ' + '; '.join(flags) if flags else ''}{tail}")
     return lines + [""]
 
@@ -775,7 +849,8 @@ METHODS = [
                                          "Materials Project, all relaxed with UMA (no mixing of energy sources)"),
     ("Thermodynamic stability", "energy above the convex hull of the chemical system; kept if <= 0.05 eV/atom; error "
                                 "bar measured against DFT (Materials Project) on the known compounds of the same system"),
-    ("Electronic band gap", "recorded prediction (optB88vdW scale for the filter, mBJ shown); kept if >= 2 eV"),
+    ("Electronic insulation", "every ion with a closed electron shell (rule, no model); the champion's band gap by DFT "
+                              "(GPAW, PBE, plane waves, on Modal CPU), kept if >= 2 eV"),
     ("Electrochemical window and electrodes", "grand-potential phase diagrams (window, reaction with Li metal), "
                                               "interface reactivity with LiFePO4 (calibrated against MP)"),
     ("Independent reviews", "Meta Muse Spark Open, one review per candidate, in parallel"),
@@ -838,6 +913,7 @@ def _finalist_row(c: dict, novelty_by_id: dict) -> dict:
             "e_hull_error_basis": (f"mean absolute UMA-vs-DFT difference on {c['e_hull_error']['n']} known compounds of "
                                    f"{c['e_hull_error']['system']}" if c.get("e_hull_error") else None),
             "decomposition": c.get("decomposition"), "gap_optb88_eV": c.get("gap_optb88"), "gap_mbj_eV": c.get("gap_mbj"),
+            "gap_dft_eV": c.get("gap_dft"), "closed_shell": c.get("closed_shell"),
             "window_V": c.get("window"), "against_li_metal": c.get("passivation"),
             "reaction_with_LiFePO4_eV_per_atom": c.get("interface_reaction_energy"),
             "D_600K_cm2_per_s": c.get("D_cm2_per_s"), "D_error_cm2_per_s": c.get("D_sem_cm2_per_s"),
@@ -946,7 +1022,7 @@ def render_report(out: dict, result: dict) -> list[str]:
               ("E_hull (eV/atom)", None, lambda r: _fmt(r.get("e_hull_eV_per_atom"), ".3f") + (
                   f" ± {r['e_hull_error_eV_per_atom']:.3f}" if r.get("e_hull_error_eV_per_atom") is not None else "")),
               ("E_hull per substitution (eV)", "e_hull_per_substitution_eV", ".3f"),
-              ("Band gap optB88 / mBJ (eV)", None, lambda r: f"{_fmt(r['gap_optb88_eV'], '.2f')} / {_fmt(r['gap_mbj_eV'], '.2f')}"),
+              ("Band gap", None, gap_text),
               ("Window (V)", None, lambda r: (f"{r['window_V']['v_low']:.2f}–{r['window_V']['v_high']:.2f}"
                                               if r.get("window_V") and r["window_V"].get("stable") else
                                               "zero width" if r.get("window_V") else "not computed")),
@@ -1023,6 +1099,7 @@ def make_domain() -> Domain:
                 Stage("molecular_dynamics", molecular_dynamics, render_md),
                 Stage("conductivity", conductivity, render_conductivity),
                 Stage("ranking", ranking, render_ranking),
+                Stage("dft_gap", dft_gap, render_dft_gap),
                 Stage("novelty", novelty, render_novelty),
                 Stage("report", report, render_report)),
         thresholds=THRESHOLDS, render_candidates=candidate_table)

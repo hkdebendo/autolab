@@ -2,7 +2,7 @@
 
 The lithium electrolyte funnel and slow tests with Na+ as the mobile ion (config.MOBILE_IONS): substitutions in known
 sodium conductors (config.SODIUM_PARENTS), charge neutrality with fixed oxidation states (SODIUM_OXIDATION_STATES),
-stability against the stable MP phases relaxed with UMA, GapModel band gap (SODIUM_BANDGAP_MIN), then in each round the
+stability against the stable MP phases relaxed with UMA, closed-shell ions, then in each round the
 window and the reaction with sodium metal, an independent review, the model's choice of one candidate and its Na
 diffusion by molecular dynamics against its parent (calibrated on Na vacancies in Na3SbS4: config.SODIUM_MD_CAN_EXCLUDE). The stages are those of the
 electrolyte domain, given this domain's settings (ion, no cathode, prompts, MD cap). After the iterations: ranking by
@@ -64,7 +64,7 @@ def evaluate(candidate_id, parent_id, parent, substitution, tools, events, budge
 
     return evaluate_candidate(candidate_id, parent_id, parent, substitution, tools, events, budget,
                               charge_check=partial(check_charge, table=config.SODIUM_OXIDATION_STATES),
-                              ehull_max=config.SODIUM_EHULL_MAX, gap_min=config.SODIUM_BANDGAP_MIN)
+                              ehull_max=config.SODIUM_EHULL_MAX)
 
 
 # --- what the model reads and writes --------------------------------------------------------------------------------
@@ -94,7 +94,7 @@ A composition already present in Materials Project is reported and not computed:
 
 Filters, with thresholds fixed by the code:
 - E_hull (energy above the convex hull of the stable known phases, all relaxed with UMA) <= {config.SODIUM_EHULL_MAX} eV/atom; candidates that pass are ranked by E_hull per substitution (E_hull x atoms / modified sites).
-- Band gap (GapModel, optB88 scale) >= {config.SODIUM_BANDGAP_MIN} eV: the electrolyte must be an electronic insulator.
+- Every ion with a closed electron shell (no easy electron hopping): the electrolyte must be an electronic insulator; the champion's band gap is then computed by DFT and must be >= {config.SODIUM_BANDGAP_MIN} eV.
 - In each round, the slow tests: window and reaction with sodium metal (a candidate forming a metal with Na is excluded) and Na diffusion by molecular dynamics at {config.MD_SCREEN_TEMPERATURE_K} K against the parent for one chosen candidate{_MD_NOTE}.
 
 The history holds slow_tests (results measured by the code, failures included) and your failure_analysis of them. Treat every failure as data: do not repeat a strategy that failed; when a proposal corrects an earlier failure, say in the hypothesis which one and how (the cause you give is a hypothesis: the code measured only the numbers). Keep every proposal charge-neutral.
@@ -107,9 +107,9 @@ def analysis_system() -> str:
     return f"""You are the research brain of AutoLab, an agent searching for new sodium solid electrolytes (superionic Na+ conductors) for sodium-metal batteries.
 You receive the results of the candidates evaluated in this iteration. Fields:
 - status: "passed" (every filter passed), "rejected", "error" or "budget" (not evaluated: simulation budget reached).
-- rejected_at: "generate" (unknown parent, element outside the table, impossible count, or not charge-neutral), "known" (already in Materials Project), "relax" (no arrangement converged), "hull" (E_hull above {config.SODIUM_EHULL_MAX} eV/atom), "bandgap" (gap below {config.SODIUM_BANDGAP_MIN} eV).
+- rejected_at: "generate" (unknown parent, element outside the table, impossible count, or not charge-neutral), "known" (already in Materials Project), "relax" (no arrangement converged), "hull" (E_hull above {config.SODIUM_EHULL_MAX} eV/atom), "bandgap" (an ion with an open electron shell).
 - e_hull (eV/atom, UMA energies with the MP2020 corrections, against the stable MP phases relaxed with UMA) and decomposition; e_hull_per_substitution: the ranking criterion (eV per modified site, the li_vacancies count Na vacancies).
-- gap_optb88 / gap_mbj (eV); ss_bonds: S-S chains present (UMA less reliable).
+- closed_shell: every ion has a closed electron shell; ss_bonds: S-S chains present (UMA less reliable).
 - comparisons: statements computed by the code over all candidates so far. Base every comparison only on them and quote their numbers; never compare values yourself.
 - slow_tests, run by the code in this iteration: "contact with Na metal" (a candidate whose reaction with sodium metal gives a metallic product and releases at least 0.1 eV/atom is excluded) and "Na diffusion" (molecular dynamics at {config.MD_SCREEN_TEMPERATURE_K} K, {config.MD_SCREEN_SEEDS} runs of {config.MD_SCREEN_PS} ps, against the parent: D, D_ratio_to_parent with its error, verdict higher/tied/lower{_MD_NOTE}; framework: for each element its diffusion relative to Na — the framework "moved" when one exceeds {config.MD_FRAMEWORK_D_RATIO_MAX:.0%} of Na).
 - failure_analysis: for EACH failed slow test, its id, a hypothesis on the physical or chemical cause, explicitly a hypothesis since the code measured only the numbers, and a correction for the next proposals that keeps charge neutrality. Empty list when nothing failed.
@@ -121,7 +121,7 @@ Reply with JSON only, exactly this shape: {template("analysis")}"""
 
 def md_selection_messages(goal: str, candidates: list[dict], comparisons: list[dict], max_selected: int) -> list[dict]:
     system = f"""You are the research brain of AutoLab, an agent searching for new sodium solid electrolytes for sodium-metal batteries.
-The candidates below passed every filter (E_hull <= {config.SODIUM_EHULL_MAX} eV/atom, band gap >= {config.SODIUM_BANDGAP_MIN} eV) and were not excluded at the electrodes. Choose which ones go to molecular dynamics, the most expensive step: Na diffusion at {config.MD_SCREEN_TEMPERATURE_K} K on a GPU, {config.MD_SCREEN_SEEDS} runs of {config.MD_SCREEN_PS} ps each, compared with the candidate's own parent.
+The candidates below passed every filter (E_hull <= {config.SODIUM_EHULL_MAX} eV/atom, closed-shell ions) and were not excluded at the electrodes. Choose which ones go to molecular dynamics, the most expensive step: Na diffusion at {config.MD_SCREEN_TEMPERATURE_K} K on a GPU, {config.MD_SCREEN_SEEDS} runs of {config.MD_SCREEN_PS} ps each, compared with the candidate's own parent.
 Fields: e_hull and e_hull_per_substitution (lower is better); window (electrochemical stability window in V vs Na/Na+; stable=false means zero width, not a rejection); passivation against sodium metal; analysis: a short review written by another model (an opinion, the numbers come first); comparisons: statements computed by the code (base every comparison only on them).
 Select at most {max_selected} candidate ids, the most promising and diverse for Na conduction (Na vacancies, larger or softer anions, dopants known to open Na pathways), and give a one-sentence rationale. Only ids from the list are accepted.
 Reply with JSON only, exactly this shape: {template("md_selection")}"""
@@ -131,8 +131,8 @@ Reply with JSON only, exactly this shape: {template("md_selection")}"""
 
 
 def review_messages(goal: str, candidate: dict, comparisons: list[dict]) -> list[dict]:
-    system = f"""You are a materials scientist reviewing ONE candidate sodium solid electrolyte (Na+ conductor) for sodium-metal batteries, found by the AutoLab agent. It passed every filter computed by the code (E_hull <= {config.SODIUM_EHULL_MAX} eV/atom with UMA energies, GapModel band gap >= {config.SODIUM_BANDGAP_MIN} eV) and was not excluded at the electrodes.
-Fields: formula, parent and substitution; e_hull and e_hull_per_substitution (lower is better); decomposition; gap_optb88 and gap_mbj (eV); ss_bonds; window (electrochemical stability window in V vs Na/Na+); passivation against sodium metal and passivation_reaction_energy (eV/atom); comparisons: statements computed by the code about this candidate.
+    system = f"""You are a materials scientist reviewing ONE candidate sodium solid electrolyte (Na+ conductor) for sodium-metal batteries, found by the AutoLab agent. It passed every filter computed by the code (E_hull <= {config.SODIUM_EHULL_MAX} eV/atom with UMA energies, closed-shell ions) and was not excluded at the electrodes.
+Fields: formula, parent and substitution; e_hull and e_hull_per_substitution (lower is better); decomposition; ss_bonds; window (electrochemical stability window in V vs Na/Na+); passivation against sodium metal and passivation_reaction_energy (eV/atom); comparisons: statements computed by the code about this candidate.
 Write 1 to 3 strengths and 1 to 3 risks, each one short sentence grounded in these numbers or in well-known chemistry (Na vacancies, softer anions, moisture sensitivity of sulfides, cost or toxicity of an element, abundance of sodium). Quote numbers only from the fields or comparisons; never compute or compare values yourself. Give md_priority "high", "medium" or "low": how much a Na-diffusion simulation of this candidate would teach us. Ionic conductivity is not known: do not claim it.
 Reply with JSON only, exactly this shape: {template("candidate_analysis")}"""
     user = {"goal": goal, "candidate": candidate, "comparisons": comparisons}
@@ -173,7 +173,7 @@ def render_ranking(out: dict, result: dict) -> list[str]:
         tail = f" — EXCLUDED at {c['excluded_at']}: {c['exclusion_reason']}" if c.get("excluded_at") else ""
         star = " **finalist**" if cid in out["finalists"] else ""
         lines.append(f"{i}. {cid} {c['formula']}{star}: E_hull {c['e_hull']:.3f}{pm} eV/atom, per substitution "
-                     f"{c['e_hull_per_substitution']:.3f} eV, gap {el._v(c.get('gap_optb88'))} eV, Na diffusion {md}{ratio}{tail}")
+                     f"{c['e_hull_per_substitution']:.3f} eV, gap {el.gap_text(c)}, Na diffusion {md}{ratio}{tail}")
     return lines + [""]
 
 
@@ -184,7 +184,8 @@ METHODS = [
     ("Thermodynamic stability", f"energy above the convex hull of the system; kept if <= {config.SODIUM_EHULL_MAX} "
                                 "eV/atom; error bar measured against DFT (Materials Project) on the known compounds of the "
                                 "same system"),
-    ("Electronic band gap", f"recorded prediction (optB88vdW scale); kept if >= {config.SODIUM_BANDGAP_MIN} eV"),
+    ("Electronic insulation", f"every ion with a closed electron shell (rule, no model); the champion's band gap by DFT "
+                              f"(GPAW, PBE, plane waves, on Modal CPU), kept if >= {config.SODIUM_BANDGAP_MIN} eV"),
     ("Electrochemical window and sodium metal", "grand-potential phase diagrams open to sodium (window vs Na/Na+, "
                                                 "reaction with sodium metal)"),
     ("Independent reviews", "Meta Muse Spark Open, one review per candidate, in parallel"),
@@ -269,7 +270,7 @@ def render_report(out: dict, result: dict) -> list[str]:
               ("E_hull (eV/atom)", lambda r: f(r.get("e_hull_eV_per_atom"), ".3f") + (
                   f" ± {r['e_hull_error_eV_per_atom']:.3f}" if r.get("e_hull_error_eV_per_atom") is not None else "")),
               ("E_hull per substitution (eV)", lambda r: f(r.get("e_hull_per_substitution_eV"), ".3f")),
-              ("Band gap optB88 / mBJ (eV)", lambda r: f"{f(r.get('gap_optb88_eV'), '.2f')} / {f(r.get('gap_mbj_eV'), '.2f')}"),
+              ("Band gap", el.gap_text),
               ("Window (V vs Na/Na+)", lambda r: (f"{r['window_V']['v_low']:.2f}–{r['window_V']['v_high']:.2f}"
                                                   if r.get("window_V") and r["window_V"].get("stable") else
                                                   "zero width" if r.get("window_V") else "not computed")),
@@ -306,7 +307,8 @@ def make_domain() -> Domain:
         make_tools=lambda: SodiumTools(not_run=[]), evaluate=evaluate, proposal_messages=proposal_messages,
         analysis_messages=analysis_messages, comparisons=el.comparisons, for_model=el.FOR_MODEL, rank_key=el.rank_key,
         iteration_stages=slow, feedback=partial(el.feedback, ion="Na"), render_feedback=el.render_feedback,
-        stages=slow + (Stage("ranking", el.ranking, render_ranking), Stage("novelty", el.novelty, el.render_novelty),
+        stages=slow + (Stage("ranking", el.ranking, render_ranking), Stage("dft_gap", el.dft_gap, el.render_dft_gap),
+                       Stage("novelty", el.novelty, el.render_novelty),
                        Stage("report", report, render_report)),
         thresholds=("SODIUM_EHULL_MAX", "SODIUM_BANDGAP_MIN", "SODIUM_HULL_REF_EHULL_MAX", "SODIUM_MD_MAX_USD",
                     "SODIUM_MD_CAN_EXCLUDE", "MD_SCREEN_TEMPERATURE_K", "MD_SCREEN_SEEDS", "MD_SCREEN_PS",
@@ -316,7 +318,7 @@ def make_domain() -> Domain:
         settings={"ion": "Na", "cathodes": config.SODIUM_CATHODES, "review_messages": review_messages,
                   "md_selection_messages": md_selection_messages, "md_max_usd": config.SODIUM_MD_MAX_USD,
                   "md_max_usd_name": "SODIUM_MD_MAX_USD", "md_can_exclude": config.SODIUM_MD_CAN_EXCLUDE,
-                  "md_ranks": config.SODIUM_MD_CAN_EXCLUDE})
+                  "md_ranks": config.SODIUM_MD_CAN_EXCLUDE, "gap_min": config.SODIUM_BANDGAP_MIN})
 
 
 register("sodium", make_domain)
