@@ -1597,7 +1597,7 @@ function hexMix(a, b, k) {
 
 async function labStart(mode) {
   labStop();
-  if (L.speedSet !== true) L.speed = mode === "watch" ? 2 : 1;  // a finished research is shown faster by default
+  if (L.speedSet !== true) L.speed = 1;  // owner, 2026-11-03: playback at the normal pace (1x), as for a live research
   Object.assign(L, { on: true, mode, queue: [], seen: new Set(), played: 0, paused: false, group: null, card: null,
     round: 0, rounds: 0, formulas: {}, parents: {}, stageGroup: {}, t0: Date.now(), stepsAsked: 0,
     full: mode === "watch", hidden: false, convId: S.id });  // live: in the chat, a button opens it full screen

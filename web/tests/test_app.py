@@ -74,10 +74,10 @@ def test_no_provider_cost_or_replay_mode_is_shown(word):
 
 
 def test_the_lab_shows_no_speed_buttons_and_no_reuse_marks():
-    """Owner, 2026-11-03: no 1x / 2x / 4x buttons, no "reused" badge or notice; playback stays at 2x."""
+    """Owner, 2026-11-03: no 1x / 2x / 4x buttons, no "reused" badge or notice; playback at 1x."""
     js = (webapp.HERE / "static" / "app.js").read_text(encoding="utf-8")
     assert "data-speed" not in js and 'class="reuse' not in js and "accelerated</span>" not in js
-    assert "the reuse notice is not shown" in js and 'L.speed = mode === "watch" ? 2 : 1' in js
+    assert "the reuse notice is not shown" in js and 'L.speed = 1;  // owner' in js
 
 
 def test_the_voice_starts_with_the_lab_and_can_be_muted_from_it():
