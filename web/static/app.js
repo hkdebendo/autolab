@@ -295,10 +295,13 @@ function setVoice(on) {
   VOICE.on = on;
   try { localStorage.setItem("autolab-voice", on ? "on" : "off"); } catch { /* private window */ }
   if (!on) hush();
-  const b = $("voice-btn");
-  b.setAttribute("aria-pressed", String(on));
-  b.title = `Agent voice: ${on ? "on" : "off"}`;
+  for (const b of document.querySelectorAll("#voice-btn, .lab-ctl [data-voice]")) {  // the page's and the lab's button
+    b.setAttribute("aria-pressed", String(on));
+    b.title = `Agent voice: ${on ? "on" : "off"}`;
+  }
 }
+const ICON_SPEAKER = `<svg class="spk-on" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>
+  <svg class="spk-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M17 9.5l5 5M22 9.5l-5 5"/></svg>`;
 setVoice(VOICE.on);
 $("voice-btn").onclick = () => { setVoice(!VOICE.on); if (VOICE.on) say("Voice on.", true); };
 
@@ -1598,6 +1601,7 @@ async function labStart(mode) {
   Object.assign(L, { on: true, mode, queue: [], seen: new Set(), played: 0, paused: false, group: null, card: null,
     round: 0, rounds: 0, formulas: {}, parents: {}, stageGroup: {}, t0: Date.now(), stepsAsked: 0,
     full: mode === "watch", hidden: false, convId: S.id });  // live: in the chat, a button opens it full screen
+  setVoice(true);  // owner, 2026-11-03: the agent speaks as soon as the lab opens (live and playback)
   L.reused = !!(S.view && S.view.conversation.scope && S.view.conversation.scope.reused_from);
   L.domain = domainOf();
   L.steps = (S.view.steps || []).map((s) => ({ ...s, state: "pending", detail: null }));
@@ -1774,6 +1778,7 @@ function labShell() {
       <div class="orb" aria-hidden="true">${AI_ICON}<i></i><i></i></div>
       <div class="lab-title"><b>AutoLab agent at work</b><span class="lab-sub" id="lab-sub">starting…</span></div>
       <div class="lab-ctl" role="group" aria-label="Playback">
+        <button type="button" class="voice-btn" data-voice aria-pressed="${VOICE.on}" aria-label="Agent voice" title="Agent voice: ${VOICE.on ? "on" : "off"}">${ICON_SPEAKER}</button>
         <button type="button" data-pause title="Pause" aria-label="Pause">${PAUSE}</button>
         ${L.mode === "watch" ? `<button type="button" data-stop title="Stop: end the playback and show the results">${ICON_STOP}<span>Stop</span></button>
         <button type="button" data-restart title="Play again from the start">${ICON_RESTART}</button>`
@@ -1790,7 +1795,9 @@ function labShell() {
   el.querySelector(".lab-ctl").onclick = (ev) => {
     const b = ev.target.closest("button");
     if (!b) return;
-    if (b.hasAttribute("data-pause")) {
+    if (b.hasAttribute("data-voice")) {  // mute or resume the agent's voice without leaving the lab
+      setVoice(!VOICE.on);
+    } else if (b.hasAttribute("data-pause")) {
       L.paused = !L.paused;
       labPauseUI();
     } else if (b.hasAttribute("data-skip")) {  // live: catch up with the research

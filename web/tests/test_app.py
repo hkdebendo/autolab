@@ -80,6 +80,15 @@ def test_the_lab_shows_no_speed_buttons_and_no_reuse_marks():
     assert "the reuse notice is not shown" in js and 'L.speed = mode === "watch" ? 2 : 1' in js
 
 
+def test_the_voice_starts_with_the_lab_and_can_be_muted_from_it():
+    """Owner, 2026-11-03: the agent speaks as soon as the lab opens (live and playback); a speaker button in the lab
+    mutes and resumes it, in step with the page's button."""
+    js = (webapp.HERE / "static" / "app.js").read_text(encoding="utf-8")
+    start = js[js.index("async function labStart("):]
+    assert "setVoice(true)" in start[:start.index("\n}\n")]
+    assert "data-voice" in js and 'b.hasAttribute("data-voice")' in js and ".lab-ctl [data-voice]" in js
+
+
 def test_the_models_at_work_are_named_with_what_they_do():
     """Owner, 2026-11-02: show which model works and what it does (interface.md 15 amended)."""
     text = visible_text()
