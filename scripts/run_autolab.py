@@ -1,6 +1,6 @@
-"""Local demo of AutoLab: the interface with the recorded researches, no GPU and no database.
+"""Run AutoLab on your computer: the full interface, the same agents and research engine, a database in memory.
 
-    python scripts/dev_server.py          then open http://127.0.0.1:8100
+    python scripts/run_autolab.py          then open http://127.0.0.1:8100
 
 The same service as in production (agent/service.py) over a memory store, filled with the recorded researches
 (agent/importer.py), the three home page examples first, under their service ids.

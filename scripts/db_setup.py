@@ -1,4 +1,5 @@
-"""Create or update the database tables (db/migrations) and import the recorded researches into the history.
+"""Create or update the database tables (db/migrations) and import the recorded researches into the history (the home
+page examples first, under the ids the page uses).
 
     python scripts/db_setup.py [--no-import]
 
@@ -13,7 +14,7 @@ import argparse
 from pathlib import Path
 
 from autolab import config
-from autolab.agent.importer import RECORDED, import_run
+from autolab.agent.importer import HOME, RECORDED, import_run
 from autolab.agent.service import Service
 from autolab.store.conversations import PostgresStore
 
@@ -29,11 +30,17 @@ def main() -> None:
     print(f"migrations applied: {applied or 'none (already up to date)'}")
     if args.no_import:
         return
+    import json
+
     import modal
 
-    volume = modal.Volume.from_name(config.MODAL_DATA_VOLUME)
+    volume = modal.Volume.from_name(config.MODAL_DATA_VOLUME, create_if_missing=True)
     svc = Service(store, lambda: [], lambda cid: None)
-    for folder, cid, title, request in RECORDED:
+    home = {folder for folder, _, _ in HOME}
+    runs = [(folder, cid, title, json.loads((ROOT / folder / "result.json").read_text(encoding="utf-8"))["goal"])
+            for folder, cid, title in HOME if (ROOT / folder / "result.json").exists()]  # the home page examples first
+    runs += [r for r in RECORDED if r[0] not in home]
+    for folder, cid, title, request in runs:
         run = ROOT / folder
         if not (run / "result.json").exists():
             continue

@@ -52,7 +52,7 @@ SCOPE_TEXT = {
 }
 
 # The home page researches (config.REPLAY_EXAMPLES), under the ids they have in the AutoLab service, so that the
-# local demo (scripts/dev_server.py) replays them when an example is clicked: (folder, conversation id, title).
+# local server (scripts/run_autolab.py) and the cloud set-up (scripts/db_setup.py) replay them when an example is clicked: (folder, conversation id, title).
 HOME = [
     ("results/2026-11-01_feedback_run", "0245f94a24cf", "Fast stable sulfide electrolytes"),
     ("results/2026-11-02_cathode_run", "590fa5770002", "Higher energy cobalt-free cathodes"),

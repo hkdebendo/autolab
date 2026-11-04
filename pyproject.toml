@@ -19,7 +19,7 @@ dependencies = [
 
 [project.optional-dependencies]
 gpu = ["fairchem-core"]
-web = ["fastapi", "uvicorn", "httpx", "websockets"]  # the interface and the local demo (scripts/dev_server.py)
+web = ["fastapi", "uvicorn", "httpx", "websockets"]  # the interface (scripts/run_autolab.py, web/app.py)
 research = ["modal"]  # new researches from the demo: UMA and DFT on your Modal account
 dev = ["pytest"]
 

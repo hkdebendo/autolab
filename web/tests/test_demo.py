@@ -1,4 +1,4 @@
-"""The local demo of the README (scripts/dev_server.py): the home page examples replay their recorded research.
+"""AutoLab on a computer (scripts/run_autolab.py, README "Run AutoLab"): the home page examples replay their research.
 Offline here (AUTOLAB_DEMO_OFFLINE): tests never call a model; the hybrid mode is tested in tests/test_hybrid.py."""
 
 import os
@@ -17,11 +17,11 @@ ROOT = Path(__file__).resolve().parents[2]
 def demo():
     os.environ["AUTOLAB_DEMO_OFFLINE"] = "1"
     sys.path.insert(0, str(ROOT / "scripts"))
-    import dev_server
+    import run_autolab
 
-    assert dev_server.LIVE is None
+    assert run_autolab.LIVE is None
 
-    return TestClient(dev_server.app)
+    return TestClient(run_autolab.app)
 
 
 @pytest.mark.parametrize("text,cid", config.REPLAY_EXAMPLES)
@@ -42,5 +42,6 @@ def test_the_readme_install_command_names_existing_extras():
     import tomllib
 
     extras = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]["optional-dependencies"]
-    assert 'pip install -e ".[web,dev]"' in (ROOT / "README.md").read_text(encoding="utf-8")
-    assert {"web", "dev"} <= set(extras) and {"fastapi", "uvicorn"} <= set(extras["web"])
+    assert 'pip install -e ".[web,research,dev]"' in (ROOT / "README.md").read_text(encoding="utf-8")
+    assert {"web", "research", "dev"} <= set(extras) and {"fastapi", "uvicorn"} <= set(extras["web"])
+    assert "modal" in extras["research"]

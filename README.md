@@ -192,32 +192,31 @@ About 36 $ of Modal GPU time (calibrations, benchmark, runs), 1.2 $ of Muse Spar
 
 ## Run it
 
-### Demo: no GPU, the Meta models work live with your keys
+### Run AutoLab on your computer
 
-The demo uses **sample data: three researches recorded on Nov 1–2, 2026** (lithium solid electrolytes, cobalt-free cathodes, sodium solid electrolytes; `results/2026-11-01_feedback_run/`, `results/2026-11-02_cathode_run/`, `results/2026-11-02_sodium_run/`). Their heavy computations (UMA relaxations and molecular dynamics on GPUs, DFT, Materials Project queries) were done when they ran and are stored in the repository with their 3D files, so **no GPU and no database are needed**: a GPU is only needed to compute new candidates.
+`scripts/run_autolab.py` runs the **full AutoLab**: the same interface, agents and research engine as the cloud version, with a database in memory (no Supabase). It starts with **sample data: three researches recorded on Nov 1–2, 2026** (lithium solid electrolytes, cobalt-free cathodes, sodium solid electrolytes; `results/2026-11-01_feedback_run/`, `results/2026-11-02_cathode_run/`, `results/2026-11-02_sodium_run/`), whose computations (UMA relaxations and molecular dynamics on GPUs, DFT, Materials Project) are stored in the repository with their 3D files: replaying them needs **no GPU**.
 
 ```bash
 git clone https://github.com/hkdebendo/autolab.git && cd autolab
 python -m venv .venv                  # Python 3.12
 source .venv/bin/activate             # Windows: .venv\Scripts\activate
-pip install -e ".[web,dev]"
+pip install -e ".[web,research,dev]"
 cp .env.example .env                  # then fill in your keys (see "Your own keys" below)
-python scripts/dev_server.py          # then open http://127.0.0.1:8100
+python scripts/run_autolab.py         # then open http://127.0.0.1:8100
 ```
 
-**With your keys, the Meta models do the real work** (`scripts/dev_server.py`, `autolab/agent/hybrid.py`):
+**With your keys, the Meta models do the real work** (`autolab/agent/hybrid.py`):
 
-- **Muse Spark** reads every request (scope check) and answers your follow-up questions about a research; **Muse Voice Transcribe** takes dictation (microphone button).
+- **Muse Spark** reads every request and answers your questions, written or dictated (**Muse Voice Transcribe**, microphone button): about a research, about AutoLab ("who are you?", "what can you do?"), or general science ("is copper a good conductor?").
 - Click one of the three examples of the home page, or ask for the same research in your own words (Muse Spark recognises it): the research is replayed in the lab in **hybrid mode**. Muse Spark's proposals and every computation come from the recorded research, while the agents work live on those results, with the same prompts as in a research: **Muse Spark** analyses each round's failures and corrects its strategy, **Muse Spark Open** reviews the candidates, the plain-language summaries are written again and **Muse Wonder** reviews the whole campaign and plans the next one. About 5 minutes and 0.2 $ of your credits per replay.
-- Any other request within AutoLab's domains **starts a real research** (see "Run a real research" below); if something it needs is missing (a key, Modal), the conversation says exactly what and how to add it.
-- General questions get real answers too: ask "who are you?", "what can you do?" or "is copper a good conductor?".
-- A missing key: another Meta model takes the role and its name shows in the interface (Muse Spark writes the summaries unless you have your own Muse Glimmer deployment, see below); a step whose call fails keeps its recorded answer, and the conversation says so.
+- Any other request within AutoLab's domains **starts a real research** (see "Run a real research" below); if something it needs is missing (a key, Modal), the conversation says exactly what and how to add it. Only a request outside AutoLab's domains is declined.
+- A missing model key: another Meta model takes the role and its name shows in the interface (Muse Spark writes the summaries unless you have your own Muse Glimmer deployment); a step whose call fails keeps its recorded answer, and the conversation says so.
 
 **Without any key**, the three researches are replayed exactly as recorded and no model is called.
 
-The **Results**, **Benchmark & Tests** and **Settings** pages work in both cases. A recorded research can also be opened directly, e.g. `http://127.0.0.1:8100/c/0245f94a24cf?watch` (lithium), `590fa5770002` (cathodes), `7af9efdcdd9a` (sodium).
+The **Results**, **Benchmark & Tests** and **Settings** pages work in every case. A recorded research can also be opened directly, e.g. `http://127.0.0.1:8100/c/0245f94a24cf?watch` (lithium), `590fa5770002` (cathodes), `7af9efdcdd9a` (sodium).
 
-The interface shows the agent at work: one card per action, naming the model or tool and what it does (Muse Spark reasoning and proposing, pymatgen building, UMA relaxing the crystal in 3D while the cell parameters move, the electronic insulation check, Muse Spark Open reviews, molecular dynamics with the recorded lithium trajectory, failures sent back and explained, Muse Wonder reviewing the whole campaign), the progress list ticking and a lab notebook of the decisions, with the agent's voice (the browser's speech synthesis) that can be muted from the lab. A **Results** page gathers the champion of every research by domain: what it is, its crystal structure in 3D, its properties with units and error bars, the comparison with its parent, the literature check, why it was chosen and what limits the confidence, with its final report as a PDF.
+The interface shows the agent at work: one card per action, naming the model or tool and what it does (Muse Spark reasoning and proposing, pymatgen building, UMA relaxing the crystal in 3D while the cell parameters move, the electronic insulation check, Muse Spark Open reviews, molecular dynamics with the lithium trajectory, failures sent back and explained, Muse Wonder reviewing the whole campaign), the progress list ticking and a lab notebook of the decisions, with the agent's voice (the browser's speech synthesis) that can be muted from the lab. A **Results** page gathers the champion of every research by domain: what it is, its crystal structure in 3D, its properties with units and error bars, the comparison with its parent, the literature check, why it was chosen and what limits the confidence, with its final report as a PDF.
 
 ### Your own keys
 
@@ -227,33 +226,48 @@ Copy the template and fill in your keys (each line of `.env.example` says what i
 cp .env.example .env
 ```
 
-| Key | Powers | Needed for the demo |
+| Key | Powers | Needed for |
 |---|---|---|
-| `MODEL_API_KEY` | **Meta Model API**: Muse Spark, Muse Wonder, Muse Voice Transcribe | **yes** (the live agents) |
+| `MODEL_API_KEY` | **Meta Model API**: Muse Spark, Muse Wonder, Muse Voice Transcribe | the live agents (hybrid replays, questions, researches) |
 | `BASETEN_API_KEY` | Muse Spark Open (independent reviews) | recommended (else Muse Spark reviews) |
 | `FIREWORKS_API_KEY`, `GLIMMER_DEPLOYMENT` | Muse Glimmer (plain-language summaries): on Fireworks it runs only on a dedicated deployment of your own account | optional (else Muse Spark writes them) |
-| `MP_API_KEY` | Materials Project (known phases, reference energies) | for a new research |
-| `HF_TOKEN` | the UMA weights (gated: accept the FAIR Chemistry License on Hugging Face), stored in a Modal secret | for a new research |
+| `MP_API_KEY` | Materials Project (known phases, reference energies) | a new research |
+| `HF_TOKEN` | the UMA weights (gated: accept the FAIR Chemistry License on Hugging Face), stored in a Modal secret | a new research |
 
 ### Run a real research
 
-Write your own request in the demo (e.g. *"Find new sulfide solid electrolytes derived from Li3PS4 by bromine substitution, stable against lithium metal."*): AutoLab runs the whole research on new crystals. The agents use the keys of `.env`; UMA (relaxations, molecular dynamics) and the DFT band gap run on **your Modal account** (GPUs billed by Modal). Set it up once:
+Write your own request (e.g. *"Find new sulfide solid electrolytes derived from Li3PS4 by bromine substitution, stable against lithium metal."*): AutoLab runs the whole research on new crystals. The agents use the keys of `.env`; UMA (relaxations, molecular dynamics) and the DFT band gap run on **your Modal account** (GPUs billed by Modal). Set it up once:
 
 ```bash
 # 1. keys in .env: MODEL_API_KEY and MP_API_KEY (BASETEN_API_KEY recommended)
 # 2. accept the FAIR Chemistry License of UMA on https://huggingface.co/facebook/UMA and create a Hugging Face token
-pip install -e ".[web,research]"                                   # adds the Modal client
 modal setup                                                        # log in to your Modal account
 modal secret create huggingface-secret HF_TOKEN=<your Hugging Face token>
 modal deploy modal_app/uma_app.py                                  # UMA on Modal GPUs
 modal deploy modal_app/dft_app.py                                  # DFT band gap on Modal CPU
 python scripts/modal_setup.py download                             # the UMA weights into your Modal volume, once
-python scripts/dev_server.py                                       # then write your request at http://127.0.0.1:8100
+python scripts/run_autolab.py                                      # then write your request at http://127.0.0.1:8100
 ```
 
 The research is followed live in the lab, then come its summary, final report (exportable as PDF) and Muse Wonder's campaign review; you can question the agent about it. A research of 3 rounds takes about 30 to 60 minutes and costs about 5 to 6 $ of Modal GPU time and under 1 $ of model calls. Every computation is cached in `.cache/`: nothing is computed twice. UMA can also run on a local NVIDIA GPU instead of Modal (`SIM_BACKEND=local` in `.env`, `pip install -e ".[gpu]"`).
 
-The full interface used in the video (`uvicorn web.app:app`) works the same way through an AutoLab service deployed on your own Modal account (`modal deploy modal_app/agent_app.py`, with a PostgreSQL `DATABASE_URL` and the keys in a Modal secret); the demo above needs neither.
+### Cloud deployment (optional): the set-up used in the video
+
+The same AutoLab can run as an online service: the research engine on Modal, the conversations in a PostgreSQL database (e.g. a free Supabase project), the interface served by `web/app.py`. Conversations and results then persist, researches keep running when your computer is off, and the page can be opened from anywhere. On top of the steps of "Run a real research":
+
+```bash
+# 1. a PostgreSQL database: e.g. create a Supabase project, copy its session pooler connection string,
+#    put it in .env as DATABASE_URL
+# 2. the keys of the service, in one Modal secret (the service never reads your .env):
+modal secret create autolab-keys MODEL_API_KEY=... BASETEN_API_KEY=... MP_API_KEY=... DATABASE_URL=... \
+    FIREWORKS_API_KEY=... GLIMMER_DEPLOYMENT=...                   # the last two only with your own Muse Glimmer deployment
+modal deploy modal_app/agent_app.py                                # the service; it prints its URL
+python scripts/db_setup.py                                         # creates the tables, imports the recorded researches
+# 3. put the printed URL in .env as AUTOLAB_API_URL, then open the interface:
+uvicorn web.app:app --port 8000                                    # http://127.0.0.1:8000
+```
+
+Known requests are then replayed in hybrid mode by a Modal CPU function, new researches run on Modal, and dictation is relayed by `web/app.py` (it reads `MODEL_API_KEY` from `.env`).
 
 ### Meta open-weight model
 
@@ -277,8 +291,6 @@ SIM_BACKEND=modal python scripts/run_benchmark.py --out results/<dir>
 SIM_BACKEND=modal python scripts/conductivity.py --out results/<dir>
 python scripts/uma_error_bars.py --out results/<dir>
 ```
-
-The full interface: deploy `modal_app/uma_app.py` and `modal_app/agent_app.py` (`modal deploy`), set `AUTOLAB_API_URL` in `.env`, then `uvicorn web.app:app`.
 
 See `SPEC.md` for the architecture and every validated parameter, `docs/DECISIONS.md` for the decisions and `docs/PROGRESS.md` for the log.
 
