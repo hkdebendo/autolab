@@ -234,7 +234,8 @@ def replay(store, cid: str, src: str, m: dict, finish, pace: float = PACE_S, qui
                 card = e["type"] in ("llm", "candidate") or (e["type"] == "loop" and e["step"] in ("iteration", "feedback", "start"))
                 push(e, pace if card else quick)
         except LLMError as err:  # that step keeps its recorded answer; said at the end
-            state["failed"].append(f"{key}: {type(err).__name__}")
+            state["failed"].append(f"{key}: {type(err).__name__}: {err}"[:300])
+            print(f"hybrid: {key} kept its recorded answer ({type(err).__name__}: {err})"[:400], flush=True)
             push(e, pace)
         i += 1
 
