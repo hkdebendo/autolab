@@ -9,7 +9,9 @@ With the keys of .env (MODEL_API_KEY at least), the Meta models work live: Muse 
 the follow-up questions, Muse Voice Transcribe takes dictation, and a known request (a home page example, or the
 request of a recorded research) is replayed in hybrid mode (agent/hybrid.py): the proposals and every computation come
 from the recorded research, while Muse Spark analyses each round, Muse Spark Open reviews the candidates, the summaries
-are written again and Muse Wonder reviews the campaign. A new research is not started (it needs GPUs).
+are written again and Muse Wonder reviews the campaign; a reworded request is recognised by Muse Spark. Any other
+request of AutoLab's domains starts a real research, the agents with the keys of .env and UMA on the user's Modal
+account; what is still missing for it (a key, Modal, the deployed apps) is said in the conversation.
 Without any key (or with AUTOLAB_DEMO_OFFLINE=1), a known request replays its recorded research as it was, and other
 requests get a short notice: no model is called.
 """
@@ -40,8 +42,7 @@ from autolab.store.conversations import MemoryStore
 ROOT = Path(__file__).resolve().parents[1]
 WEB = ROOT / "web" / "static"
 ACTIVE = {"queued", "running", "stopping"}
-NEW_RESEARCH = ("This demo replays the three recorded researches of the home page, whose computations are stored in the "
-                "repository. A new research computes new crystals with UMA on GPUs: see the README to run it.")
+NEW_RESEARCH = "This request needs a new research: AutoLab computes new crystals with UMA on GPUs."
 LIVE = None if os.getenv("AUTOLAB_DEMO_OFFLINE") else hybrid.models()  # None: no key, the recorded answers only
 
 
@@ -107,8 +108,71 @@ def new_research(cid: str) -> None:
         if match is not None:
             svc.reuse(cid, svc.store.get(match), conv.get("scope") or {})
             return
-    svc.store.update(cid, status="answered")
-    svc.store.add_message(cid, "assistant", "notice", NEW_RESEARCH)
+    missing = research_missing()
+    if missing:
+        svc.store.update(cid, status="answered")
+        svc.store.add_message(cid, "assistant", "notice", NEW_RESEARCH + " To run it on this computer, AutoLab still "
+                              "needs:\n" + "\n".join(f"- {m}" for m in missing) + "\nSee \"Run a real research\" in the README.")
+        return
+    threading.Thread(target=run_research, args=(cid,), daemon=True).start()
+
+
+def research_missing() -> list[str]:
+    """What a new research still needs on this computer, in words a user can act on (empty: it can start)."""
+    missing = []
+    if LIVE is None:
+        missing.append("MODEL_API_KEY in .env (Meta Model API: Muse Spark, Muse Wonder)")
+    if not config.has_key("MP_API_KEY"):
+        missing.append("MP_API_KEY in .env (Materials Project: the known phases of each chemical system)")
+    if os.getenv("SIM_BACKEND", "modal") != "modal":
+        return missing  # UMA on a local NVIDIA GPU (SIM_BACKEND=local)
+    try:
+        import modal
+    except ImportError:
+        return missing + ["the Modal client and account that run UMA on GPUs: pip install modal, then modal setup"]
+    for app, fn, how in ((config.MODAL_APP, "relax_chunk", "modal deploy modal_app/uma_app.py, then python "
+                          "scripts/modal_setup.py download (the UMA weights, once)"),
+                         (config.DFT_GAP_APP, "pbe_gap", "modal deploy modal_app/dft_app.py")):
+        try:
+            modal.Function.from_name(app, fn).hydrate()
+        except modal.exception.NotFoundError:
+            missing.append(f"the {app} app on your Modal account: {how}")
+        except Exception:  # no token, or Modal unreachable
+            missing.append("a Modal account on this computer (UMA runs on Modal GPUs): modal setup, then deploy "
+                           "modal_app/uma_app.py and modal_app/dft_app.py (see the README)")
+            break
+    return missing
+
+
+def run_research(cid: str) -> None:
+    """A real research on this computer: the agents with the keys of .env, UMA and DFT on the user's Modal account."""
+    from autolab.agent.loop import Agent
+    from autolab.agent.runs import analyst_client, client, director_client, load_prior, summarizer
+    from autolab.agent.summaries import Summarizer
+    from autolab.analysis.replay_export import export_run
+    from autolab.sim.backend import RelaxBudget
+
+    caps = config.LLM_COST_CAPS_USD
+
+    def make_agent(events, should_stop):
+        brain = client(config.LLM_PROVIDER, caps[config.LLM_PROVIDER])
+        fallback = client(config.LLM_FALLBACK_PROVIDER, caps[config.LLM_FALLBACK_PROVIDER])
+        lead = brain or fallback
+        writer = summarizer(events) or Summarizer(client(lead.provider, caps[lead.provider]), events)  # Muse Spark
+        return Agent(lead, fallback if brain else None, events=events, budget=RelaxBudget(config.LIVE_MAX_RELAXATIONS),
+                     analyst=analyst_client(config.CANDIDATE_ANALYSIS_PROVIDER) or client(lead.provider, caps[lead.provider]),
+                     novelty_client=client(config.NOVELTY_PROVIDER, config.NOVELTY_COST_CAP_USD), summarizer=writer,
+                     director=director_client() or lead, should_stop=should_stop)
+
+    def export(cid_: str, result: dict) -> None:  # the 3D files, next to the caches
+        out = config.CACHE_DIR / "runs" / cid_
+        index = export_run(result, out)
+        svc.store.add_artifact(cid_, "index.json", "index", str(out / "index.json"))
+        for kind in ("structures", "md"):
+            for e in index[kind]:
+                svc.store.add_artifact(cid_, e["file"], kind.rstrip("s"), str(out / e["file"]), e)
+
+    svc.run(cid, make_agent, prior=load_prior(ROOT / config.LIVE_PRIOR, "ref"), export=export)
 
 
 svc = Demo(MemoryStore(), lambda: [LIVE["brain"]] if LIVE else [Offline()], new_research)

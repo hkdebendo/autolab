@@ -313,7 +313,7 @@ def make_domain() -> Domain:
                        Stage("novelty", el.novelty, el.render_novelty),
                        Stage("report", report, render_report),
                        Stage("campaign_review", review.campaign_review, review.render)),
-        thresholds=("SODIUM_EHULL_MAX", "SODIUM_BANDGAP_MIN", "SODIUM_HULL_REF_EHULL_MAX", "SODIUM_MD_MAX_USD",
+        thresholds=("SODIUM_EHULL_MAX", "SODIUM_BANDGAP_MIN", "SODIUM_HULL_REF_EHULL_MAX",
                     "SODIUM_MD_CAN_EXCLUDE", "MD_SCREEN_TEMPERATURE_K", "MD_SCREEN_SEEDS", "MD_SCREEN_PS",
                     "MD_TIE_SIGMA", "MD_FRAMEWORK_D_RATIO_MAX", "ELECTRODES_TOP", "ELECTRODE_EXCLUDED_PASSIVATION",
                     "ITERATION_MD_SELECT_MAX", "FINALISTS_MAX"),

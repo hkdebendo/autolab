@@ -256,11 +256,11 @@ def test_relaxation_budget_stops_cleanly(li3ps4):
     assert result["iterations"][0]["analysis"] is not None  # the model still sees what happened
 
 
-def test_loop_limits_come_from_config(li3ps4):
+def test_a_research_needs_at_least_one_round_and_one_candidate_but_has_no_upper_limit(li3ps4):
     with pytest.raises(ValueError):
-        agent(li3ps4, FakeLLM("meta", [])).run(parents=[PARENT], n_iterations=config.MAX_ITERATIONS + 1)
+        agent(li3ps4, FakeLLM("meta", [])).run(parents=[PARENT], n_iterations=0)
     with pytest.raises(ValueError):
-        agent(li3ps4, FakeLLM("meta", [])).run(parents=[PARENT], max_candidates=config.MAX_CANDIDATES_PER_ITERATION + 1)
+        agent(li3ps4, FakeLLM("meta", [])).run(parents=[PARENT], max_candidates=0)
 
 
 def test_the_same_substitution_however_written_is_one_key():

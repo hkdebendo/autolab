@@ -16,9 +16,6 @@ from autolab.agent.progress import steps_from_events
 from autolab.agent.scope import NEW_CHAT_NOTICE, enforce, scope_messages
 from autolab.store.conversations import ACTIVE, question_key
 
-BUSY = ("AutoLab is already running another research. Please try again when it has finished (the conversations in "
-        "the history can be opened meanwhile).")
-LIMIT = "The number of new researches allowed for this demonstration has been reached."
 UNAVAILABLE = "AutoLab could not analyse this request right now. Please try again in a moment."
 RUNNING = ("The research is still running: AutoLab will answer questions about it once it has finished. You can "
            "follow its steps above, or stop it.")
@@ -131,11 +128,7 @@ class Service:
             src = self.reusable(text) if config.REUSE_IDENTICAL_GOAL else None
             if src is not None:
                 self.reuse(cid, src, scope)
-            elif self.store.active_research():
-                self.store.add_message(cid, "assistant", "notice", BUSY)
-            elif self.store.live_runs_used() >= config.LIVE_MAX_RUNS:
-                self.store.add_message(cid, "assistant", "notice", LIMIT)
-            else:
+            else:  # no limit on the number of researches, several may run at once (owner, 2026-11-04)
                 self.store.update(cid, status="queued")
                 try:
                     self.spawn(cid)

@@ -114,10 +114,8 @@ class Agent:
              stages: bool = True) -> dict:
         """Iterations, then the domain's stages. `prior`: candidates evaluated in earlier runs (ids unique): never
         proposed again, shown to the model, and part of the pool of the stages (their computations are cached)."""
-        if not 1 <= n_iterations <= config.MAX_ITERATIONS:
-            raise ValueError(f"n_iterations must be 1..{config.MAX_ITERATIONS} (MAX_ITERATIONS)")
-        if not 1 <= max_candidates <= config.MAX_CANDIDATES_PER_ITERATION:
-            raise ValueError(f"max_candidates must be 1..{config.MAX_CANDIDATES_PER_ITERATION}")
+        if n_iterations < 1 or max_candidates < 1:  # no upper limit (owner, 2026-11-04)
+            raise ValueError("n_iterations and max_candidates must be at least 1")
         t0 = time.perf_counter()
         d = self.domain
         goal = goal or d.goal

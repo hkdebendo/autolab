@@ -52,8 +52,6 @@ RULES: dict[str, list[tuple[str, list[tuple]]]] = {
         (_BUDGET, [
             ("LIVE_ITERATIONS", "Rounds of the error-driven loop", "", "", "budget"),
             ("LIVE_CANDIDATES", "Proposals per round", "", "", "budget"),
-            ("MAX_RELAXATIONS_PER_RUN", "New relaxations, at most", "", "UMA on a Modal GPU", "budget"),
-            ("MD_MAX_USD_PER_RUN", "Molecular dynamics of one research, at most", "$ (estimated)", "Modal GPU time", "budget"),
         ]),
     ],
     "cathode": [
@@ -75,7 +73,6 @@ RULES: dict[str, list[tuple[str, list[tuple]]]] = {
         (_BUDGET, [
             ("LIVE_ITERATIONS", "Rounds of the error-driven loop", "", "", "budget"),
             ("LIVE_CANDIDATES", "Proposals per round", "", "", "budget"),
-            ("MAX_RELAXATIONS_PER_RUN", "New relaxations, at most", "", "UMA on a Modal GPU", "budget"),
         ]),
     ],
     "sodium": [
@@ -98,8 +95,6 @@ RULES: dict[str, list[tuple[str, list[tuple]]]] = {
         (_BUDGET, [
             ("LIVE_ITERATIONS", "Rounds of the error-driven loop", "", "", "budget"),
             ("LIVE_CANDIDATES", "Proposals per round", "", "", "budget"),
-            ("MAX_RELAXATIONS_PER_RUN", "New relaxations, at most", "", "UMA on a Modal GPU", "budget"),
-            ("SODIUM_MD_MAX_USD", "Molecular dynamics of one research, at most", "$ (estimated)", "Modal GPU time", "budget"),
         ]),
     ],
 }

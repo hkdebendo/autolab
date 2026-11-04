@@ -7,7 +7,7 @@ import pytest
 from autolab import config
 from autolab.agent.loop import Agent
 from autolab.agent.scope import NEW_CHAT_NOTICE
-from autolab.agent.service import BUSY, LIMIT, RUNNING, Service
+from autolab.agent.service import RUNNING, Service
 from autolab.llm import client as llm
 from autolab.sim.backend import RelaxBudget
 from autolab.store.conversations import MemoryStore, question_key
@@ -48,7 +48,8 @@ def test_a_supported_request_starts_a_research_with_a_title():
     assert svc.history()[0]["id"] == c["id"]
 
 
-def test_unsupported_planned_busy_and_capped_requests_do_not_start(monkeypatch):
+def test_only_uncovered_domains_are_refused_never_a_count_or_a_running_research(monkeypatch):
+    """Owner, 2026-11-04: no limit on the number of researches, several may run at once."""
     monkeypatch.setitem(config.CAPABILITIES, "planned", {"solar": "Solar absorbers: planned."})
     spawned = []
     svc, store = service(Model([scope(status="unsupported", domain=""), scope(domain="solar"), scope(), scope()]),
@@ -56,13 +57,11 @@ def test_unsupported_planned_busy_and_capped_requests_do_not_start(monkeypatch):
     assert svc.start("design a catalyst")["conversation"]["status"] == "answered"
     assert svc.start("solar absorbers")["conversation"]["scope"]["status"] == "planned"
     first = svc.start("electrolytes")["conversation"]["id"]
-    busy = svc.start("electrolytes again")
-    assert busy["conversation"]["status"] == "answered" and busy["messages"][-1]["content"] == BUSY
-    assert spawned == [first]
-    store.update(first, status="done")
-    store.live_runs_used = lambda: config.LIVE_MAX_RUNS
-    capped = Service(store, lambda: [Model([scope()])], spawned.append).start("more electrolytes")
-    assert capped["messages"][-1]["content"] == LIMIT and spawned == [first]
+    second = svc.start("electrolytes again")["conversation"]["id"]  # while the first one runs
+    assert spawned == [first, second]
+    store.live_runs_used = lambda: 1000
+    third = Service(store, lambda: [Model([scope()])], spawned.append).start("more electrolytes")
+    assert third["conversation"]["status"] == "queued" and len(spawned) == 3
 
 
 def test_follow_ups_reuse_stored_answers_and_refuse_new_discoveries():

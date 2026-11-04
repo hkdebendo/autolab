@@ -9,8 +9,8 @@ Deploy:   modal deploy modal_app/agent_app.py      (after modal_app/uma_app.py)
   the development PC), so nothing already computed is computed again; its events go to the database as they happen.
 
 Keys live only in the Modal secret config.MODAL_KEYS_SECRET, created by the owner (MODEL_API_KEY, BASETEN_API_KEY,
-MP_API_KEY, FIREWORKS_API_KEY, GLIMMER_DEPLOYMENT, DATABASE_URL). No access code (owner, 2026-10-29): one research at
-a time and config.LIVE_MAX_RUNS new researches in all protect the budget. No warm container, short limits.
+MP_API_KEY, FIREWORKS_API_KEY, GLIMMER_DEPLOYMENT, DATABASE_URL). No access code (owner, 2026-10-29) and no usage cap
+(owner, 2026-11-04: any number of researches, several at once). No warm container.
 """
 
 import json

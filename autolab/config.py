@@ -192,10 +192,13 @@ MODAL_KEYS_SECRET = "autolab-keys"  # created by the owner: MODEL_API_KEY, BASET
 MODAL_LIVE_STORE = "autolab-live"  # modal.Dict: events of the live runs as they happen, lock, run counter
 LIVE_ITERATIONS = 3  # owner, 2026-11-01: the error-driven loop needs rounds after a failure
 LIVE_CANDIDATES = 3
-LIVE_MAX_RELAXATIONS = 160  # 3 rounds x 3 candidates x ~8 arrangements, plus references (T4, ~0.005 $ each)
+# Owner, 2026-11-04: no usage cap may block a user (number of researches, one at a time, cost or budget per research).
+# The values below are practically unlimited, finite so that they stay valid JSON; kept: 3 JSON attempts, 3 rounds.
+UNLIMITED = 10**9
+LIVE_MAX_RELAXATIONS = UNLIMITED  # new UMA relaxations of a live research
 LIVE_MD_SELECT_MAX = 1  # new MD candidates per iteration of a live run (Modal budget; cached verdicts apply to all)
-LIVE_MAX_RUNS = 6  # live runs allowed in production (1-4 $ each), counted in the store; then refused
-LIVE_RUN_TIMEOUT_S = 3 * 3600
+LIVE_MAX_RUNS = None  # no limit on the number of researches
+LIVE_RUN_TIMEOUT_S = 24 * 3600  # the longest Modal allows
 LIVE_GOAL_MAX_CHARS = 500
 # A request identical (case and spaces aside) to a finished research reuses it (owner, 2026-11-02): its events, result,
 # report and 3D files are copied into the new conversation, nothing is recomputed or paid, and the interface shows the
@@ -272,13 +275,13 @@ SUMMARY_MAX_PER_RUN = 4  # iteration summaries + the run summary
 # Parallel analyses of the candidates (SPEC 5.11): Muse Spark Open writes one short analysis per eligible candidate
 # after the electrodes; Muse Spark reads them before choosing the MD candidates.
 CANDIDATE_ANALYSIS_PROVIDER = "baseten"
-CANDIDATE_ANALYSIS_MAX = 20  # candidates analysed per run (best E_hull per substitution first)
+CANDIDATE_ANALYSIS_MAX = UNLIMITED  # candidates analysed per run (every eligible one)
 CANDIDATE_ANALYSIS_WORKERS = 4  # parallel calls (Baseten limit: 2 M tokens/min)
 CANDIDATE_ANALYSIS_MAX_OUTPUT_TOKENS = 3000
 LLM_FALLBACK_PROVIDER = "baseten"  # used when the main provider fails
 LLM_TIMEOUT = 300  # s per call
 LLM_MAX_OUTPUT_TOKENS = 4000  # includes reasoning tokens
-LLM_COST_CAPS_USD = {"meta": 1.0, "baseten": 0.5, "fireworks": 0.5, "wonder": 1.0}  # per run and provider
+LLM_COST_CAPS_USD = {"meta": UNLIMITED, "baseten": UNLIMITED, "fireworks": UNLIMITED, "wonder": UNLIMITED}  # no cap
 # Campaign review (last stage of every domain, agent/review.py): Muse Wonder reads the whole campaign at once (rounds,
 # measurements, failures and Muse Spark's hypotheses, ranking, literature check, report) and writes what it taught and
 # the next campaign to run. It decides nothing: thresholds, ranking and verdicts stay the code's.
@@ -300,7 +303,7 @@ REPLAY_MD_FRAMES = 400  # frames per MD run in the replay files (one every 100 f
 
 # Novelty check (last step, final candidates only): Meta web search, links only from API citations.
 NOVELTY_PROVIDER = "meta"
-NOVELTY_COST_CAP_USD = 1.0
+NOVELTY_COST_CAP_USD = UNLIMITED
 NOVELTY_SEARCH_CONTEXT = "medium"  # low | medium | high
 NOVELTY_REASONING_EFFORT = "low"
 NOVELTY_MAX_OUTPUT_TOKENS = 3000
@@ -355,8 +358,7 @@ ELECTRODES_TOP = 20  # passed candidates (lowest E_hull per substitution first) 
 AGENT_CATHODES = ("LiFePO4",)  # cathode interfaces in the loop (cobalt-free, calibrated against MP); informative, no threshold
 ELECTRODE_EXCLUDED_PASSIVATION = ("non_passivating",)  # SPEC 5.9: metallic products and reaction >= 0.1 eV/atom with Li metal
 MD_SELECT_MAX = 3  # candidates the model may send to MD (without the feedback loop); within MD_SCREEN_MAX_RUNS
-MD_MAX_USD_PER_RUN = 7.0  # estimated Modal cost of all the MD launched in one research; an MD step that would pass it
-# is not launched (3 rounds x 1 candidate x 2 H100 runs ~ 5 $)
+MD_MAX_USD_PER_RUN = UNLIMITED  # estimated Modal cost of the MD of one research: no cap (about 5 $ for 3 rounds)
 
 # Error-driven loop (owner, 2026-11-01): the slow tests (electrodes, reviews, MD choice, MD) run inside each iteration
 # on its candidates; their results, failures included with their measurements, go back to the model before it
@@ -457,7 +459,7 @@ SODIUM_HULL_REF_EHULL_MAX = 0.0  # the stable MP phases (the NASICON system Na-Z
 SODIUM_EHULL_MAX = 0.05  # eV/atom, as for the lithium electrolytes
 SODIUM_BANDGAP_MIN = 1.8  # eV (PBE scale; the champion's DFT gap): Na3SbS4, a working electrolyte (about 1 mS/cm), has a PBE gap of 1.93 eV
 # in MP; the lithium limit (2.0) would reject it; metals and narrow-gap semiconductors stay out
-SODIUM_MD_MAX_USD = 4.0  # estimated Modal cost of all the MD of one sodium research
+SODIUM_MD_MAX_USD = UNLIMITED  # MD of one sodium research (no cap, owner 2026-11-04)
 SODIUM_CATHODES: tuple = ()  # no cathode interface: the UMA interface calibration was made for Li cathodes only
 # Calibration of the sodium MD, fixed before the runs (2026-11-02): at 600 K, 2 seeds of 40 ps each, Na3SbS4 (about
 # 1-3 mS/cm at room temperature) faster than tetragonal Na3PS4 (0.01-0.2 mS/cm) by more than 2 combined errors, both
@@ -515,7 +517,7 @@ CATHODE_NOVELTY_CONTROL = {"id": "control-LNMO", "formula": "LiNi0.5Mn1.5O4", "p
 
 # --- Budget limits (CLAUDE.md) -----------------------------------------------
 
-MAX_RELAXATIONS_PER_RUN = 80  # UMA relaxations not already in cache
+MAX_RELAXATIONS_PER_RUN = UNLIMITED  # UMA relaxations not already in cache
 
 # Validation benchmark (roadmap step 2): known compounds judged blind by the funnel (their own composition is
 # removed from the hull references; the language model never sees them). Lowest-energy MP polymorph of each.
@@ -554,7 +556,7 @@ BENCHMARK_MD_MAX_USD = 10.0
 
 MAX_ITERATIONS = 3
 MAX_CANDIDATES_PER_ITERATION = 5
-MAX_LLM_CALLS_PER_RUN = 14  # 3 rounds x (proposal, MD choice, analysis) + report, with margin
-MAX_TOKENS_PER_RUN = 300_000
-MAX_LLM_COST_PER_RUN_USD = 1.0  # estimated from LLM_PROVIDERS prices
+MAX_LLM_CALLS_PER_RUN = UNLIMITED
+MAX_TOKENS_PER_RUN = UNLIMITED * 1000
+MAX_LLM_COST_PER_RUN_USD = UNLIMITED
 JSON_MAX_RETRIES = 3

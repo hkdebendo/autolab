@@ -209,7 +209,8 @@ python scripts/dev_server.py          # then open http://127.0.0.1:8100
 
 - **Muse Spark** reads every request (scope check) and answers your follow-up questions about a research; **Muse Voice Transcribe** takes dictation (microphone button).
 - Click one of the three examples of the home page, or ask for the same research in your own words (Muse Spark recognises it): the research is replayed in the lab in **hybrid mode**. Muse Spark's proposals and every computation come from the recorded research, while the agents work live on those results, with the same prompts as in a research: **Muse Spark** analyses each round's failures and corrects its strategy, **Muse Spark Open** reviews the candidates, the plain-language summaries are written again and **Muse Wonder** reviews the whole campaign and plans the next one. About 5 minutes and 0.2 $ of your credits per replay.
-- A different request within AutoLab's domains is understood but not started: computing new crystals needs GPUs (see below).
+- Any other request within AutoLab's domains **starts a real research** (see "Run a real research" below); if something it needs is missing (a key, Modal), the conversation says exactly what and how to add it.
+- General questions get real answers too: ask "who are you?", "what can you do?" or "is copper a good conductor?".
 - A missing key: another Meta model takes the role and its name shows in the interface (Muse Spark writes the summaries unless you have your own Muse Glimmer deployment, see below); a step whose call fails keeps its recorded answer, and the conversation says so.
 
 **Without any key**, the three researches are replayed exactly as recorded and no model is called.
@@ -231,10 +232,28 @@ cp .env.example .env
 | `MODEL_API_KEY` | **Meta Model API**: Muse Spark, Muse Wonder, Muse Voice Transcribe | **yes** (the live agents) |
 | `BASETEN_API_KEY` | Muse Spark Open (independent reviews) | recommended (else Muse Spark reviews) |
 | `FIREWORKS_API_KEY`, `GLIMMER_DEPLOYMENT` | Muse Glimmer (plain-language summaries): on Fireworks it runs only on a dedicated deployment of your own account | optional (else Muse Spark writes them) |
-| `MP_API_KEY` | Materials Project (known phases, reference energies) | no (new researches only) |
-| `HF_TOKEN` | the UMA weights (gated: accept the FAIR Chemistry License on Hugging Face) | no (new researches only) |
+| `MP_API_KEY` | Materials Project (known phases, reference energies) | for a new research |
+| `HF_TOKEN` | the UMA weights (gated: accept the FAIR Chemistry License on Hugging Face), stored in a Modal secret | for a new research |
 
-New computations also need a GPU: UMA runs on Modal (`modal deploy modal_app/uma_app.py`, `modal_app/dft_app.py`, `modal_app/agent_app.py`) or on a local NVIDIA GPU (`SIM_BACKEND=local`, `pip install -e ".[gpu]"`).
+### Run a real research
+
+Write your own request in the demo (e.g. *"Find new sulfide solid electrolytes derived from Li3PS4 by bromine substitution, stable against lithium metal."*): AutoLab runs the whole research on new crystals. The agents use the keys of `.env`; UMA (relaxations, molecular dynamics) and the DFT band gap run on **your Modal account** (GPUs billed by Modal). Set it up once:
+
+```bash
+# 1. keys in .env: MODEL_API_KEY and MP_API_KEY (BASETEN_API_KEY recommended)
+# 2. accept the FAIR Chemistry License of UMA on https://huggingface.co/facebook/UMA and create a Hugging Face token
+pip install -e ".[web,research]"                                   # adds the Modal client
+modal setup                                                        # log in to your Modal account
+modal secret create huggingface-secret HF_TOKEN=<your Hugging Face token>
+modal deploy modal_app/uma_app.py                                  # UMA on Modal GPUs
+modal deploy modal_app/dft_app.py                                  # DFT band gap on Modal CPU
+python scripts/modal_setup.py download                             # the UMA weights into your Modal volume, once
+python scripts/dev_server.py                                       # then write your request at http://127.0.0.1:8100
+```
+
+The research is followed live in the lab, then come its summary, final report (exportable as PDF) and Muse Wonder's campaign review; you can question the agent about it. A research of 3 rounds takes about 30 to 60 minutes and costs about 5 to 6 $ of Modal GPU time and under 1 $ of model calls. Every computation is cached in `.cache/`: nothing is computed twice. UMA can also run on a local NVIDIA GPU instead of Modal (`SIM_BACKEND=local` in `.env`, `pip install -e ".[gpu]"`).
+
+The full interface used in the video (`uvicorn web.app:app`) works the same way through an AutoLab service deployed on your own Modal account (`modal deploy modal_app/agent_app.py`, with a PostgreSQL `DATABASE_URL` and the keys in a Modal secret); the demo above needs neither.
 
 ### Meta open-weight model
 
