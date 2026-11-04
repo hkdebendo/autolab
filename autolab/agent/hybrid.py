@@ -40,6 +40,25 @@ def models() -> dict | None:
             "director": director_client() or brain}
 
 
+MATCH_SYSTEM = """You match a researcher's request to the recorded researches of AutoLab's demo. A request matches a recorded research only if it asks for the same thing in other words: the same kind of material, the same family of starting crystals (when the request names one), and the same objectives. A request that is narrower (specific elements or substitutions that the research did not set as its goal), broader, or about another material, another property or another objective does not match.
+Answer with the JSON object only: {"match": "<the id of the matching research, or none>", "reason": "one sentence"}"""
+
+
+def match_recorded(c, text: str, recorded: list[dict]) -> str | None:
+    """The id of the recorded research that `text` asks for in other words, or None (Muse Spark decides; the code only
+    accepts an id from `recorded`). recorded: [{"id", "request", "goal"}] of the request's domain."""
+    import json
+
+    if c is None or not recorded:
+        return None
+    messages = [{"role": "system", "content": MATCH_SYSTEM},
+                {"role": "user", "content": json.dumps({"request": text, "recorded_researches": recorded})}]
+    kwargs = {"max_output_tokens": 1500, **({"reasoning_effort": "low"} if c.provider == "meta" else {})}
+    reply, _ = c.complete_json(messages, "recorded_match", **kwargs)
+    ids = {r["id"] for r in recorded}
+    return reply["match"] if reply.get("match") in ids else None
+
+
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 

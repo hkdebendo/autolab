@@ -208,8 +208,8 @@ python scripts/dev_server.py          # then open http://127.0.0.1:8100
 **With your keys, the Meta models do the real work** (`scripts/dev_server.py`, `autolab/agent/hybrid.py`):
 
 - **Muse Spark** reads every request (scope check) and answers your follow-up questions about a research; **Muse Voice Transcribe** takes dictation (microphone button).
-- Click one of the three examples of the home page: the research is replayed in the lab in **hybrid mode**. Muse Spark's proposals and every computation come from the recorded research, while the agents work live on those results, with the same prompts as in a research: **Muse Spark** analyses each round's failures and corrects its strategy, **Muse Spark Open** reviews the candidates, the plain-language summaries are written again and **Muse Wonder** reviews the whole campaign and plans the next one. About 5 minutes and 0.2 $ of your credits per replay.
-- A new request within AutoLab's domains is understood but not started: computing new crystals needs GPUs (see below).
+- Click one of the three examples of the home page, or ask for the same research in your own words (Muse Spark recognises it): the research is replayed in the lab in **hybrid mode**. Muse Spark's proposals and every computation come from the recorded research, while the agents work live on those results, with the same prompts as in a research: **Muse Spark** analyses each round's failures and corrects its strategy, **Muse Spark Open** reviews the candidates, the plain-language summaries are written again and **Muse Wonder** reviews the whole campaign and plans the next one. About 5 minutes and 0.2 $ of your credits per replay.
+- A different request within AutoLab's domains is understood but not started: computing new crystals needs GPUs (see below).
 - A missing key: another Meta model takes the role and its name shows in the interface (Muse Spark writes the summaries unless you have your own Muse Glimmer deployment, see below); a step whose call fails keeps its recorded answer, and the conversation says so.
 
 **Without any key**, the three researches are replayed exactly as recorded and no model is called.

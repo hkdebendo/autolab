@@ -96,3 +96,28 @@ def test_a_stop_request_ends_the_replay(recorded):
     store.update("live", cancel_requested_at="now")
     hybrid.replay(store, "live", "src", models(), svc.finish, sleep=lambda s: None)
     assert store.events("live") == [] and store.get("live")["status"] == "interrupted"
+
+
+class Matcher:
+    provider = "meta"
+
+    def __init__(self, answer):
+        self.answer, self.requests = answer, []
+
+    def complete_json(self, messages, schema, **kw):
+        self.requests.append((messages, schema))
+        return {"match": self.answer, "reason": "same goal"}, []
+
+
+RECORDED_DEMO = [{"id": "0245f94a24cf", "request": "Find new solid electrolytes...", "goal": "sulfide electrolytes"}]
+
+
+def test_a_reworded_request_is_matched_to_its_recorded_research_only_by_a_known_id():
+    m = Matcher("0245f94a24cf")
+    assert hybrid.match_recorded(m, "Look for lithium solid electrolytes as fast as their parent", RECORDED_DEMO) == "0245f94a24cf"
+    messages, schema = m.requests[0]
+    assert schema == "recorded_match" and "does not match" in messages[0]["content"]
+    assert "Look for lithium solid electrolytes" in messages[1]["content"]
+    assert hybrid.match_recorded(Matcher("none"), "Br in Li3PS4", RECORDED_DEMO) is None
+    assert hybrid.match_recorded(Matcher("made-up-id"), "anything", RECORDED_DEMO) is None
+    assert hybrid.match_recorded(Matcher("0245f94a24cf"), "anything", []) is None and hybrid.match_recorded(None, "x", RECORDED_DEMO) is None

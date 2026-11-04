@@ -23,10 +23,11 @@ REPORT = {"executive_summary": str, "champion_reasons": list, "tradeoffs": list,
 
 CAMPAIGN_REVIEW = {"headline": str, "learned": list, "worked": list, "failed": list, "next_campaign": dict}
 NEXT_CAMPAIGN = {"goal": str, "parents": list, "directions": list, "why": str}
+RECORDED_MATCH = {"match": str, "reason": str}  # demo: a reworded request -> the recorded research it asks for
 
 SCHEMAS = {"proposal": PROPOSAL, "analysis": ANALYSIS, "md_selection": MD_SELECTION,
            "candidate_analysis": CANDIDATE_ANALYSIS, "scope": SCOPE, "report": REPORT,
-           "campaign_review": CAMPAIGN_REVIEW}
+           "campaign_review": CAMPAIGN_REVIEW, "recorded_match": RECORDED_MATCH}
 
 TEMPLATES = {
     "proposal": {
@@ -48,6 +49,7 @@ TEMPLATES = {
                "uncertainties": ["sentence"],
                "validation": [{"text": "sentence", "basis": "documented"}],
                "synthesis": [{"text": "sentence", "basis": "hypothesis"}], "limitations": ["sentence"]},
+    "recorded_match": {"match": "research id, or none", "reason": "one sentence"},
     "campaign_review": {"headline": "one sentence", "learned": ["sentence"], "worked": ["sentence"],
                         "failed": ["sentence"],
                         "next_campaign": {"goal": "one sentence a researcher could type", "parents": ["Li3PS4"],

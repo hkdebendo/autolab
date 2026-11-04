@@ -89,7 +89,24 @@ class Demo(Service):
 
 
 def new_research(cid: str) -> None:
-    """A request that would need new computations: said, nothing started."""
+    """A request of AutoLab's domains that is not word for word a recorded one: Muse Spark tells whether it asks for one
+    of the recorded researches of its domain in other words (then it is replayed); otherwise, said, nothing started."""
+    from autolab.llm.client import LLMError
+
+    conv = svc.store.get(cid)
+    if LIVE is not None and conv is not None:
+        recorded = []
+        for example, src in config.REPLAY_EXAMPLES:
+            s = svc.store.get(src)
+            if s is not None and s.get("domain") == conv.get("domain"):
+                recorded.append({"id": src, "request": example, "goal": s.get("goal")})
+        try:
+            match = hybrid.match_recorded(LIVE["brain"], conv["goal"], recorded)
+        except LLMError:
+            match = None
+        if match is not None:
+            svc.reuse(cid, svc.store.get(match), conv.get("scope") or {})
+            return
     svc.store.update(cid, status="answered")
     svc.store.add_message(cid, "assistant", "notice", NEW_RESEARCH)
 
