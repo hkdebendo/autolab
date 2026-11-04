@@ -153,7 +153,7 @@ def md_screen(jobs: list[dict], temperature_K: float = config.MD_SCREEN_TEMPERAT
 
 def _cached_only(atoms, temperature_K, n_steps, seed=0, backend=None, gpu=None) -> dict:
     """After a Modal batch, a run still missing has failed (error or time limit): it is never recomputed here
-    (no hidden retry, CLAUDE.md); the MD step stops with the reason."""
+    (no hidden retry, budget rules); the MD step stops with the reason."""
     from autolab.sim.backend import _as_atoms_dict, md_gpu, md_settings, run_md
     from autolab.sim.serialize import atoms_key
     from autolab.store.cache import JsonCache

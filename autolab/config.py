@@ -515,7 +515,7 @@ CATHODE_NOT_COMPUTED = ("DFT calculations (UMA energies; the voltage of four kno
 CATHODE_NOVELTY_CONTROL = {"id": "control-LNMO", "formula": "LiNi0.5Mn1.5O4", "parent": None, "substitution": None,
                            "kind": "cathode"}
 
-# --- Budget limits (CLAUDE.md) -----------------------------------------------
+# --- Budget limits --------------------------------------------------------------
 
 MAX_RELAXATIONS_PER_RUN = UNLIMITED  # UMA relaxations not already in cache
 

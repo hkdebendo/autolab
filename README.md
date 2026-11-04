@@ -10,135 +10,64 @@ AutoLab is an AI agent that searches for **new materials for industry**. A resea
 
 ---
 
-## Why
+## What AutoLab does
 
-A good solid electrolyte must be stable, conduct lithium ions, block electrons and survive contact with lithium metal and with the cathode. Finding one means searching a huge chemical space, and each property is costly to evaluate. AutoLab automates the scientific loop: hypothesis, simulation, measurement, analysis of what failed, new hypothesis.
+Industry needs new materials, and finding one means searching a huge chemical space where every property is costly to evaluate. AutoLab automates the scientific loop of a computational materials lab: hypothesis, simulation, measurement, analysis of what failed, new hypothesis. A researcher states a goal in plain language and follows the agent at work, step by step, until a final report with ranked finalists, their numbers and the agent's reasoning.
 
-## The closed loop (error-driven design)
+It is applied today to **three battery challenges**: lithium solid electrolytes, cobalt-free cathodes and sodium solid electrolytes. A new challenge is a new domain module; the loop, the agents and the interface stay the same.
+
+## How it works
 
 ```
-Goal (natural language)
+Goal (plain language)
    │
    ▼
-Muse Spark ── proposes substitutions in known crystals (beta-Li3PS4, Li7P3S11), with a hypothesis
+Muse Spark ── proposes chemical substitutions in known crystals of the domain, with a hypothesis
    │
    ▼
 Fast funnel, every candidate
-   ├─ pymatgen: charge-neutral structures, several arrangements each
-   ├─ UMA (Meta FAIR): relaxation and energies (MP2020 corrections)
-   ├─ stability: energy above the convex hull ≤ 0.05 eV/atom, with a UMA-vs-DFT error bar
-   └─ electronic insulator: every ion with a closed electron shell (rule, no model)
+   ├─ pymatgen: charge-neutral crystal structures, several arrangements each
+   ├─ UMA (Meta FAIR): relaxation and energies
+   ├─ stability: energy above the convex hull of the known phases, with a UMA-vs-DFT error bar
+   └─ the domain's rules (e.g. electronic insulation, no cobalt, lithium that can leave the crystal)
    │
    ▼
-Slow tests, inside each round
-   ├─ electrodes: electrochemical window (sensitivity-checked), reaction with Li metal, LiFePO4 interface
-   ├─ independent review of each candidate (Muse Spark Open)
-   └─ Li diffusion by molecular dynamics (UMA, 600 K, 2 × 40 ps), one candidate chosen by Muse Spark
+Slow tests, inside each round: the domain's measurements (contact with the metal anode, ion diffusion
+by molecular dynamics, voltage and capacity...) and an independent review of each candidate (Muse Spark Open)
    │
    ▼
-Feedback: failures with their measurements ("framework moved: Cl diffuses at 17.7 % of Li")
+Feedback: every failure goes back with its measured numbers
    │
    ▼
 Muse Spark ── a hypothesis on each failure's cause + a correction ── next round
    │
    ▼
-Final stages: ranking, room-temperature conductivity (Arrhenius + Nernst-Einstein),
-DFT band gap of the champion (GPAW, PBE, ≥ 2.0 eV, else the next one is checked),
-literature check (web search, with a known control), final report with three finalists
+Final stages: ranking, DFT band gap of the champion (electrolytes), literature check (web search, with a known control),
+final report with the finalists
    │
    ▼
-Muse Wonder ── reads the whole campaign at once as research director: what it taught,
-               what worked, what failed, and the next campaign to run
+Muse Wonder ── reads the whole campaign at once: what it taught, what worked, what failed,
+               and the next campaign to run
 ```
 
-The code only measures; the cause of a failure is the model's hypothesis and is always labelled as one. Thresholds come from `autolab/config.py`, never from the model.
+The code measures and decides; the models propose, explain and report. The cause of a failure is the model's hypothesis and is always labelled as one. Thresholds come from `autolab/config.py`, never from the model. Every computation is cached: nothing is computed or paid for twice.
 
-## What happened in a real research (Nov 1, 2026)
+## The three domains
 
-Request: *"Find new sulfide solid electrolytes, derived from Li7P3S11 or beta-Li3PS4, that conduct lithium at least as fast as their parent and stay stable against lithium metal. Learn from the candidates that fail."* (`results/2026-11-01_feedback_run/`, 3 rounds, 9 new candidates)
-
-| Round | Measured by the code | Muse Spark's reading (hypothesis → correction) |
-|---|---|---|
-| 1 | Li5P2S7Cl: framework moved (Cl at 17.7 % of Li); Li14P6S21O: framework moved (O at 5.3 %); NaLi13(P3S11)2: forms metallic Na with Li metal | weakly bound Cl⁻ and under-coordinated O follow Li; Na⁺ is reducible → one halogen per cell, Se instead of O, no Na |
-| 2 | Li14P6SeS21: diffusion tied with its parent (1.34 ± 0.34); Li4Mg(PS4)2: forms LiMg with Li metal | Mg²⁺ is reducible → drop Mg, keep isovalent Se/As |
-| 3 | Li13P6S21Br (single Br): tied with its parent (1.01 ± 0.20) | proposals state which earlier failures they correct |
-
-Honest outcome: the agent stopped repeating its failures and its last proposals passed every test, but **no candidate diffused faster than its parent** (all "tied").
-
-Finalists over the whole campaign (all candidates evaluated since Oct 28), all "close family already studied" in the literature:
-
-| Finalist | E_hull (eV/atom) | Diffusion at 600 K vs parent | σ at 300 K (mS/cm, estimate) | Parent σ at 300 K |
-|---|---|---|---|---|
-| Li6P2SeS7 (champion) | −0.007 ± 0.005 | tied (0.66 ± 0.21) | 0.10 (0.01–0.8) | beta-Li3PS4: 1.2 |
-| Li12P4SeS15 | −0.004 ± 0.005 | tied (0.82 ± 0.25) | 5.7 (1.5–22) | beta-Li3PS4: 1.2 |
-| Li7P3SeS10 | +0.015 ± 0.005 | tied (1.07 ± 0.23) | 134 (50–360) | Li7P3S11: 100 |
-
-The champion has the lowest central conductivity at room temperature (activation energy 0.42 eV), but its range overlaps its parent's: every finalist is **tied** with its parent at 300 K as at 600 K. The ranking uses this verdict first: a candidate counts as slower or faster than its parent only when the two ranges do not overlap, and the parent's range is fitted on the same runs as the candidate's. Inside a level the order is a stated convention (lowest E_hull per substitution, then activation energy, then window), not a significant difference: the three finalists share one level, so the champion is first by convention. These rules were written after the 600 K screen had picked, as champion, the finalist with the lowest central conductivity at room temperature.
-
-## Validation: truth tests and benchmarks
-
-Every module has a truth test against known results (`tests/`, `SPEC.md` section 7). Failures are kept.
-
-| Check | Result | Reference |
-|---|---|---|
-| LiCl lattice parameter (UMA relaxation) | 5.135 Å | ≈ 5.13 Å (experiment) |
-| E_hull of Li3PS4 polymorphs (UMA + MP2020) | 0.000 / 0.007 / 0.015 eV/atom | 0.000 / 0.007 / 0.014 (Materials Project) |
-| Li3PS4 window (UMA + MP2020) | 1.74–2.36 V | 1.71–2.31 V (Zhu, He & Mo 2015) |
-| Li3PS4 / LiFePO4 interface | −0.144 eV/atom | −0.133 (MP energies) |
-| MD calibration, plan A (600 + 700 K, 1 seed) | **failed**: right order, 1.9 σ and 0.4 σ | Li7P3S11 faster than beta-Li3PS4 |
-| MD calibration v2 (fixed before the runs: 600 K, 3 seeds) | passed: ratio 2.04, 3.6 σ, frameworks intact | same |
-| MD on A10G vs H100 (fixed before the runs) | same D: −0.0 σ and +0.4 σ | — |
-| Conductivity at 300 K (fixed before the runs: order + factor 10) | passed: Li7P3S11 100 mS/cm (58–170), beta-Li3PS4 1.2 (0.43–3.2); both ~6–7 × above experiment | 3.2–17 and 0.16 mS/cm |
-| UMA vs DFT on known compounds (18 systems) | mean 0.004–0.006 eV/atom for the sulfide systems; ≤ 0.0124 on 9 polysulfides; Sb systems worse (LiSb3 0.16) | Materials Project |
-
-**Blind benchmark** (`results/2026-11-01_benchmark_hard/`): known compounds go through the same funnel as candidates, their own composition removed from the hull, never shown to the model. Recorded on Nov 1, 2026 (band gaps: recorded prediction).
-
-| Group | Rejected by stability + band gap | Rejected after Li metal + diffusion vs beta-Li3PS4 |
-|---|---|---|
-| 4 good electrolytes (Li6PS5Cl, LGPS, Li7P3S11, beta-Li3PS4) | pass 3/4 | pass 2/4 (Li6PS5Cl at 0.080 eV/atom in an ordered cell; LGPS forms Li15Ge4, its known weakness) |
-| 8 bad compounds (metals, semiconductors, unstable Li2PS3) | 8/8 | 8/8 |
-| 5 hard negatives: stable insulators, poor Li conductors (Li2S, LiCl, LiI, Li3PO4, Li4GeS4) | **0/5** | **5/5** (LiI only by the framework rule, weakly: near its melting point at 600 K) |
-
-## Second domain: cobalt-free cathodes
-
-The same agent, loop and interface search **cobalt-free cathodes for lithium-ion batteries** (`autolab/domains/cathode.py`): Muse Spark proposes substitutions in LiFePO4, LiMnPO4, spinel LiMn2O4 and LiNi0.5Mn1.5O4; the code refuses cobalt, checks charge neutrality with mixed valence, relaxes the crystal with UMA, measures its stability against the stable known phases (relaxed with UMA), then removes the lithium that neutrality allows and relaxes the charged crystal: average voltage, theoretical capacity, energy density and volume change, each compared with the parent computed the same way. Failures go back to the model as in the electrolyte loop; finalists are reviewed by Muse Spark Open, ranked by energy density and reported.
-
-Truth test, fixed before the runs (each within 0.4 V of experiment, LiFePO4 lowest, LiNi0.5Mn1.5O4 highest; `results/2026-11-02_cathode_truth/`):
-
-| Cathode | Experiment | UMA | Capacity |
+| Domain | Goal | What is measured | Recorded research |
 |---|---|---|---|
-| LiFePO4 | 3.45 V | 3.45 V | 170 mAh/g |
-| LiMnPO4 | 4.10 V | 3.79 V | 171 mAh/g |
-| LiMn2O4 (spinel) | 4.05 V | 3.82 V | 148 mAh/g |
-| LiNi0.5Mn1.5O4 | 4.70 V | 4.72 V | 147 mAh/g |
+| Lithium solid electrolytes | sulfide electrolytes for lithium-metal batteries, from β-Li3PS4 and Li7P3S11 | stability, electronic insulation, electrochemical window, reaction with lithium metal, interface with a LiFePO4 cathode, Li diffusion (molecular dynamics), conductivity at 300 K, DFT band gap of the champion | [`results/2026-11-01_feedback_run/`](results/2026-11-01_feedback_run/) |
+| Cobalt-free cathodes | a higher energy density than LiFePO4, from LiFePO4, LiMnPO4, LiMn2O4 and LiNi0.5Mn1.5O4 | stability, average voltage, capacity, energy density, volume change, each against its parent | [`results/2026-11-02_cathode_run/`](results/2026-11-02_cathode_run/) |
+| Sodium solid electrolytes | Na+ conductors for sodium-metal batteries, from Na3PS4, Na3SbS4 and a NASICON | stability, electronic insulation, window vs Na/Na+, reaction with sodium metal, Na diffusion (molecular dynamics), DFT band gap of the champion | [`results/2026-11-02_sodium_run/`](results/2026-11-02_sodium_run/) |
 
-First live research (Nov 2, 2026, `results/2026-11-02_cathode_run/`): *"Find new cobalt-free cathodes for lithium-ion batteries with a higher energy density than LiFePO4."* 3 rounds, 9 proposals: 2 already in Materials Project (not computed), 7 passed every filter. Finalists, all on the LiNi0.5Mn1.5O4 spinel: Ti-doped (4.75 V, 147 mAh/g, 701 Wh/kg), V-doped (4.69 V, 690 Wh/kg), Zr-doped (4.72 V, 676 Wh/kg). Honest outcome: each is **comparable to its parent** (4.72 V, 692 Wh/kg) within the model's voltage error, and the literature check (a known cathode first as a control) finds each family **already studied**. 142 relaxations, about 1 $ in all.
+## Why it can be trusted
 
-Each E_hull carries its UMA-vs-DFT error bar, measured on the stable known compounds of its system: 0.005-0.010 eV/atom on 8 cathode systems (`results/2026-11-02_cathode_error_bars/`).
+- **Truth tests**: every module is checked against known results (lattice parameters, stabilities, electrochemical windows, diffusion order, cathode voltages), with criteria fixed before the runs. Failed tests are kept and recorded, and the rules they set are applied.
+- **Blind benchmarks**: known good and bad materials go through the same funnel as candidates, their own composition removed from the references and never shown to the model, for the electrolytes and for the cathodes.
+- **Error bars**: every stability carries the UMA-vs-DFT difference measured on known compounds of the same chemical system.
+- **DFT check**: the band gap of the champion is computed by density functional theory (GPAW), itself checked against Materials Project on six known crystals.
 
-**Blind benchmark** (`results/2026-11-02_cathode_benchmark/`, expected outcomes fixed before the runs, each compound's own composition removed from its hull): **9/10 as expected**. Good cathodes pass 2/2 (LiNiO2 3.95 V, Li3V2(PO4)3 3.73 V); bad compounds rejected 6/6 before any simulation (LiCoO2: cobalt; Li2MnO3, LiFeO2, Li3PO4, LiAlO2, Li4Ti5O12: no Li can leave); hard negatives 1/2: LiTiO2 rejected at 1.46 V, but **Li2FeSiO4 passes at 3.29 V** while it works at 2.8 V in experiment (failure kept: UMA overestimates this iron silicate).
-
-Limits: average voltage over the whole charge only (no voltage profile), no oxygen redox, lithium diffusion in the cathode and cycling not computed; UMA underestimates the Mn voltages by about 0.2-0.3 V, overestimates Li2FeSiO4 by about 0.5 V, and underestimates the volume change of LiFePO4 (3.6 % against 6.8 % measured).
-
-## Third domain: sodium solid electrolytes
-
-Beyond lithium, a geopolitical bottleneck: the same agent searches **sodium solid electrolytes (Na+ conductors) for sodium-metal batteries**, the post-lithium option for the stationary storage of renewable energy (`autolab/domains/sodium.py`). Muse Spark proposes substitutions in tetragonal Na3PS4, cubic Na3SbS4 and the NASICON Na3Zr2Si2PO12; the code checks charge neutrality, relaxes the crystal with UMA, measures its stability against the stable known phases (relaxed with UMA), predicts its band gap (kept at 1.8 eV or more: Na3SbS4, a working electrolyte, sits at 1.93 eV in DFT), then in each round its electrochemical window vs Na/Na+, its reaction with sodium metal and, for one candidate chosen by the model, its sodium diffusion by molecular dynamics against its parent. The lithium stages are reused with Na+ as the mobile ion; the lithium behaviour is unchanged.
-
-**Calibrating the sodium MD took two tests, each fixed before its runs.** (1) Na3SbS4 (about 1-3 mS/cm at room temperature) against tetragonal Na3PS4 (0.01-0.2 mS/cm), two different crystals: UMA gave the reverse order (D ratio 0.33 ± 0.29): **failed**, kept as such (`results/2026-11-02_sodium_md_calibration/`). (2) What the domain really compares, a crystal against its own parent: Na vacancies made by tungsten in Na3SbS4 (Na2.88Sb0.88W0.12S4 reaches about 32 mS/cm in experiment). UMA saw the vacancy compound diffuse **28 times faster** (2.1e-6 against 7.6e-8 cm²/s), faster by 2.8 combined standard errors (the difference test of the lithium calibration, |D − D(parent)| within 2 errors = tied), frameworks intact: **passed** (`results/2026-11-02_sodium_md_calibration_v2/`). So in the sodium domain the MD verdict against the parent excludes and ranks; comparisons between different crystals are not trusted.
-
-First live research (Nov 2, 2026, `results/2026-11-02_sodium_run/`): *"Find new sodium solid electrolytes derived from Na3PS4 or Na3SbS4 that stay stable against sodium metal and let Na+ move fast."* 3 rounds, 9 proposals: 6 passed every filter, 1 already in Materials Project, 1 rejected for its band gap (1.77 eV), 1 above the hull limit; Na5PWS8 was then excluded because it reacts with sodium metal into metallic tungsten. Finalists: Na3PSeS3 (E_hull 0.002 ± 0.002 eV/atom, gap 2.27 eV, Na diffusion at 600 K tied with Na3PS4: 0.94 ± 0.71), the NASICON Na3Zr2Ge2PO12 and Na6P2SeS7. Honest outcome: every finalist is within the UMA error of the hull, none is shown to conduct faster, and each is only kinetically stable against sodium metal (it forms a passivating layer). The MD cost cap stopped two simulations (a NASICON candidate estimated at 9 $). During this research the Meta API answered "model not found" to every Muse Spark call for about 30 minutes (the model was listed for the same key): Muse Spark Open (Baseten) proposed and chose in its place. Once Meta answered again, the literature check and the report were run again with Muse Spark from the saved results (no new computation): the control Na3PS4 was found, Na3PSeS3 (Na3PS3Se in the Na3PS4-xSex series) and Na6P2SeS7 are **already published**, and the Ge-NASICON belongs to a studied family.
-
-## Limits that were addressed, and what remains
-
-| Limit | What was done | What remains |
-|---|---|---|
-| No room-temperature conductivity | Arrhenius fits (500–700 K) and Nernst-Einstein, calibrated on the two parents | an extrapolated estimate (range ×2–8), ideal crystal (no grain boundaries), ~6–7 × above experiment on the parents |
-| No candidate faster than its parent | MD inside each round, failures fed back; room-temperature conductivity compared with the parent's by ranges, first criterion of the ranking | still none faster, at 600 K or at 300 K (all tied) |
-| Energies from a learned potential, not DFT | UMA-vs-DFT error bar on every E_hull, measured on known compounds of the same system | no DFT recheck of the finalists |
-| "Reduced confidence" on almost every window | window recomputed with polysulfide energies shifted by ±0.025 eV/atom; flag kept only if a limit moves > 0.1 V (11 of 20 windows robust) | the flag stays for the Li7P3S11 family (its 2.28–2.30 V window depends on P2S7) |
-| Benchmark lacked hard negatives | 5 stable insulators that conduct Li poorly, absolute diffusion test | small sample; LiI rejected weakly |
-
-Outputs are **computational predictions**, not proven materials: DFT checks, synthesis and impedance measurements would be needed.
+Every test, criterion and measured number is in [`SPEC.md`](SPEC.md) (section 7); every run, benchmark and calibration is in [`results/`](results/).
 
 ## Meta models used
 
@@ -166,29 +95,6 @@ Outputs are **computational predictions**, not proven materials: DFT checks, syn
 | Band gap of the champion | **Physics, no model**: density functional theory (GPAW, PBE) on Modal CPU; checked against Materials Project on 6 known crystals (mean difference 0.03 eV, `results/2026-11-03_dft_gap_truth`) |
 
 No other model runs during a research.
-
-## Architecture
-
-```
-autolab/
-  chem/       oxidation states, substitution generator, S-S bond detector
-  data/       Materials Project access with disk cache
-  sim/        UMA (only uma.py imports fairchem), relaxation, MD, local/Modal/Kaggle backends
-  analysis/   convex hull, band gap, electrodes, diffusion, conductivity, UMA-vs-DFT error bars
-  agent/      generic loop, events, MD, benchmark, conversations service, report, campaign review
-  domains/    electrolyte: funnel, slow tests, feedback, stages, report
-  llm/        one OpenAI-compatible client (Meta, Baseten, Fireworks), prompts, JSON schemas
-modal_app/    GPU functions (UMA) and the research service (CPU), on Modal
-web/          conversational interface (history, live steps, 3D structures, Li-diffusion animation, report)
-scripts/      runs, calibrations, benchmark, conductivity, error bars
-results/      every recorded run with its events, result and report
-```
-
-Every step reads the caches before computing (relaxations, MD runs, Materials Project, band gaps, model replies): nothing already computed is computed or paid twice. Every loop has hard limits in `config.py` (iterations, candidates, relaxations, model calls, Modal cost per research).
-
-## Cost of the project (hackathon credits)
-
-About 36 $ of Modal GPU time (calibrations, benchmark, runs), 1.2 $ of Muse Spark, 0.9 $ of Muse Spark Open, 2–3 $ of Muse Glimmer, 0.26 $ of Muse Wonder (three campaign reviews, 0.07–0.12 $ each). A complete 3-round research costs about 5–6 $ of Modal, 0.3 $ of Muse Spark and about 0.1 $ of Muse Wonder.
 
 ## Run it
 
@@ -273,14 +179,6 @@ Known requests are then replayed in hybrid mode by a Modal CPU function, new res
 
 **UMA** `uma-s-1p2` (Meta FAIR), released under the **FAIR Chemistry License v1** (gated on Hugging Face: `facebook/UMA`). In the recorded researches it ran on **Modal GPUs** (T4 for relaxations, H100 for molecular dynamics); only `autolab/sim/uma.py` loads it.
 
-### Tests
-
-```bash
-pytest                        # CPU tests; GPU and paid-API tests are skipped
-pytest web/tests              # tests of the interface
-pytest --gpu                  # UMA truth tests (NVIDIA GPU only)
-```
-
 ### Paid runs
 
 Paid runs (Modal, Meta), each prints its estimated cost first (`--dry-run` / `--plan`):
@@ -292,7 +190,36 @@ SIM_BACKEND=modal python scripts/conductivity.py --out results/<dir>
 python scripts/uma_error_bars.py --out results/<dir>
 ```
 
-See `SPEC.md` for the architecture and every validated parameter, `docs/DECISIONS.md` for the decisions and `docs/PROGRESS.md` for the log.
+## Architecture
+
+```
+autolab/
+  chem/       oxidation states, substitution generator, S-S bond detector
+  data/       Materials Project access with disk cache
+  sim/        UMA (only uma.py imports fairchem), relaxation, molecular dynamics, DFT; local/Modal/Kaggle backends
+  analysis/   convex hull, band gap, electrodes, diffusion, conductivity, cathode voltages, UMA-vs-DFT error bars
+  agent/      generic loop, events, conversations service, hybrid replay, report, campaign review
+  domains/    electrolyte (lithium), cathode (cobalt-free), sodium: funnel, slow tests, feedback, stages, report
+  llm/        one OpenAI-compatible client (Meta, Baseten, Fireworks), prompts, JSON schemas
+modal_app/    UMA on GPUs, DFT on CPU, the research service and the replays, on Modal
+web/          conversational interface (history, live steps, 3D structures, diffusion animation, report)
+scripts/      run AutoLab, runs, calibrations, benchmarks, conductivity, error bars
+results/      every recorded run with its events, result and report
+```
+
+The loop is generic: a domain provides its funnel, prompts, slow tests, ranking and the thresholds it uses. Every step reads the caches before computing (relaxations, molecular dynamics, Materials Project, band gaps, model replies). See [`SPEC.md`](SPEC.md) for the architecture and every validated parameter.
+
+## Tests
+
+```bash
+pytest                        # CPU tests; GPU and paid-API tests are skipped
+pytest web/tests              # tests of the interface
+pytest --gpu                  # UMA truth tests (NVIDIA GPU only)
+```
+
+## Limits
+
+AutoLab's candidates are **computational predictions**, not materials proven in a lab: synthesis and measurements would be needed to confirm them. In the three recorded researches, no candidate was shown to beat its parent, and the finalists belong to families already studied in the literature. The energies come from a learned potential (UMA) with measured error bars; only the band gap of the electrolyte champions is checked by DFT.
 
 ## Author
 

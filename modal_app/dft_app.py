@@ -2,7 +2,7 @@
 
 Deploy:   modal deploy modal_app/dft_app.py
 
-Budget rules (CLAUDE.md): CPU only, short timeout per calculation, no warm container, no automatic retry, at most
+Budget rules: CPU only, short timeout per calculation, no warm container, no automatic retry, at most
 two containers at a time. The PAW datasets are baked into the image (downloaded once, at build time, by Modal).
 """
 

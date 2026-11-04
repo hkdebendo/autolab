@@ -152,7 +152,7 @@ class LLMClient:
         self.client = client or openai.OpenAI(
             base_url=self.spec["base_url"],
             api_key=config.require_key(self.spec["key"]),
-            max_retries=0,  # no silent retries (CLAUDE.md)
+            max_retries=0,  # no silent retries (budget rules)
             timeout=config.LLM_TIMEOUT,
         )
 

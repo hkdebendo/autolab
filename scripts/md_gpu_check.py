@@ -2,7 +2,7 @@
 
     SIM_BACKEND=modal python scripts/md_gpu_check.py --out results/<dir> --gpu H100 [--dry-run]
 
-Criterion, fixed before the runs (docs/DECISIONS.md): for each parent (Li7P3S11, beta-Li3PS4), the D of one run on
+Criterion, fixed before the runs (SPEC.md 5.10): for each parent (Li7P3S11, beta-Li3PS4), the D of one run on
 the new GPU (seed 0, 4 blocks) and the pooled D of the calibration v2 on the legacy GPU (seeds 0-2, 12 blocks) differ
 by at most 2 combined standard errors, and the framework stays intact. Both parents must pass. Writes
 md_gpu_check.json and md_gpu_check.md. --dry-run prints the estimated cost only.

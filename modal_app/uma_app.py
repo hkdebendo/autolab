@@ -3,7 +3,7 @@
 Deploy:   modal deploy modal_app/uma_app.py
 Then the code calls them through autolab.sim.backend.ModalBackend.
 
-Budget rules (CLAUDE.md): cheapest GPU that works (T4 by default; callers may pick another GPU and more
+Budget rules: cheapest GPU that works (T4 by default; callers may pick another GPU and more
 containers with Function.with_options), short timeouts, no warm containers, no automatic retry, one container
 at a time by default, and the UMA checkpoint lives in
 a Modal volume: downloaded once by a CPU-only function, GPU functions run

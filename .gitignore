@@ -34,3 +34,8 @@ Thumbs.db
 
 # Claude Code local config
 .claude/
+
+# Local working notes (kept on the owner's computer, not published)
+CLAUDE.md
+docs/
+SPEC.fr.md
