@@ -77,7 +77,7 @@ Every test, criterion and measured number is in [`SPEC.md`](SPEC.md) (section 7)
 - **Muse Wonder** (Meta Model API): the research director. At the end of each research it reads the whole campaign at once (every round, measurement, failure and Muse Spark hypothesis, the ranking, the literature check and the report) and writes what the campaign taught, what worked, what failed and the next campaign to run.  Reviews of the three recorded researches: `results/2026-11-01_feedback_run/`, `results/2026-11-02_cathode_run/`, `results/2026-11-02_sodium_run/` (`campaign_review.md`).
 - **UMA** `uma-s-1p2` (Meta FAIR, open weights): relaxations, energies and molecular dynamics, on Modal GPUs (T4 for relaxations, H100 for MD).
 - **Muse Voice Transcribe** (Meta Model API, realtime): the researcher can dictate a request; the local web server relays the microphone to Meta, so the key never reaches the browser.
-- **Muse Code** (Meta coding agent): the web interface was built with Muse Code
+- **Muse Code** (Meta coding agent): the web interface was built with Muse Code.
 ### What is a Meta model call, and what is not
 
 | Part | What it is |
@@ -113,7 +113,7 @@ python scripts/run_autolab.py         # then open http://127.0.0.1:8100
 **With your keys, the Meta models do the real work** (`autolab/agent/hybrid.py`):
 
 - **Muse Spark** reads every request and answers your questions, written or dictated (**Muse Voice Transcribe**, microphone button): about a research, about AutoLab ("who are you?", "what can you do?"), or general science ("is copper a good conductor?").
-- Click one of the three examples of the home page, or ask for the same research in your own words.  Every computation come from the recorded research, while the agents work live on those results,  **Muse Spark** analyses each round's failures and corrects its strategy, **Muse Spark Open** reviews the candidates, the plain-language summaries are written again and **Muse Wonder** reviews the whole campaign and plans the next one. About 5 minutes and 0.2 $ of your credits per replay.
+- Click one of the three examples of the home page, or ask for the same research in your own words.  Every computation comes from the recorded research, while the agents work live on those results, **Muse Spark** analyses each round's failures and corrects its strategy, **Muse Spark Open** reviews the candidates, the plain-language summaries are written again and **Muse Wonder** reviews the whole campaign and plans the next one. About 5 minutes and 0.2 $ of your credits per replay.
 - Any other request within AutoLab's domains **starts a real research** (see "Run a real research" below); if something it needs is missing (a key, Modal), the conversation says exactly what and how to add it. Only a request outside AutoLab's domains is declined.
 - A missing model key: another Meta model takes the role and its name shows in the interface (Muse Spark writes the summaries unless you have your own Muse Glimmer deployment); a step whose call fails keeps its recorded answer, and the conversation says so.
 
@@ -129,7 +129,7 @@ cp .env.example .env
 
 | Key | Powers | Needed for |
 |---|---|---|
-| `MODEL_API_KEY` | **Meta Model API**: Muse Spark, Muse Wonder, Muse Voice Transcribe  |
+| `MODEL_API_KEY` | **Meta Model API**: Muse Spark, Muse Wonder, Muse Voice Transcribe | the live agents (questions, researches) |
 | `BASETEN_API_KEY` | Muse Spark Open (independent reviews) | recommended (else Muse Spark reviews) |
 | `FIREWORKS_API_KEY`, `GLIMMER_DEPLOYMENT` | Muse Glimmer (plain-language summaries): on Fireworks it runs only on a dedicated deployment of your own account | optional (else Muse Spark writes them) |
 | `MP_API_KEY` | Materials Project (known phases, reference energies) | a new research |
@@ -201,7 +201,7 @@ scripts/      run AutoLab, runs, calibrations, benchmarks, conductivity, error b
 results/      every recorded run with its events, result and report
 ```
 
-The loop is generic: a domain provides its funnel, prompts, slow tests, ranking and the thresholds it uses, these thresholds can be modified by the researchers.. Every step reads the caches before computing (relaxations, molecular dynamics, Materials Project, band gaps, model replies). See [`SPEC.md`](SPEC.md) for the architecture and every validated parameter.
+The loop is generic: a domain provides its funnel, prompts, slow tests, ranking and the thresholds it uses, these thresholds can be modified by the researchers. Every step reads the caches before computing (relaxations, molecular dynamics, Materials Project, band gaps, model replies). See [`SPEC.md`](SPEC.md) for the architecture and every validated parameter.
 
 ## Tests
 
