@@ -47,7 +47,19 @@ def _service():
         return [client(config.LLM_PROVIDER, config.LLM_COST_CAPS_USD[config.LLM_PROVIDER]),
                 client(config.LLM_FALLBACK_PROVIDER, config.LLM_COST_CAPS_USD[config.LLM_FALLBACK_PROVIDER])]
 
-    return Service(PostgresStore(), models, lambda cid: run_research.spawn(cid))
+    class Production(Service):
+        def reuse(self, cid: str, src: dict, scope: dict) -> None:
+            """A known request: its recorded research is replayed in hybrid mode by replay_research (agent/hybrid.py),
+            the agents working live on the recorded computations; copied as it was if that cannot start."""
+            for a in self.store.artifacts(src["id"]):  # the 3D files of the recorded research
+                self.store.add_artifact(cid, a["name"], a["kind"], a["path"], a.get("meta"))
+            self.store.update(cid, status="running")
+            try:
+                replay_research.spawn(cid, src["id"])
+            except Exception:  # quota or payment: said in the log, the recorded research is shown as it was
+                super().reuse(cid, src, scope)
+
+    return Production(PostgresStore(), models, lambda cid: run_research.spawn(cid))
 
 
 CHAMPIONS_FILE = f"{DATA}/cache/champions.json"  # the results page, computed once for every container
@@ -94,6 +106,27 @@ def run_research(cid: str) -> dict | None:
     finally:
         _forget_champions()  # a new champion may have appeared
         data.commit()  # new cache entries and the 3D files stay for the next researches
+
+
+@app.function(cpu=1.0, memory=2048, secrets=[keys], timeout=1200, max_containers=2, nonpreemptible=True)
+def replay_research(cid: str, src: str) -> None:
+    """Hybrid replay of the recorded research `src` into conversation `cid` (agent/hybrid.py): proposals and
+    computations recorded, analyses, reviews, summaries (Muse Spark) and campaign review (Muse Wonder) live. No GPU."""
+    from autolab.agent import hybrid
+
+    svc = _service()
+    m = hybrid.models(glimmer=False)  # a sleeping Muse Glimmer deployment is billed by GPU time: not woken up
+    try:
+        if m is None:  # no model key: the recorded research as it was
+            from autolab.agent.service import Service
+
+            Service.reuse(svc, cid, svc.store.get(src), {})
+            return
+        hybrid.replay(svc.store, cid, src, m, svc.finish)
+    except Exception as e:  # reported in the conversation, never retried
+        svc.store.update(cid, status="error", error=f"{type(e).__name__}: {e}"[:500])
+        svc.store.add_message(cid, "assistant", "notice", "The replay stopped on an error; the steps already shown "
+                              "are kept above.")
 
 
 @app.function(secrets=[keys], volumes={DATA: data}, timeout=180, max_containers=2, scaledown_window=120)

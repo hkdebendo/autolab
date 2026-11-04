@@ -24,8 +24,9 @@ QUICK_S = 0.4  # stage markers and small events
 GLIMMER_WAIT_S = 90  # a sleeping Muse Glimmer deployment is waited for this long, then Muse Spark writes the summary
 
 
-def models() -> dict | None:
-    """The live models from the keys in .env, each with its own cost cap; None when no model can be called."""
+def models(glimmer: bool = True) -> dict | None:
+    """The live models from the keys in .env, each with its own cost cap; None when no model can be called.
+    glimmer=False: Muse Spark writes the summaries (a sleeping Muse Glimmer deployment is not woken up)."""
     from autolab.agent.runs import client, director_client
 
     caps = config.LLM_COST_CAPS_USD
@@ -34,7 +35,7 @@ def models() -> dict | None:
         return None
     reviewer = client(config.CANDIDATE_ANALYSIS_PROVIDER, caps[config.CANDIDATE_ANALYSIS_PROVIDER],
                       config.CANDIDATE_ANALYSIS_MAX * config.JSON_MAX_RETRIES) or brain
-    glimmer = client("fireworks", caps["fireworks"], 40) if os.getenv("GLIMMER_DEPLOYMENT") else None
+    glimmer = client("fireworks", caps["fireworks"], 40) if glimmer and os.getenv("GLIMMER_DEPLOYMENT") else None
     writer = client(brain.provider, caps[brain.provider], config.SUMMARY_MAX_PER_RUN * config.JSON_MAX_RETRIES)
     return {"brain": brain, "reviewer": reviewer, "summarizer": glimmer, "writer": writer,
             "director": director_client() or brain}
@@ -160,14 +161,18 @@ def replay(store, cid: str, src: str, m: dict, finish, pace: float = PACE_S, qui
     state = {"seq": len(store.events(cid)), "round": 0, "failed": []}
     live_summaries: list[dict] = []
 
-    def push(e: dict, wait: float) -> None:
+    def push(e: dict, wait: float) -> None:  # the time spent writing to the store counts in the pace
+        t = time.monotonic()
         store.append_event(cid, state["seq"], {**{k: v for k, v in e.items() if k != "seq"}, "timestamp": _now()})
         state["seq"] += 1
-        sleep(wait)
+        sleep(max(0.0, wait - (time.monotonic() - t)))
 
-    def stopped() -> bool:
+    def stopped() -> bool:  # read from the store at most every few seconds (a database round trip)
+        if time.monotonic() - state.get("checked", -1e9) < config.STOP_POLL_S:
+            return state.get("stop", False)
         c = store.get(cid)
-        return bool(c and c.get("cancel_requested_at"))
+        state["checked"], state["stop"] = time.monotonic(), bool(c and c.get("cancel_requested_at"))
+        return state["stop"]
 
     i = 0
     while i < len(recorded):
