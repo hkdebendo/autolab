@@ -192,19 +192,29 @@ About 36 $ of Modal GPU time (calibrations, benchmark, runs), 1.2 $ of Muse Spar
 
 ## Run it
 
-### Quick demo: no GPU, no key
+### Demo: no GPU, the Meta models work live with your keys
 
-The demo plays **sample data: three researches recorded on Nov 1–2, 2026** (lithium solid electrolytes, cobalt-free cathodes, sodium solid electrolytes; `results/2026-11-01_feedback_run/`, `results/2026-11-02_cathode_run/`, `results/2026-11-02_sodium_run/`). Their heavy computations (UMA relaxations and molecular dynamics on GPUs, DFT, Materials Project queries) were done when they ran and are stored in the repository with their 3D files, so **no GPU is needed to watch them**: a GPU is only needed to compute new candidates.
+The demo uses **sample data: three researches recorded on Nov 1–2, 2026** (lithium solid electrolytes, cobalt-free cathodes, sodium solid electrolytes; `results/2026-11-01_feedback_run/`, `results/2026-11-02_cathode_run/`, `results/2026-11-02_sodium_run/`). Their heavy computations (UMA relaxations and molecular dynamics on GPUs, DFT, Materials Project queries) were done when they ran and are stored in the repository with their 3D files, so **no GPU and no database are needed**: a GPU is only needed to compute new candidates.
 
 ```bash
 git clone https://github.com/hkdebendo/autolab.git && cd autolab
 python -m venv .venv                  # Python 3.12
 source .venv/bin/activate             # Windows: .venv\Scripts\activate
 pip install -e ".[web,dev]"
+cp .env.example .env                  # then fill in your keys (see "Your own keys" below)
 python scripts/dev_server.py          # then open http://127.0.0.1:8100
 ```
 
-On the home page, click one of the three examples: the research is played in the lab, then come its research card, summary, final report and Muse Wonder's campaign review. The **Results**, **Benchmark & Tests** and **Settings** pages work too. A recorded research can also be opened directly, e.g. `http://127.0.0.1:8100/c/0245f94a24cf?watch` (lithium), `590fa5770002` (cathodes), `7af9efdcdd9a` (sodium).
+**With your keys, the Meta models do the real work** (`scripts/dev_server.py`, `autolab/agent/hybrid.py`):
+
+- **Muse Spark** reads every request (scope check) and answers your follow-up questions about a research; **Muse Voice Transcribe** takes dictation (microphone button).
+- Click one of the three examples of the home page: the research is replayed in the lab in **hybrid mode**. Muse Spark's proposals and every computation come from the recorded research, while the agents work live on those results, with the same prompts as in a research: **Muse Spark** analyses each round's failures and corrects its strategy, **Muse Spark Open** reviews the candidates, the plain-language summaries are written again and **Muse Wonder** reviews the whole campaign and plans the next one. About 5 minutes and 0.2 $ of your credits per replay.
+- A new request within AutoLab's domains is understood but not started: computing new crystals needs GPUs (see below).
+- A missing key: another Meta model takes the role and its name shows in the interface (Muse Spark writes the summaries unless you have your own Muse Glimmer deployment, see below); a step whose call fails keeps its recorded answer, and the conversation says so.
+
+**Without any key**, the three researches are replayed exactly as recorded and no model is called.
+
+The **Results**, **Benchmark & Tests** and **Settings** pages work in both cases. A recorded research can also be opened directly, e.g. `http://127.0.0.1:8100/c/0245f94a24cf?watch` (lithium), `590fa5770002` (cathodes), `7af9efdcdd9a` (sodium).
 
 The interface shows the agent at work: one card per action, naming the model or tool and what it does (Muse Spark reasoning and proposing, pymatgen building, UMA relaxing the crystal in 3D while the cell parameters move, the electronic insulation check, Muse Spark Open reviews, molecular dynamics with the recorded lithium trajectory, failures sent back and explained, Muse Wonder reviewing the whole campaign), the progress list ticking and a lab notebook of the decisions, with the agent's voice (the browser's speech synthesis) that can be muted from the lab. A **Results** page gathers the champion of every research by domain: what it is, its crystal structure in 3D, its properties with units and error bars, the comparison with its parent, the literature check, why it was chosen and what limits the confidence, with its final report as a PDF.
 
@@ -216,13 +226,13 @@ Copy the template and fill in your keys (each line of `.env.example` says what i
 cp .env.example .env
 ```
 
-| Key | Powers |
-|---|---|
-| `MODEL_API_KEY` | **Meta Model API**: Muse Spark, Muse Wonder, Muse Voice Transcribe |
-| `BASETEN_API_KEY` | Muse Spark Open (independent reviews) |
-| `FIREWORKS_API_KEY`, `GLIMMER_DEPLOYMENT` | Muse Glimmer (plain-language summaries) |
-| `MP_API_KEY` | Materials Project (known phases, reference energies) |
-| `HF_TOKEN` | the UMA weights (gated: accept the FAIR Chemistry License on Hugging Face) |
+| Key | Powers | Needed for the demo |
+|---|---|---|
+| `MODEL_API_KEY` | **Meta Model API**: Muse Spark, Muse Wonder, Muse Voice Transcribe | **yes** (the live agents) |
+| `BASETEN_API_KEY` | Muse Spark Open (independent reviews) | recommended (else Muse Spark reviews) |
+| `FIREWORKS_API_KEY`, `GLIMMER_DEPLOYMENT` | Muse Glimmer (plain-language summaries): on Fireworks it runs only on a dedicated deployment of your own account | optional (else Muse Spark writes them) |
+| `MP_API_KEY` | Materials Project (known phases, reference energies) | no (new researches only) |
+| `HF_TOKEN` | the UMA weights (gated: accept the FAIR Chemistry License on Hugging Face) | no (new researches only) |
 
 New computations also need a GPU: UMA runs on Modal (`modal deploy modal_app/uma_app.py`, `modal_app/dft_app.py`, `modal_app/agent_app.py`) or on a local NVIDIA GPU (`SIM_BACKEND=local`, `pip install -e ".[gpu]"`).
 
