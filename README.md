@@ -42,7 +42,7 @@ Feedback: every failure goes back with its measured numbers
 Muse Spark ── a hypothesis on each failure's cause + a correction ── next round
    │
    ▼
-Final stages: ranking, DFT band gap of the champion (electrolytes), literature check (web search, with a known control),
+Final stages: ranking, band gap of the champion (electrolytes), literature check (web search, with a known control),
 final report with the finalists
    │
    ▼
@@ -56,9 +56,9 @@ The code measures and decides; the models propose, explain and report. The cause
 
 | Domain | Goal | What is measured | Recorded research |
 |---|---|---|---|
-| Lithium solid electrolytes | sulfide electrolytes for lithium-metal batteries, from β-Li3PS4 and Li7P3S11 | stability, electronic insulation, electrochemical window, reaction with lithium metal, interface with a LiFePO4 cathode, Li diffusion (molecular dynamics), conductivity at 300 K, DFT band gap of the champion | [`results/2026-11-01_feedback_run/`](results/2026-11-01_feedback_run/) |
+| Lithium solid electrolytes | sulfide electrolytes for lithium-metal batteries, from β-Li3PS4 and Li7P3S11 | stability, electronic insulation, electrochemical window, reaction with lithium metal, interface with a LiFePO4 cathode, Li diffusion (molecular dynamics), conductivity at 300 K, band gap of the champion | [`results/2026-11-01_feedback_run/`](results/2026-11-01_feedback_run/) |
 | Cobalt-free cathodes | a higher energy density than LiFePO4, from LiFePO4, LiMnPO4, LiMn2O4 and LiNi0.5Mn1.5O4 | stability, average voltage, capacity, energy density, volume change, each against its parent | [`results/2026-11-02_cathode_run/`](results/2026-11-02_cathode_run/) |
-| Sodium solid electrolytes | Na+ conductors for sodium-metal batteries, from Na3PS4, Na3SbS4 and a NASICON | stability, electronic insulation, window vs Na/Na+, reaction with sodium metal, Na diffusion (molecular dynamics), DFT band gap of the champion | [`results/2026-11-02_sodium_run/`](results/2026-11-02_sodium_run/) |
+| Sodium solid electrolytes | Na+ conductors for sodium-metal batteries, from Na3PS4, Na3SbS4 and a NASICON | stability, electronic insulation, window vs Na/Na+, reaction with sodium metal, Na diffusion (molecular dynamics), band gap of the champion | [`results/2026-11-02_sodium_run/`](results/2026-11-02_sodium_run/) |
 
 ## Why it can be trusted
 
@@ -74,11 +74,10 @@ Every test, criterion and measured number is in [`SPEC.md`](SPEC.md) (section 7)
 - **Muse Spark** (Meta Model API): proposals, choice of the MD candidate, analysis of failures, final report, literature check with web search.
 - **Muse Spark Open** (Baseten): one independent review per candidate, in parallel; fallback of Muse Spark.
 - **Muse Glimmer** (Fireworks, dedicated deployment): plain-language summaries of each round and of the research.
-- **Muse Wonder** (Meta Model API): the research director. At the end of each research it reads the whole campaign at once (every round, measurement, failure and Muse Spark hypothesis, the ranking, the literature check and the report) and writes what the campaign taught, what worked, what failed and the next campaign to run. It decides nothing: thresholds, ranking and verdicts stay the code's. Reviews of the three recorded researches: `results/2026-11-01_feedback_run/`, `results/2026-11-02_cathode_run/`, `results/2026-11-02_sodium_run/` (`campaign_review.md`).
+- **Muse Wonder** (Meta Model API): the research director. At the end of each research it reads the whole campaign at once (every round, measurement, failure and Muse Spark hypothesis, the ranking, the literature check and the report) and writes what the campaign taught, what worked, what failed and the next campaign to run.  Reviews of the three recorded researches: `results/2026-11-01_feedback_run/`, `results/2026-11-02_cathode_run/`, `results/2026-11-02_sodium_run/` (`campaign_review.md`).
 - **UMA** `uma-s-1p2` (Meta FAIR, open weights): relaxations, energies and molecular dynamics, on Modal GPUs (T4 for relaxations, H100 for MD).
 - **Muse Voice Transcribe** (Meta Model API, realtime): the researcher can dictate a request; the local web server relays the microphone to Meta, so the key never reaches the browser.
-- **Muse Code** (Meta coding agent): the web interface was built with Muse Code; commits written with it say so.
-
+- **Muse Code** (Meta coding agent): the web interface was built with Muse Code
 ### What is a Meta model call, and what is not
 
 | Part | What it is |
@@ -100,7 +99,7 @@ No other model runs during a research.
 
 ### Run AutoLab on your computer
 
-`scripts/run_autolab.py` runs the **full AutoLab**: the same interface, agents and research engine as the cloud version, with a database in memory (no Supabase). It starts with **sample data: three researches recorded on Nov 1–2, 2026** (lithium solid electrolytes, cobalt-free cathodes, sodium solid electrolytes; `results/2026-11-01_feedback_run/`, `results/2026-11-02_cathode_run/`, `results/2026-11-02_sodium_run/`), whose computations (UMA relaxations and molecular dynamics on GPUs, DFT, Materials Project) are stored in the repository with their 3D files: replaying them needs **no GPU**.
+`scripts/run_autolab.py` runs the **full AutoLab**: the same interface, agents and research engine as the cloud version, with a database in memory (no Supabase). It starts with **sample data: three researches** (lithium solid electrolytes, cobalt-free cathodes, sodium solid electrolytes; `results/2026-11-01_feedback_run/`, `results/2026-11-02_cathode_run/`, `results/2026-11-02_sodium_run/`), whose computations (UMA relaxations and molecular dynamics on GPUs, DFT, Materials Project) are stored in the repository with their 3D files: replaying them needs **no GPU**.
 
 ```bash
 git clone https://github.com/hkdebendo/autolab.git && cd autolab
@@ -114,19 +113,15 @@ python scripts/run_autolab.py         # then open http://127.0.0.1:8100
 **With your keys, the Meta models do the real work** (`autolab/agent/hybrid.py`):
 
 - **Muse Spark** reads every request and answers your questions, written or dictated (**Muse Voice Transcribe**, microphone button): about a research, about AutoLab ("who are you?", "what can you do?"), or general science ("is copper a good conductor?").
-- Click one of the three examples of the home page, or ask for the same research in your own words (Muse Spark recognises it): the research is replayed in the lab in **hybrid mode**. Muse Spark's proposals and every computation come from the recorded research, while the agents work live on those results, with the same prompts as in a research: **Muse Spark** analyses each round's failures and corrects its strategy, **Muse Spark Open** reviews the candidates, the plain-language summaries are written again and **Muse Wonder** reviews the whole campaign and plans the next one. About 5 minutes and 0.2 $ of your credits per replay.
+- Click one of the three examples of the home page, or ask for the same research in your own words.  Every computation come from the recorded research, while the agents work live on those results,  **Muse Spark** analyses each round's failures and corrects its strategy, **Muse Spark Open** reviews the candidates, the plain-language summaries are written again and **Muse Wonder** reviews the whole campaign and plans the next one. About 5 minutes and 0.2 $ of your credits per replay.
 - Any other request within AutoLab's domains **starts a real research** (see "Run a real research" below); if something it needs is missing (a key, Modal), the conversation says exactly what and how to add it. Only a request outside AutoLab's domains is declined.
 - A missing model key: another Meta model takes the role and its name shows in the interface (Muse Spark writes the summaries unless you have your own Muse Glimmer deployment); a step whose call fails keeps its recorded answer, and the conversation says so.
-
-**Without any key**, the three researches are replayed exactly as recorded and no model is called.
-
-The **Results**, **Benchmark & Tests** and **Settings** pages work in every case. A recorded research can also be opened directly, e.g. `http://127.0.0.1:8100/c/0245f94a24cf?watch` (lithium), `590fa5770002` (cathodes), `7af9efdcdd9a` (sodium).
 
 The interface shows the agent at work: one card per action, naming the model or tool and what it does (Muse Spark reasoning and proposing, pymatgen building, UMA relaxing the crystal in 3D while the cell parameters move, the electronic insulation check, Muse Spark Open reviews, molecular dynamics with the lithium trajectory, failures sent back and explained, Muse Wonder reviewing the whole campaign), the progress list ticking and a lab notebook of the decisions, with the agent's voice (the browser's speech synthesis) that can be muted from the lab. A **Results** page gathers the champion of every research by domain: what it is, its crystal structure in 3D, its properties with units and error bars, the comparison with its parent, the literature check, why it was chosen and what limits the confidence, with its final report as a PDF.
 
 ### Your own keys
 
-Copy the template and fill in your keys (each line of `.env.example` says what it powers and where to get it); `.env` is ignored by Git, never commit it:
+Copy the template and fill in your keys (each line of `.env.example` says what it powers and where to get it)
 
 ```bash
 cp .env.example .env
@@ -134,7 +129,7 @@ cp .env.example .env
 
 | Key | Powers | Needed for |
 |---|---|---|
-| `MODEL_API_KEY` | **Meta Model API**: Muse Spark, Muse Wonder, Muse Voice Transcribe | the live agents (hybrid replays, questions, researches) |
+| `MODEL_API_KEY` | **Meta Model API**: Muse Spark, Muse Wonder, Muse Voice Transcribe  |
 | `BASETEN_API_KEY` | Muse Spark Open (independent reviews) | recommended (else Muse Spark reviews) |
 | `FIREWORKS_API_KEY`, `GLIMMER_DEPLOYMENT` | Muse Glimmer (plain-language summaries): on Fireworks it runs only on a dedicated deployment of your own account | optional (else Muse Spark writes them) |
 | `MP_API_KEY` | Materials Project (known phases, reference energies) | a new research |
@@ -157,8 +152,7 @@ python scripts/run_autolab.py                                      # then write 
 
 The research is followed live in the lab, then come its summary, final report (exportable as PDF) and Muse Wonder's campaign review; you can question the agent about it. A research of 3 rounds takes about 30 to 60 minutes and costs about 5 to 6 $ of Modal GPU time and under 1 $ of model calls. Every computation is cached in `.cache/`: nothing is computed twice. UMA can also run on a local NVIDIA GPU instead of Modal (`SIM_BACKEND=local` in `.env`, `pip install -e ".[gpu]"`).
 
-### Cloud deployment (optional): the set-up used in the video
-
+### Cloud deployment (optional)
 The same AutoLab can run as an online service: the research engine on Modal, the conversations in a PostgreSQL database (e.g. a free Supabase project), the interface served by `web/app.py`. Conversations and results then persist, researches keep running when your computer is off, and the page can be opened from anywhere. On top of the steps of "Run a real research":
 
 ```bash
@@ -173,7 +167,7 @@ python scripts/db_setup.py                                         # creates the
 uvicorn web.app:app --port 8000                                    # http://127.0.0.1:8000
 ```
 
-Known requests are then replayed in hybrid mode by a Modal CPU function, new researches run on Modal, and dictation is relayed by `web/app.py` (it reads `MODEL_API_KEY` from `.env`).
+Researches run on Modal, and dictation is relayed by `web/app.py` (it reads `MODEL_API_KEY` from `.env`).
 
 ### Meta open-weight model
 
@@ -207,7 +201,7 @@ scripts/      run AutoLab, runs, calibrations, benchmarks, conductivity, error b
 results/      every recorded run with its events, result and report
 ```
 
-The loop is generic: a domain provides its funnel, prompts, slow tests, ranking and the thresholds it uses. Every step reads the caches before computing (relaxations, molecular dynamics, Materials Project, band gaps, model replies). See [`SPEC.md`](SPEC.md) for the architecture and every validated parameter.
+The loop is generic: a domain provides its funnel, prompts, slow tests, ranking and the thresholds it uses, these thresholds can be modified by the researchers.. Every step reads the caches before computing (relaxations, molecular dynamics, Materials Project, band gaps, model replies). See [`SPEC.md`](SPEC.md) for the architecture and every validated parameter.
 
 ## Tests
 
@@ -219,8 +213,7 @@ pytest --gpu                  # UMA truth tests (NVIDIA GPU only)
 
 ## Limits
 
-AutoLab's candidates are **computational predictions**, not materials proven in a lab: synthesis and measurements would be needed to confirm them. In the three recorded researches, no candidate was shown to beat its parent, and the finalists belong to families already studied in the literature. The energies come from a learned potential (UMA) with measured error bars; only the band gap of the electrolyte champions is checked by DFT.
-
+AutoLab's candidates are **computational predictions**, not materials proven in a lab: synthesis and measurements would be needed to confirm them. 
 ## Author
 
 **Vincent Ricardo Amoussou** · Benin
